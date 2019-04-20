@@ -50,7 +50,7 @@ namespace MySFformat
 
             for (int i = 0; i < targetFlver.Meshes.Count; i++)
             {
-               // int currentV = 0;
+                // int currentV = 0;
                 //Microsoft.Xna.Framework.Vector3[] vl = new Microsoft.Xna.Framework.Vector3[3];
 
                 foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
@@ -422,6 +422,131 @@ namespace MySFformat
                 
             };
 
+            Button button7 = new Button();
+
+            button7.Text = "BB_BoneFix";
+            button7.Location = new System.Drawing.Point(450, 400);
+            button7.Click += (s, e) => {
+
+                var confirmResult = MessageBox.Show("Do you want to set pelvis bone from BB to Sekiro style?",
+                                     "Set",
+                                     MessageBoxButtons.YesNo);
+                if (confirmResult == DialogResult.Yes)
+                {
+                    // If 'Yes', do something here.
+                    for (int i = 0; i < targetFlver.Bones.Count; i++)
+                    {
+                        if (targetFlver.Bones[i].Name == "Pelvis")
+                        {
+                            targetFlver.Bones[i].Rotation.Z = targetFlver.Bones[i].Rotation.Z + (float)Math.PI;
+
+                            for (int j = 0; j < targetFlver.Bones.Count; j++)
+                            {
+                                if (targetFlver.Bones[j].ParentIndex == i)
+                                {
+                                    targetFlver.Bones[j].Rotation.Z = targetFlver.Bones[j].Rotation.Z + (float)Math.PI;
+                                    targetFlver.Bones[j].Translation *= -1;
+                                }
+
+                            }
+                            break;
+                        }
+
+
+                    }
+                }
+                else
+                {
+                    // If 'No', do something here.
+                }
+
+                var confirmResult2 = MessageBox.Show("Do you want to modify foot bone to avoid mesh error at sekiro?",
+                                    "Set",
+                                    MessageBoxButtons.YesNo);
+                if (confirmResult2 == DialogResult.Yes)
+                {
+                    // If 'Yes', do something here.
+                    for (int i = 0; i < targetFlver.Bones.Count; i++)
+                    {
+                        if (targetFlver.Bones[i].Name == "R_Foot" || targetFlver.Bones[i].Name == "L_Foot")
+                        {
+                            targetFlver.Bones[i].Translation.X = 0.42884814f;
+                            targetFlver.Bones[i].Translation.Z = 0.02f;
+
+                            targetFlver.Bones[i].Rotation.Y -= 0.01f; 
+                        } else if (targetFlver.Bones[i].Name == "R_Calf" || targetFlver.Bones[i].Name == "L_Calf")
+                        {
+                            targetFlver.Bones[i].Scale.X = 1.1f;
+                        }
+                        else if (targetFlver.Bones[i].Name == "R_Toe0" || targetFlver.Bones[i].Name == "L_Toe0")
+                        {
+                            targetFlver.Bones[i].Translation.X += 0.02f;
+                        }
+
+                       
+                        //R_Calf
+
+                    }
+                }
+                else
+                {
+                    // If 'No', do something here.
+                }
+
+                var confirmResult3 = MessageBox.Show("[OPTIONAL]Do you want to modify clavicle bones to change shoulder at sekiro?\r\nThis is eperiemental and may cause problems.",
+                                    "Set",
+                                    MessageBoxButtons.YesNo);
+                if (confirmResult3 == DialogResult.Yes)
+                {
+                    // If 'Yes', do something here.
+                    for (int i = 0; i < targetFlver.Bones.Count; i++)
+                    {
+                        FLVER.Bone bone = targetFlver.Bones[i];
+                        if (bone.Name == "L_Clavicle")
+                        {
+                            bone.Translation.Y += 0.05f;
+
+                        }
+                        else if (targetFlver.Bones[i].Name == "R_Clavicle")
+                        {
+                            bone.Translation.Y -= 0.05f;
+
+                        }
+                        else if (targetFlver.Bones[i].Name == "L_UpperArm")
+                        {
+                            bone.Translation.Y -= 0.05f;
+                            bone.Translation.Z -= 0.02f;
+                            bone.Scale.X = 0.9f;
+                        }
+                        else if (targetFlver.Bones[i].Name == "R_UpperArm")
+                        {
+                            bone.Translation.Y += 0.05f;
+                            bone.Translation.Z -= 0.02f;
+                            bone.Scale.X = 0.9f;
+                        }
+                        else if (targetFlver.Bones[i].Name == "L_Forearm")
+                        {
+                            bone.Scale.X = 1.1f;
+                        }
+                        else if (targetFlver.Bones[i].Name == "R_Forearm")
+                        {
+                            bone.Scale.X = 1.1f;
+                        }
+
+
+
+                        //R_Calf
+
+                    }
+                }
+              
+
+                targetFlver.Write(flverName);
+
+                MessageBox.Show("BB pelvis bone fix completed! Please exit the program!", "Info");
+
+
+            };
 
 
 
@@ -435,6 +560,7 @@ namespace MySFformat
                 button_dummy.Location = new System.Drawing.Point(f.Size.Width - 100, 250);
                 button5.Location = new System.Drawing.Point(f.Size.Width - 100, 300);
                 button6.Location = new System.Drawing.Point(f.Size.Width - 100, 350);
+                button7.Location = new System.Drawing.Point(f.Size.Width - 100, 400);
             };
 
            
@@ -446,6 +572,7 @@ namespace MySFformat
             f.Controls.Add(button_dummy);
             f.Controls.Add(button5);
             f.Controls.Add(button6);
+            f.Controls.Add(button7);
             Application.Run(f);
             
            
@@ -460,7 +587,11 @@ namespace MySFformat
             Panel p = new Panel();
             int currentY2 = 10;
             p.AutoScroll = true;
-          
+            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string dummyStr =  File.ReadAllText(assemblyPath + "\\dummyInfo.dll");
+            List<FLVER.Dummy> refDummy = new JavaScriptSerializer().Deserialize<List<FLVER.Dummy>>(dummyStr); 
+
+            //Console.WriteLine(dummyStr);
 
             f.Controls.Add(p);
             {
@@ -479,6 +610,14 @@ namespace MySFformat
             p.Controls.Add(t);
 
 
+            TextBox tref = new TextBox();
+            ;
+            tref.Size = new System.Drawing.Size(100, 15);
+            tref.Location = new System.Drawing.Point(150, currentY2 + 5);
+            tref.Text = "";
+            p.Controls.Add(tref);
+
+
             Button buttonCheck = new Button();
             buttonCheck.Text = "Check";
             buttonCheck.Location = new System.Drawing.Point(70, currentY2 + 5);
@@ -489,6 +628,8 @@ namespace MySFformat
 
                     useCheckingPoint = true;
                     checkingPoint = new Vector3(targetFlver.Dummies[i].Position.X, targetFlver.Dummies[i].Position.Y, targetFlver.Dummies[i].Position.Z);
+
+                    tref.Text = "RefID:" + targetFlver.Dummies[i].ReferenceID;
                     updateVertices();
                 }
                 else
@@ -601,6 +742,43 @@ namespace MySFformat
 
             };
 
+            Button buttonFix = new Button();
+
+            buttonFix.Text = "SekiroFix";
+            buttonFix.Location = new System.Drawing.Point(650, 200);
+            buttonFix.Click += (s, e) => {
+
+
+                        // targetFlver.Dummies = serializer.Deserialize<List<FLVER.Dummy>>(res);
+                        //targetFlver.Write(flverName);
+                        for (int i =0;i < refDummy.Count;i++)
+                        {
+                            for (int j =0; j < targetFlver.Dummies.Count;j++)
+                            {
+                                if (targetFlver.Dummies[j].ReferenceID == refDummy[i].ReferenceID)
+                                {
+                                    break;
+                                }
+                                else if (j == targetFlver.Dummies.Count -1)
+                                {
+
+                                    targetFlver.Dummies.Add(refDummy[i]);
+                                    break;
+                                }
+                            }
+
+                        }
+                        targetFlver.Write(flverName);
+
+                        updateVertices();
+                        MessageBox.Show("Dummy change fixed! Please exit the program!", "Info");
+                    
+                   
+              
+
+
+            };
+
             f.Size = new System.Drawing.Size(750, 600);
             p.Size = new System.Drawing.Size(600, 530);
             f.Resize += (s, e) =>
@@ -609,11 +787,13 @@ namespace MySFformat
                 button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
                 button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
                 button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
+                buttonFix.Location = new System.Drawing.Point(f.Size.Width - 100, 200);
             };
 
             f.Controls.Add(button);
             f.Controls.Add(button2);
             f.Controls.Add(button3);
+            f.Controls.Add(buttonFix);
             f.ShowDialog();
         }
 

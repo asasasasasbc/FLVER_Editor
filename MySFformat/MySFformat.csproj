@@ -112,6 +112,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="dummyInfo.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SoulsFormats.dll" />
     <Content Include="SoulsFormats.pdb" />
     <Content Include="SoulsFormats.xml" />
