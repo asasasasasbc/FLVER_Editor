@@ -15,6 +15,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace MySFformat
 {
+    enum RenderMode { Line, Triangle, Both }
     class Mono3D : Game
     {
         GraphicsDeviceManager graphics;
@@ -22,8 +23,9 @@ namespace MySFformat
         Texture2D test;
         KeyboardState prevState = new KeyboardState();
         MouseState prevMState = new MouseState();
-
+        RenderMode renderMode = RenderMode.Both;
         public VertexPositionColor[] vertices = new VertexPositionColor[0];
+        public VertexPositionColor[] triVertices = new VertexPositionColor[0];
 
         VertexPositionTexture[] floorVerts;
         BasicEffect effect;
@@ -42,9 +44,13 @@ namespace MySFformat
         float centerY = 0;
         float centerZ = 0;
 
+        public float lightX = 1;
+        public float lightY = 1;
+        public float lightZ = 1;
+
         public Mono3D()
         {
-            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh";
+            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode";
             Window.AllowUserResizing = true;
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
@@ -179,6 +185,19 @@ namespace MySFformat
 
             }
 
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F1))
+            {
+                renderMode = RenderMode.Line;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F2))
+            {
+                renderMode = RenderMode.Triangle;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F3))
+            {
+                renderMode = RenderMode.Both;
+            }
+
             if (mState.ScrollWheelValue - prevMState.ScrollWheelValue > 0)
             {
                 //mouseY -= (50 * delta);
@@ -186,9 +205,9 @@ namespace MySFformat
 
 
 
-                cameraX = p.X - 1 * (float)(p.X / p.Length());
-                cameraY = p.Y - 1 * (float)(p.Y / p.Length());
-                cameraZ = p.Z - 1 * (float)(p.Z / p.Length());
+                cameraX = p.X - 0.5f * (float)(p.X / p.Length());
+                cameraY = p.Y - 0.5f * (float)(p.Y / p.Length());
+                cameraZ = p.Z - 0.5f * (float)(p.Z / p.Length());
             }
 
             if (mState.ScrollWheelValue - prevMState.ScrollWheelValue < 0)
@@ -196,9 +215,9 @@ namespace MySFformat
                 System.Numerics.Vector3 p = new System.Numerics.Vector3(cameraX, cameraY, cameraZ);
 
 
-                cameraX = p.X + 1 * (float)(p.X / p.Length());
-                cameraY = p.Y + 1 * (float)(p.Y / p.Length());
-                cameraZ = p.Z + 1 * (float)(p.Z / p.Length());
+                cameraX = p.X + 0.5f * (float)(p.X / p.Length());
+                cameraY = p.Y + 0.5f * (float)(p.Y / p.Length());
+                cameraZ = p.Z + 0.5f * (float)(p.Z / p.Length());
             }
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Right))
@@ -310,7 +329,7 @@ namespace MySFformat
             // Rectangle screenRectangle = new Rectangle((int)mouseX, (int)mouseY, 50, 50);
             //  spriteBatch.Draw(test, screenRectangle, Color.White);
             DrawGround();
-
+            //effect.EnableDefaultLighting();
             /*var vertices = new VertexPositionColor[4];
              vertices[0].Position = new Vector3(100, 100, 0);
              vertices[0].Color = Color.Black;
@@ -321,9 +340,35 @@ namespace MySFformat
              vertices[3].Position = new Vector3(100, 200, 0);
              vertices[3].Color = Color.Red;
              */
+            /*if (renderMode == RenderMode.Triangle)
+            {
+                effect.LightingEnabled = true;
+                effect.VertexColorEnabled = false;
+
+            }
+            else
+            {
+                effect.LightingEnabled = false;
+                effect.VertexColorEnabled = true;
+                
+            }*/
+
             if (vertices.Length > 0)
             {
-                GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
+                if (renderMode == RenderMode.Line)
+                {
+                    GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
+
+                }
+                else if (renderMode == RenderMode.Triangle)
+                {
+                    
+                    graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3);
+                }
+                else {
+                    graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3);
+                    GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
+                }
             }
            
 
@@ -340,21 +385,26 @@ namespace MySFformat
             var cameraLookAtVector =new Vector3(centerX + offsetX,centerY + offsetY,centerZ + offsetZ);
             var cameraUpVector = Vector3.UnitZ;
 
+            DepthStencilState depthBufferState = new DepthStencilState();
+            depthBufferState.DepthBufferEnable = true;
+            depthBufferState.DepthBufferFunction = CompareFunction.LessEqual;
+            GraphicsDevice.DepthStencilState = depthBufferState;
+
 
 
             effect.View = Matrix.CreateLookAt(
                 cameraPosition, cameraLookAtVector, cameraUpVector);
-            //effect.VertexColorEnabled = true;
+            effect.VertexColorEnabled = true;
             float aspectRatio =
                 graphics.PreferredBackBufferWidth / (float)graphics.PreferredBackBufferHeight;
             float fieldOfView = Microsoft.Xna.Framework.MathHelper.PiOver4;
-            float nearClipPlane = 1;
+            float nearClipPlane = 0.1f;
             float farClipPlane = 200;
 
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(
                 fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
 
-
+            
            /* foreach (var pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
@@ -377,7 +427,7 @@ namespace MySFformat
 
             lines[0] = new VertexPositionColor(new Vector3(0, 0, 0), Color.Red);
 
-            lines[1] = new VertexPositionColor(new Vector3(20, 0, 0), Color.Red);
+            lines[1] = new VertexPositionColor(new Vector3(10, 0, 0), Color.Red);
 
             lines[2] = new VertexPositionColor(new Vector3(0, 0, 0), Color.Blue);
 
@@ -392,9 +442,7 @@ namespace MySFformat
             {
                 pass.Apply();
 
-                graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, lines, 0, 3);
-
-
+                   graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, lines, 0, 3);
 
             }
 

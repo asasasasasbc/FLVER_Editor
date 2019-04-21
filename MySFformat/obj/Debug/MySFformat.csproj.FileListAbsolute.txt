@@ -32,3 +32,35 @@ J:\3D MAX\血源诅咒模型工具\SoulsFormats_My\MySFformat\MySFformat\bin\Deb
 J:\3D MAX\血源诅咒模型工具\SoulsFormats_My\MySFformat\MySFformat\bin\Debug\SharpDX.Direct3D9.xml
 J:\3D MAX\血源诅咒模型工具\SoulsFormats_My\MySFformat\MySFformat\bin\Debug\dummyInfo.dll
 J:\3D MAX\血源诅咒模型工具\SoulsFormats_My\MySFformat\MySFformat\obj\Debug\MySFformat.csprojAssemblyReference.cache
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\dummyInfo.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\WP_A_0300.flver
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\WP_A_1070_Cane.flver
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\MySFformat.exe.config
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\MySFformat.exe
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\MySFformat.pdb
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\MonoGame.Framework.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SoulsFormats.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.MediaFoundation.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.XAudio2.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.DXGI.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct3D11.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct2D1.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.XInput.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct3D9.dll
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\MonoGame.Framework.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SoulsFormats.pdb
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SoulsFormats.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.MediaFoundation.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.XAudio2.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.DXGI.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct3D11.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct2D1.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.XInput.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\bin\Debug\SharpDX.Direct3D9.xml
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\obj\Debug\MySFformat.csprojResolveAssemblyReference.cache
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\obj\Debug\MySFformat.Properties.Resources.resources
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\obj\Debug\MySFformat.csproj.GenerateResource.Cache
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\obj\Debug\MySFformat.exe
+C:\Users\Alan\Desktop\FLVER_Editor-master\MySFformat\obj\Debug\MySFformat.pdb

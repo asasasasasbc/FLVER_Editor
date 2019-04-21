@@ -28,6 +28,9 @@ namespace MySFformat
         public static Vector3 checkingPoint;
         public static Boolean useCheckingPoint = false;
 
+        public static int checkingMeshNum = 0;
+        public static Boolean useCheckingMesh = false;
+
         public static string[] argments = { };
         /// <summary>
         /// 应用程序的主入口点。
@@ -43,17 +46,71 @@ namespace MySFformat
             Console.WriteLine("Hello!");
             ModelAdjModule();
         }
+       public static  Microsoft.Xna.Framework.Vector3 toXnaV3(System.Numerics.Vector3 v)
+        {
+
+            return new Microsoft.Xna.Framework.Vector3(v.X,v.Y,v.Z);
+        }
+
+        public static Microsoft.Xna.Framework.Vector3 toXnaV3XZY(System.Numerics.Vector3 v)
+        {
+
+            return new Microsoft.Xna.Framework.Vector3(v.X, v.Z, v.Y);
+        }
 
         public static void updateVertices()
         {
             List<VertexPositionColor> ans = new List<VertexPositionColor>();
+            List<VertexPositionColor> triangles = new List<VertexPositionColor>();
 
             for (int i = 0; i < targetFlver.Meshes.Count; i++)
             {
                 // int currentV = 0;
                 //Microsoft.Xna.Framework.Vector3[] vl = new Microsoft.Xna.Framework.Vector3[3];
 
-                foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
+                foreach (FLVER.Vertex[] vl in targetFlver.Meshes[i].GetFaces())
+                {
+                    Microsoft.Xna.Framework.Color cline = Microsoft.Xna.Framework.Color.Black;
+                    if (useCheckingMesh && checkingMeshNum == i)
+                    {
+                        cline.G = 255;
+                        cline.R = 255;
+                    }
+                    cline.A = 125;
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Positions[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Positions[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Positions[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Positions[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Positions[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Positions[0]), cline));
+
+                    Microsoft.Xna.Framework.Color c = new Microsoft.Xna.Framework.Color();
+
+                    Microsoft.Xna.Framework.Vector3 va = toXnaV3(vl[1].Positions[0]) - toXnaV3(vl[0].Positions[0]);
+                    Microsoft.Xna.Framework.Vector3 vb = toXnaV3(vl[2].Positions[0]) - toXnaV3(vl[0].Positions[0]);
+                    Microsoft.Xna.Framework.Vector3 vnromal = crossPorduct(va, vb);
+                    vnromal.Normalize();
+                    Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);
+                    light.Normalize();
+                    float theta = dotProduct(vnromal, light);
+                    int value = 125 + (int)(125 * theta);
+                    if (value > 255) { value = 255; }
+                    if (value < 0) { value = 0; }
+                    c.R = (byte)value;
+                    c.G = (byte)value;
+                    c.B = (byte)value;
+                    c.A = 255;
+                    if (useCheckingMesh && checkingMeshNum == i)
+                    {
+                        c.B = 0;
+                    }
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Positions[0]), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Positions[0]), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Positions[0]), c));
+                }
+                
+
+                //foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                 {
                     /* if(v.Positions.Count >= 3)
                      {
@@ -66,9 +123,9 @@ namespace MySFformat
                          ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Positions[1].X, v.Positions[1].Y, v.Positions[1].Z), Microsoft.Xna.Framework.Color.Black));
                          ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Positions[2].X, v.Positions[2].Y, v.Positions[2].Z), Microsoft.Xna.Framework.Color.Black));
                      }*/
-                    for (int j = 0; j < v.Positions.Count; j++)
+                    //for (int j = 0; j < v.Positions.Count; j++)
                     {
-                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Positions[j].X, v.Positions[j].Z, v.Positions[j].Y), Microsoft.Xna.Framework.Color.Black));
+                        //ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Positions[j].X, v.Positions[j].Z, v.Positions[j].Y), Microsoft.Xna.Framework.Color.Black));
 
                        /* vl[currentV] = new Microsoft.Xna.Framework.Vector3(v.Positions[j].X, v.Positions[j].Z, v.Positions[j].Y);
                         currentV++;
@@ -84,6 +141,7 @@ namespace MySFformat
                         }*/
                     }
                 }
+            
             }
             if (ans.Count % 2 != 0)
             {
@@ -128,7 +186,10 @@ namespace MySFformat
 
                 useCheckingPoint = false;
             }
+            useCheckingMesh = false;
             mono.vertices = ans.ToArray();
+
+            mono.triVertices = triangles.ToArray();
         }
 
        
@@ -160,7 +221,7 @@ namespace MySFformat
             else 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                Console.WriteLine(openFileDialog1.FileName);
+                //Console.WriteLine(openFileDialog1.FileName);
                 //openFileDialog1.
             }
             else
@@ -228,8 +289,8 @@ namespace MySFformat
             {
                 Label l = new Label();
                 l.Text = "child";
-                l.Size = new System.Drawing.Size(90, 15);
-                l.Location = new System.Drawing.Point(370, currentY + 5);
+                l.Size = new System.Drawing.Size(50, 15);
+                l.Location = new System.Drawing.Point(360, currentY + 5);
                 p.Controls.Add(l);
             }
             {
@@ -260,7 +321,7 @@ namespace MySFformat
             {
                 // foreach (FLVER.Bone bn in b.Bones)
                 FLVER.Bone bn = b.Bones[i];
-                Console.WriteLine(bn.Name);
+                //Console.WriteLine(bn.Name);
 
                 TextBox t = new TextBox();
                 t.Size = new System.Drawing.Size(200,15);
@@ -290,18 +351,21 @@ namespace MySFformat
                 TextBox t4 = new TextBox();
                 t4.Size = new System.Drawing.Size(90, 15);
                 t4.Location = new System.Drawing.Point(410, currentY);
+                t4.ReadOnly = true;
                 t4.Text = bn.Translation.X + "," + bn.Translation.Y +"," + bn.Translation.Z ;
                 p.Controls.Add(t4);
 
                 TextBox t5 = new TextBox();
                 t5.Size = new System.Drawing.Size(90, 15);
                 t5.Location = new System.Drawing.Point(500, currentY);
+                t5.ReadOnly = true;
                 t5.Text = bn.Scale.X + "," + bn.Scale.Y + "," + bn.Scale.Z;
                 p.Controls.Add(t5);
 
                 TextBox t6 = new TextBox();
                 t6.Size = new System.Drawing.Size(90, 15);
                 t6.Location = new System.Drawing.Point(590, currentY);
+                t6.ReadOnly = true;
                 t6.Text = bn.Rotation.X + "," + bn.Rotation.Y + "," + bn.Rotation.Z;
                 p.Controls.Add(t6);
                 
@@ -332,21 +396,39 @@ namespace MySFformat
             var serializer = new JavaScriptSerializer();
             string serializedResult = serializer.Serialize(b.Bones);
 
+            {
+                Label l = new Label();
+                l.Text = "Bones Json text";
+                l.Size = new System.Drawing.Size(150, 15);
+                l.Location = new System.Drawing.Point(10, currentY + 5);
+                p.Controls.Add(l);
+                currentY += 20;
+            }
+
 
             TextBox tbones = new TextBox();
             tbones.Multiline = true;
             tbones.Size = new System.Drawing.Size(670, 600);
-            tbones.Location = new System.Drawing.Point(10, currentY+20);
+            tbones.Location = new System.Drawing.Point(10, currentY+5);
             tbones.Text = serializedResult;
 
             p.Controls.Add(tbones);
 
-            currentY += 620;
+            currentY += 600;
+
+            {
+                Label l = new Label();
+                l.Text = "Header Json text";
+                l.Size = new System.Drawing.Size(150, 15);
+                l.Location = new System.Drawing.Point(10, currentY + 5);
+                p.Controls.Add(l);
+                currentY += 20;
+            }
 
             TextBox tbones2 = new TextBox();
             tbones2.Multiline = true;
             tbones2.Size = new System.Drawing.Size(670, 300);
-            tbones2.Location = new System.Drawing.Point(10, currentY + 20);
+            tbones2.Location = new System.Drawing.Point(10, currentY + 5);
             serializedResult = serializer.Serialize(b.Header);
             tbones2.Text = serializedResult;
 
@@ -383,7 +465,7 @@ namespace MySFformat
 
             Button button5 = new Button();
            
-            button5.Text = "SaveJson";
+            button5.Text = "ModifyJson";
             button5.Location = new System.Drawing.Point(450, 300);
             button5.Click += (s, e) => {
                b.Bones = serializer.Deserialize<List<FLVER.Bone>>(tbones.Text);
@@ -573,6 +655,8 @@ namespace MySFformat
             f.Controls.Add(button5);
             f.Controls.Add(button6);
             f.Controls.Add(button7);
+            f.BringToFront();
+            f.WindowState = FormWindowState.Normal;
             Application.Run(f);
             
            
@@ -848,7 +932,7 @@ namespace MySFformat
             {
                 // foreach (FLVER.Bone bn in b.Bones)
                 FLVER.Material bn = targetFlver.Materials[i];
-                Console.WriteLine(bn.Name);
+                //Console.WriteLine(bn.Name);
 
                 TextBox t = new TextBox();
                 t.Size = new System.Drawing.Size(200, 15);
@@ -941,7 +1025,7 @@ namespace MySFformat
 
             Button button2 = new Button();
 
-            button2.Text = "SaveJson";
+            button2.Text = "ModifyJson";
             button2.Location = new System.Drawing.Point(650, 100);
             button2.Click += (s, e) => {
                 targetFlver.Materials = serializer.Deserialize<List<FLVER.Material>>(tbones.Text);
@@ -1032,29 +1116,37 @@ namespace MySFformat
             }
             {
                 Label l = new Label();
-                l.Text = "kill it?";
+                l.Text = "Delete?";
                 l.Size = new System.Drawing.Size(70, 15);
                 l.Location = new System.Drawing.Point(270, currentY + 5);
                 p.Controls.Add(l);
             }
             {
                 Label l = new Label();
+                l.Text = "Chosen";
+                l.Size = new System.Drawing.Size(70, 15);
+                l.Location = new System.Drawing.Point(340, currentY + 5);
+                p.Controls.Add(l);
+            }
+            {
+                Label l = new Label();
                 l.Text = "Force bone weight to";
                 l.Size = new System.Drawing.Size(200, 15);
-                l.Location = new System.Drawing.Point(340, currentY + 5);
+                l.Location = new System.Drawing.Point(410, currentY + 5);
                 p.Controls.Add(l);
             }
             currentY += 20;
 
             List<CheckBox> cbList = new List<CheckBox>();
             List<TextBox> tbList = new List<TextBox>();
+            List<CheckBox> affectList = new List<CheckBox>();
 
             for (int i = 0; i < targetFlver.Meshes.Count; i++)
 
             {
                 // foreach (FLVER.Bone bn in b.Bones)
                 FLVER.Mesh bn = targetFlver.Meshes[i];
-                Console.WriteLine(bn.MaterialIndex);
+                //Console.WriteLine(bn.MaterialIndex);
 
                 TextBox t = new TextBox();
                 t.Size = new System.Drawing.Size(200, 15);
@@ -1076,39 +1168,52 @@ namespace MySFformat
                 p.Controls.Add(cb);
                 cbList.Add(cb);
 
+
+                CheckBox cb2 = new CheckBox();
+                cb2.Checked =true;
+                cb2.Size = new System.Drawing.Size(70, 15);
+                cb2.Location = new System.Drawing.Point(340, currentY);
+                p.Controls.Add(cb2);
+                affectList.Add(cb2);
+
+
                 TextBox t2 = new TextBox();
                 t2.Size = new System.Drawing.Size(70, 15);
-                t2.Location = new System.Drawing.Point(340, currentY);
-                t2.Text ="-1";
+                t2.Location = new System.Drawing.Point(410, currentY);
+                t2.Text = "-1";
                 p.Controls.Add(t2);
                 tbList.Add(t2);
-                /* TextBox t2 = new TextBox();
-                 t2.Size = new System.Drawing.Size(70, 15);
-                 t2.Location = new System.Drawing.Point(270, currentY);
-                 t2.Text = bn.Flags + ",GX" + bn.GXBytes + ",Unk" + bn.Unk18;
-                 p.Controls.Add(t2);
 
-                 TextBox t3 = new TextBox();
-                 t3.Size = new System.Drawing.Size(770, 15);
-                 t3.Location = new System.Drawing.Point(340, currentY);
-                 string allMat = "";
-                 foreach (FLVER.Texture tex in bn.Textures)
-                 {
+                Button buttonCheck = new Button();
+                int btnI = i;
+                buttonCheck.Text = "Check";
+                buttonCheck.Size = new System.Drawing.Size(70, 20);
+                buttonCheck.Location = new System.Drawing.Point(500, currentY);
+               
+                buttonCheck.Click += (s, e) => {
+                 
+                    useCheckingMesh = true;
+                    checkingMeshNum = btnI;
+                    updateVertices();
+                };
 
-                     allMat += "{" + tex.Type + "->" + tex.Path + "," + tex.Unk10 + "," + tex.Unk11 + "," + tex.Unk14 + "," + tex.Unk18 + "," + tex.Unk1C + "}";
-                 }
-                 t3.Text = allMat;
-                 p.Controls.Add(t3);*/
+                p.Controls.Add(buttonCheck);
 
                 currentY += 20;
                 sizeY += 20;
-                /*tList.Add(t);
-                parentList.Add(t2);
-                childList.Add(t3);*/
+
             }
 
+            Label l2 = new Label();
+            l2.Text = "Chosen meshes operation---";
+            l2.Size = new System.Drawing.Size(250, 15);
+            l2.Location = new System.Drawing.Point(10, currentY + 5);
+            p.Controls.Add(l2);
+
+            currentY += 20;
+
             CheckBox rotCb = new CheckBox();
-            rotCb.Size = new System.Drawing.Size(60, 15);
+            rotCb.Size = new System.Drawing.Size(80, 15);
             rotCb.Text = "rotation";
             rotCb.Location = new System.Drawing.Point(10, currentY);
             rotCb.Checked = false;
@@ -1116,26 +1221,26 @@ namespace MySFformat
 
             TextBox rotX = new TextBox();
             rotX.Size = new System.Drawing.Size(60, 15);
-            rotX.Location = new System.Drawing.Point(70, currentY);
+            rotX.Location = new System.Drawing.Point(90, currentY);
             rotX.Text = "0";
             p.Controls.Add(rotX);
 
             TextBox rotY = new TextBox();
             rotY.Size = new System.Drawing.Size(60, 15);
-            rotY.Location = new System.Drawing.Point(130, currentY);
+            rotY.Location = new System.Drawing.Point(150, currentY);
             rotY.Text = "0";
             p.Controls.Add(rotY);
 
             TextBox rotZ = new TextBox();
             rotZ.Size = new System.Drawing.Size(70, 15);
-            rotZ.Location = new System.Drawing.Point(190, currentY);
+            rotZ.Location = new System.Drawing.Point(210, currentY);
             rotZ.Text = "0";
             p.Controls.Add(rotZ);
 
             currentY += 20;
 
             CheckBox transCb = new CheckBox();
-            transCb.Size = new System.Drawing.Size(60, 15);
+            transCb.Size = new System.Drawing.Size(80, 15);
             transCb.Text = "translation";
             transCb.Location = new System.Drawing.Point(10, currentY);
             transCb.Checked = false;
@@ -1143,42 +1248,89 @@ namespace MySFformat
 
             TextBox transX = new TextBox();
             transX.Size = new System.Drawing.Size(60, 15);
-            transX.Location = new System.Drawing.Point(70, currentY);
+            transX.Location = new System.Drawing.Point(90, currentY);
             transX.Text = "0";
             p.Controls.Add(transX);
 
             TextBox transY = new TextBox();
             transY.Size = new System.Drawing.Size(60, 15);
-            transY.Location = new System.Drawing.Point(130, currentY);
+            transY.Location = new System.Drawing.Point(150, currentY);
             transY.Text = "0";
             p.Controls.Add(transY);
 
             TextBox transZ = new TextBox();
             transZ.Size = new System.Drawing.Size(70, 15);
-            transZ.Location = new System.Drawing.Point(190, currentY);
+            transZ.Location = new System.Drawing.Point(210, currentY);
             transZ.Text = "0";
             p.Controls.Add(transZ);
+
+            currentY += 20;
+
+            CheckBox scaleCb = new CheckBox();
+            scaleCb.Size = new System.Drawing.Size(80, 15);
+            scaleCb.Text = "scale";
+            scaleCb.Location = new System.Drawing.Point(10, currentY);
+            scaleCb.Checked = false;
+            p.Controls.Add(scaleCb);
+
+            TextBox scaleX = new TextBox();
+            scaleX.Size = new System.Drawing.Size(60, 15);
+            scaleX.Location = new System.Drawing.Point(90, currentY);
+            scaleX.Text = "1";
+            p.Controls.Add(scaleX);
+
+            TextBox scaleY = new TextBox();
+            scaleY.Size = new System.Drawing.Size(60, 15);
+            scaleY.Location = new System.Drawing.Point(150, currentY);
+            scaleY.Text = "1";
+            p.Controls.Add(scaleY);
+
+            TextBox scaleZ = new TextBox();
+            scaleZ.Size = new System.Drawing.Size(70, 15);
+            scaleZ.Location = new System.Drawing.Point(210, currentY);
+            scaleZ.Text = "1";
+            p.Controls.Add(scaleZ);
+
+            currentY += 20;
+
+            CheckBox dummyCb = new CheckBox();
+            dummyCb.Size = new System.Drawing.Size(160, 15);
+            dummyCb.Text = "Affect dummy";
+            dummyCb.Location = new System.Drawing.Point(10, currentY);
+            dummyCb.Checked = false;
+            p.Controls.Add(dummyCb);
+
+            currentY += 20;
+
+            CheckBox bonesCb = new CheckBox();
+            bonesCb.Size = new System.Drawing.Size(160, 15);
+            bonesCb.Text = "Affect bones";
+            bonesCb.Location = new System.Drawing.Point(10, currentY);
+            bonesCb.Checked = false;
+            p.Controls.Add(bonesCb);
+
 
             Button button = new Button();
             button.Text = "Modify";
             button.Location = new System.Drawing.Point(650, 50);
             button.Click += (s, e) => {
 
-                for (int i = 0; i < cbList.Count;i++)
+                for (int i = 0; i < cbList.Count; i++)
                 {
+                    if (affectList[i].Checked == false) { continue; }
                     if (cbList[i].Checked == true)
                     {
-                       
-                         foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
+
+                        foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                         {
-                        for (int j = 0; j < v.Positions.Count; j++)
-                        {
-                            v.Positions[j] = new System.Numerics.Vector3(0,0,0);
-                            for (int k =0;k < v.BoneWeights.Length;k++)
+                            for (int j = 0; j < v.Positions.Count; j++)
                             {
-                                v.BoneWeights[k] = 0;
+                                v.Positions[j] = new System.Numerics.Vector3(0, 0, 0);
+                                for (int k = 0; k < v.BoneWeights.Length; k++)
+                                {
+                                    v.BoneWeights[k] = 0;
+                                }
                             }
-                        }
                         }
                         //targetFlver.Meshes[i].Vertices = new List<FLVER.Vertex>();
 
@@ -1213,7 +1365,7 @@ namespace MySFformat
                                 v.Positions[j] = new Vector3(v.Positions[j].X + x, v.Positions[j].Y + y, v.Positions[j].Z + z);
                             }
 
-                            
+
                         }
 
                     }
@@ -1229,22 +1381,87 @@ namespace MySFformat
                         {
                             for (int j = 0; j < v.Positions.Count; j++)
                             {
-                                v.Positions[j] = RotatePoint(v.Positions[j],pitch,roll,yaw);
+                                v.Positions[j] = RotatePoint(v.Positions[j], pitch, roll, yaw);
                             }
 
-                            for (int j2 = 0;j2 < v.Normals.Count;j2++)
+                            for (int j2 = 0; j2 < v.Normals.Count; j2++)
                             {
                                 v.Normals[j2] = RotatePoint(v.Normals[j2], pitch, roll, yaw);
 
                             }
                             for (int j2 = 0; j2 < v.Tangents.Count; j2++)
                             {
-                               
+
                                 v.Tangents[j2] = RotatePoint(v.Tangents[j2], pitch, roll, yaw);
 
                             }
                         }
 
+                    }
+
+
+                    if (scaleCb.Checked)
+                    {
+                        float x = float.Parse(scaleX.Text);
+                        float y = float.Parse(scaleY.Text);
+                        float z = float.Parse(scaleZ.Text);
+                        foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
+                        {
+                            for (int j = 0; j < v.Positions.Count; j++)
+                            {
+                                v.Positions[j] = new Vector3(v.Positions[j].X * x, v.Positions[j].Y * y, v.Positions[j].Z * z);
+                            }
+
+
+                        }
+                        if (bonesCb.Checked)
+                        {
+
+                            foreach (FLVER.Bone bs in targetFlver.Bones)
+                            {
+                                bs.Translation.X = x * bs.Translation.X;
+                                bs.Translation.Y *= y * bs.Translation.Y;
+                                bs.Translation.Z *= z * bs.Translation.Z;
+                            }
+
+
+                        }
+                        
+
+                    }
+                }
+                if (dummyCb.Checked)
+                {
+                    foreach (FLVER.Dummy d in targetFlver.Dummies)
+                    {
+                        if (transCb.Checked)
+                        {
+                            float x = float.Parse(transX.Text);
+                            float y = float.Parse(transY.Text);
+                            float z = float.Parse(transZ.Text);
+
+                            d.Position.X += x;
+                            d.Position.Y += y;
+                            d.Position.Z += z;
+                        }
+                        if (rotCb.Checked)
+                        {
+                            float roll = float.Parse(rotX.Text);
+                            float pitch = float.Parse(rotY.Text);
+                            float yaw = float.Parse(rotZ.Text);
+                            d.Position = RotatePoint(d.Position, pitch, roll, yaw);
+
+                        }
+                        if (scaleCb.Checked)
+                        {
+                            float x = float.Parse(scaleX.Text);
+                            float y = float.Parse(scaleY.Text);
+                            float z = float.Parse(scaleZ.Text);
+
+                            d.Position.X *= x;
+                            d.Position.Y *= y;
+                            d.Position.Z *= z;
+                        }
                     }
                 }
 
@@ -1376,6 +1593,28 @@ namespace MySFformat
             return ans;
 
 
+        }
+
+        public static Microsoft.Xna.Framework.Vector3 crossPorduct(Microsoft.Xna.Framework.Vector3 a, Microsoft.Xna.Framework.Vector3 b)
+        {
+            float x1 = a.X;
+            float y1 = a.Y;
+            float z1 = a.Z;
+            float x2 = b.X;
+            float y2 = b.Y;
+            float z2 = b.Z;
+            return new Microsoft.Xna.Framework.Vector3(y1*z2 - z1*y2,z1*x2-x1*z2,x1*y2-y1*x2);
+        }
+
+        public static float dotProduct(Microsoft.Xna.Framework.Vector3 a, Microsoft.Xna.Framework.Vector3 b)
+        {
+            float x1 = a.X;
+            float y1 = a.Y;
+            float z1 = a.Z;
+            float x2 = b.X;
+            float y2 = b.Y;
+            float z2 = b.Z;
+            return x1*x2 + y1 * y2 + z1 * z2;
         }
 
         static void ModelSwapModule() {
