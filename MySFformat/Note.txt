@@ -1,0 +1,80 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*  static void importObj()
+        {
+            var openFileDialog2 = new OpenFileDialog();
+            string res = "";
+            if (openFileDialog2.ShowDialog() == DialogResult.No)
+            {
+                    return;
+            }
+            res = openFileDialog2.FileName;
+            var objLoaderFactory = new ObjLoaderFactory();
+            var objLoader = objLoaderFactory.Create();
+            FileStream fileStream = new FileStream(res,FileMode.Open);
+             var result = objLoader.Load(fileStream);
+           
+            ObjLoader.Loader.Data.Elements.Face f = result.Groups[0].Faces[0];
+            ObjLoader.Loader.Data.Elements.FaceVertex[] fv =getVertices(f);
+
+           // string groups = new JavaScriptSerializer().Serialize(fv);
+            //string vertices = new JavaScriptSerializer().Serialize(result.Vertices);
+            
+            //MessageBox.Show(groups,"Group info");
+           // MessageBox.Show(vertices, "V info");
+            fileStream.Close();
+
+
+            FLVER.Mesh mn = new FLVER.Mesh();
+            mn.MaterialIndex = 0;
+            mn.BoneIndices = new List<int>();
+            mn.BoneIndices.Add(0);
+            mn.BoneIndices.Add(1);
+            mn.BoundingBoxMax = new Vector3(1,1,1);
+            mn.BoundingBoxMin = new Vector3(-1,-1,-1);
+            mn.BoundingBoxUnk = new Vector3();
+            mn.Unk1 = 0;
+            mn.DefaultBoneIndex = 0;
+            mn.Dynamic = false;
+            mn.VertexBuffers = new List<FLVER.VertexBuffer>();
+            mn.VertexBuffers.Add(new FLVER.VertexBuffer(0,0,-1));
+            mn.Vertices = new List<FLVER.Vertex>();
+            mn.Vertices.Add(generateVertex(new Vector3(1,0,0),new Vector3(0,0,0),new Vector3(0,0,0),new Vector3(0,1,0),new Vector3(1,0,0)));
+            mn.Vertices.Add(generateVertex(new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 0, 0)));
+            mn.Vertices.Add(generateVertex(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 0, 0)));
+
+            mn.FaceSets = new List<FLVER.FaceSet>();
+            //FLVER.Vertex myv = new FLVER.Vertex();
+            //myv.Colors = new List<FLVER.Vertex.Color>();
+            mn.FaceSets.Add(new FLVER.FaceSet());
+            mn.FaceSets[0].CullBackfaces = true;
+            mn.FaceSets[0].TriangleStrip = false;
+            mn.FaceSets[0].Unk06 = 1;
+            mn.FaceSets[0].Unk07 = 0;
+            mn.FaceSets[0].IndexSize = 16;
+            mn.FaceSets[0].Vertices = new uint [3]{0,1,2 };
+
+
+            targetFlver.Meshes.Add(mn);
+            MessageBox.Show("Added a custom triangle!");
+            //mn.Vertices.Add();
+        }*/

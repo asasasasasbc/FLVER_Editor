@@ -50,7 +50,7 @@ namespace MySFformat
 
         public Mono3D()
         {
-            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode";
+            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode Right click: check vertex info";
             Window.AllowUserResizing = true;
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
@@ -96,12 +96,12 @@ namespace MySFformat
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+        
+            /*  string path = @"data\img\27.png";
 
-          /*  string path = @"data\img\27.png";
-
-            System.Drawing.Bitmap btt = new System.Drawing.Bitmap(path);
-            test = Texture2D.FromStream(this.GraphicsDevice, File.OpenRead(path));
-            test = getTextureFromBitmap(btt, this.GraphicsDevice);*/
+              System.Drawing.Bitmap btt = new System.Drawing.Bitmap(path);
+              test = Texture2D.FromStream(this.GraphicsDevice, File.OpenRead(path));
+              test = getTextureFromBitmap(btt, this.GraphicsDevice);*/
             // TODO: use this.Content to load your game content here
         }
 
@@ -196,6 +196,48 @@ namespace MySFformat
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F3))
             {
                 renderMode = RenderMode.Both;
+            }
+
+            if (mState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            {
+                Ray r = GetMouseRay(new Vector2(mState.Position.X,mState.Position.Y), GraphicsDevice.Viewport, effect);
+                r.Position = new Vector3(r.Position.X,r.Position.Z,r.Position.Y);
+                r.Direction = new Vector3(r.Direction.X,r.Direction.Z,r.Direction.Y);
+                // Vector3D x1 =  new Vector3D(cameraX + offsetX, cameraY + offsetY, cameraZ + offsetZ);
+                //Vector3D x2 = new Vector3D(centerX + offsetX, centerY + offsetY, centerZ + offsetZ);
+                Vector3D x1 = new Vector3D(r.Position);
+                Vector3D x2 = new Vector3D(r.Position + r.Direction);
+                //Program.useCheckingPoint = true;
+               // Program.checkingPoint = new System.Numerics.Vector3(x2.X,x2.Z,x2.Y);
+               // Program.updateVertices();
+                Vector3D miniPoint = new Vector3D();
+                float ptDistance = float.MaxValue;
+                SoulsFormats.FLVER.Vertex targetV = null;
+                foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
+                {
+                    if (v.Positions[0] == null) { continue; }
+                    float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                    if (ptDistance > dis)
+                    {
+
+                        miniPoint = new Vector3D(v.Positions[0]);
+                        ptDistance = dis;
+                        targetV = v;
+                    }
+
+                }
+               
+                Program.useCheckingPoint = true;
+                Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
+                Program.updateVertices();
+
+                if (targetV != null) {
+                    string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
+                    int l = text.Length / 2;
+                    MessageBox.Show(text.Substring(0,l)  ,"Vertex info1:");
+                    MessageBox.Show(text.Substring(l,text.Length- l), "Vertex info2:");
+
+                }
             }
 
             if (mState.ScrollWheelValue - prevMState.ScrollWheelValue > 0)
@@ -353,7 +395,7 @@ namespace MySFformat
                 
             }*/
 
-            if (vertices.Length > 0)
+            if (vertices.Length > 0 && triVertices.Length > 0)
             {
                 if (renderMode == RenderMode.Line)
                 {
@@ -370,7 +412,7 @@ namespace MySFformat
                     GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
                 }
             }
-           
+            
 
             spriteBatch.End();
             base.Draw(gameTime);
@@ -391,7 +433,7 @@ namespace MySFformat
             GraphicsDevice.DepthStencilState = depthBufferState;
 
 
-
+            
             effect.View = Matrix.CreateLookAt(
                 cameraPosition, cameraLookAtVector, cameraUpVector);
             effect.VertexColorEnabled = true;
@@ -448,5 +490,20 @@ namespace MySFformat
 
 
         }
+
+        public static Ray GetMouseRay(Vector2 mousePosition, Viewport viewport, BasicEffect camera)
+        {
+            Vector3 nearPoint = new Vector3(mousePosition, 0);
+            Vector3 farPoint = new Vector3(mousePosition, 1);
+
+            nearPoint = viewport.Unproject(nearPoint, camera.Projection, camera.View, Matrix.Identity);
+            farPoint = viewport.Unproject(farPoint, camera.Projection, camera.View, Matrix.Identity);
+
+            Vector3 direction = farPoint - nearPoint;
+            direction.Normalize();
+
+            return new Ray(nearPoint, direction);
+        }
+
     }
 }
