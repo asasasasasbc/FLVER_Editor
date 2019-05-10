@@ -1,6 +1,8 @@
 # FLVER_Editor
 A rough editor to edit Fromsoftware game's FLVER file (Sekiro, Dark Souls, Bloodborne etc.)
 
+If you just want the .exe executable program, please download the release version at here: https://github.com/asasasasasbc/FLVER_Editor/releases
+
 Author: Forsakensilver (遗忘的银灵)
 
 1.42 Update:
@@ -13,7 +15,7 @@ Author: Forsakensilver (遗忘的银灵)
 
 1.4 Update:
 
--Added improt external 3d model file functionality
+-Added import external 3d model file functionality
 
 	Click [ImportModel] to import external 3d model file, such as fbx, dae, obj.
 	
