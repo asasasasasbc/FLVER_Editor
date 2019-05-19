@@ -185,6 +185,29 @@ namespace MySFformat
 
             }
 
+            if (mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && IsActive)
+            {
+                float mdx = mState.X - prevMState.X;
+                float mdy = mState.Y - prevMState.Y;
+
+               // offsetZ += mdy * 3 * delta;
+
+                Vector3D upV = new Vector3D(0, 0, 1);
+                Vector3D forwardV = new Vector3D(cameraX, cameraY, cameraZ);
+                Vector3D rightV = Vector3D.crossPorduct(upV, forwardV).normalize();
+                Vector3D camUpV = Vector3D.crossPorduct(forwardV, rightV).normalize();
+
+                Vector3D offsetV = new Vector3D(offsetX,offsetY,offsetZ);
+                offsetV = offsetV - new Vector3D(rightV.X * mdx * 0.01f, rightV.Y * mdx * 0.01f, rightV.Z * mdx * 0.01f);
+                offsetV = offsetV + new Vector3D(camUpV.X * mdy * 0.01f, camUpV.Y * mdy * 0.01f, camUpV.Z * mdy * 0.01f);
+
+                offsetX = offsetV.X;
+                offsetY = offsetV.Y;
+                offsetZ = offsetV.Z;
+                //offsetX -= mdx* 1 * delta * rightV.X;
+                //offsetY -= mdx * 1 * delta * rightV.Y;
+            }
+
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F1))
             {
                 renderMode = RenderMode.Line;
@@ -339,6 +362,49 @@ namespace MySFformat
 
                 offsetZ -= 3 * delta; ;
             }
+
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.NumPad4))
+            {
+                Vector3D upV = new Vector3D(0,0,1);
+                Vector3D forwardV = new Vector3D(cameraX,cameraY,cameraZ);
+                Vector3D rightV = Vector3D.crossPorduct(upV,forwardV).normalize();
+
+                offsetX -= 3 * delta * rightV.X;
+                offsetY -= 3 * delta * rightV.Y;
+                //offsetZ -= 3 * delta; ;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.NumPad6))
+            {
+                Vector3D upV = new Vector3D(0, 0, 1);
+                Vector3D forwardV = new Vector3D(cameraX, cameraY, cameraZ);
+                Vector3D rightV = Vector3D.crossPorduct(upV, forwardV).normalize();
+
+                offsetX += 3 * delta * rightV.X;
+                offsetY += 3 * delta * rightV.Y;
+                //offsetZ -= 3 * delta; ;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.NumPad5))
+            {
+
+                Vector3D forwardV = new Vector3D(cameraX, cameraY, cameraZ).normalize();
+ 
+
+                offsetX -= 3 * delta * forwardV.X;
+                offsetY -= 3 * delta * forwardV.Y;
+                offsetZ -= 3 * delta * forwardV.Z;
+                //offsetZ -= 3 * delta; ;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.NumPad0))
+            {
+                Vector3D forwardV = new Vector3D(cameraX, cameraY, cameraZ).normalize();
+
+                offsetX += 3 * delta * forwardV.X;
+                offsetY += 3 * delta * forwardV.Y;
+                offsetZ += 3 * delta * forwardV.Z;
+                //offsetZ -= 3 * delta; ;
+            }
+
+            //new Vector3(cameraX + offsetX, cameraY + offsetY, cameraZ + offsetZ)
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F))
             {
