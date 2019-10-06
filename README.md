@@ -16,6 +16,24 @@ BB model extractor(Convert .flver model file to importable XPS file):https://for
 
 
 
+1.81 Update
+-Added automatic material rename functionality.
+-Added vertex right click edit functionality.
+-Fixed auto set texture path bug.
+
+1.8 Update
+-Added skeleton display & toggle functionalty!
+-Press B to toggle skeleton display and press M to toggle dummmy display!
+
+1.73 Update
+-Fixed xml auto edit bug and tangent flip bug. 
+-Also revised Rev.Normal functionality. Now it also reverse the tangents.
+-Also added bone shift functionality. When load "Bone.json" file, you can choose to shift bone weights indices according to their bone name.
+
+1.71 Update
+-Added "Material->Xml Edit" functionalty, so that editor can auto set texture description file depacked from .tpf file.
+-Added "Import model->Auto set texture path" functionality, when importing fbx files, user can choose auto set texture path insead typing them manually. (Can auto read and set diffuse, specular and normal channels' first textures.)
+
 1.68 Update
 -Fixed Switch YZ axis functionality's UV coordinate problems when importing models.
 
