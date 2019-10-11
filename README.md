@@ -19,7 +19,7 @@ Yabber(Further unpack&repack files usch as partsbnd.dcx, .tpf texture file etc.)
 
 BB model extractor(Convert .flver model file to importable XPS file):https://forum.xentax.com/viewtopic.php?f=16&t=17332
 
-
+## Update log
 
 1.81 Update
 
@@ -147,7 +147,7 @@ Once you click "Fix model" in that blender plugin, it will automatically rename 
 -BufferLayout: Check but not edit the buffer layout.
 
 
-Basic tutorial:
+## Basic tutorial
 
 1.Double click the MySFformat to start the program, choose the flver file you want to edit.
 (Alternate way: drag the flver to the .exe file to auotmatic open the file, or you can set the flver file open method to this .exe file.)
