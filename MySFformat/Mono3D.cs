@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,20 +48,64 @@ namespace MySFformat
         public float lightX = 1;
         public float lightY = 1;
         public float lightZ = 1;
+        SoulsFormats.FLVER.Vertex targetV = null;
+
+        
+        Form f;
 
         public Mono3D()
         {
-            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode Right click: check vertex info";
+            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             Window.AllowUserResizing = true;
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             // string path = @"data\img\27.png";
             //test = Content.Load<Texture2D>(@"data\img\27.png");
+            f =  (Form)Form.FromHandle(Window.Handle);
 
+            ContextMenu cm = new ContextMenu();
+            cm.MenuItems.Add("Cancel");
+
+            cm.MenuItems.Add("Check Vertex", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                displayVerticesInfo();
+
+
+            })
+            );
+
+
+            cm.MenuItems.Add("Edit Vertex", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                editVerticesInfo();
+
+
+            })
+            );
+
+
+            f.ContextMenu = cm;
+
+            f.MouseDown += new MouseEventHandler(this.pictureBox1_MouseDown);
 
         }
 
+        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Right:
+                    {
+                        prevMState = Mouse.GetState();
+
+                        checkVerticesSilent();
+                        //f.ContextMenu.Show(f, new System.Drawing.Point(e.X, e.Y));//places the menu at the pointer position
+
+                    }
+                    break;
+            }
+        }
 
 
 
@@ -136,6 +181,172 @@ namespace MySFformat
         /// checking for collisions, gathering input, and playing audio.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        /// 
+
+        protected void checkVerticesSilent()
+        {
+            Ray r = GetMouseRay(new Vector2(prevMState.Position.X, prevMState.Position.Y), GraphicsDevice.Viewport, effect);
+            r.Position = new Vector3(r.Position.X, r.Position.Z, r.Position.Y);
+            r.Direction = new Vector3(r.Direction.X, r.Direction.Z, r.Direction.Y);
+            // Vector3D x1 =  new Vector3D(cameraX + offsetX, cameraY + offsetY, cameraZ + offsetZ);
+            //Vector3D x2 = new Vector3D(centerX + offsetX, centerY + offsetY, centerZ + offsetZ);
+            Vector3D x1 = new Vector3D(r.Position);
+            Vector3D x2 = new Vector3D(r.Position + r.Direction);
+            //Program.useCheckingPoint = true;
+            // Program.checkingPoint = new System.Numerics.Vector3(x2.X,x2.Z,x2.Y);
+            // Program.updateVertices();
+            Vector3D miniPoint = new Vector3D();
+            float ptDistance = float.MaxValue;
+            targetV = null;
+            foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
+            {
+                if (v.Positions[0] == null) { continue; }
+                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                if (ptDistance > dis)
+                {
+
+                    miniPoint = new Vector3D(v.Positions[0]);
+                    ptDistance = dis;
+                    targetV = v;
+                }
+
+            }
+
+            if (Program.setVertexPos)
+            {
+                targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+            }
+
+            Program.useCheckingPoint = true;
+            Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
+
+            if (targetV.Normals != null && targetV.Normals.Count > 0)
+            {
+                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+            }
+            else
+            {
+                Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
+            }
+
+            Program.updateVertices();
+
+         
+
+
+        }
+        protected void displayVerticesInfo()
+        {
+
+            if (targetV != null)
+            {
+                string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
+                int l = text.Length / 2;
+                System.Windows.Forms.MessageBox.Show(text.Substring(0, l), "Vertex info1:");
+                System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
+
+            }
+        }
+
+        protected void editVerticesInfo()
+        {
+
+            if (targetV != null)
+            {
+                //string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
+                //int l = text.Length / 2;
+                Form fn = new Form();
+                fn.Size = new System.Drawing.Size(350,650);
+
+                TextBox tb = new TextBox();
+                tb.Size = new System.Drawing.Size(330,550);
+                tb.Location = new System.Drawing.Point(5, 10);
+
+                tb.Multiline = true;
+
+                tb.Text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV.Positions));
+
+
+                Button bn = new Button();
+                bn.Size = new System.Drawing.Size(330, 35);
+                bn.Location = new System.Drawing.Point(5, 560);
+                bn.Text = "Modify";
+                bn.Click += (s, o) => {
+                    List<System.Numerics.Vector3>  vn = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<List<System.Numerics.Vector3>>(tb.Text);
+                    targetV.Positions = vn;
+                    Program.updateVertices();
+                };
+
+
+                fn.Controls.Add(tb);
+                fn.Controls.Add(bn);
+                fn.Show();
+
+            }
+        }
+
+
+        protected void checkVertices()
+        {
+            Ray r = GetMouseRay(new Vector2(prevMState.Position.X, prevMState.Position.Y), GraphicsDevice.Viewport, effect);
+            r.Position = new Vector3(r.Position.X, r.Position.Z, r.Position.Y);
+            r.Direction = new Vector3(r.Direction.X, r.Direction.Z, r.Direction.Y);
+            // Vector3D x1 =  new Vector3D(cameraX + offsetX, cameraY + offsetY, cameraZ + offsetZ);
+            //Vector3D x2 = new Vector3D(centerX + offsetX, centerY + offsetY, centerZ + offsetZ);
+            Vector3D x1 = new Vector3D(r.Position);
+            Vector3D x2 = new Vector3D(r.Position + r.Direction);
+            //Program.useCheckingPoint = true;
+            // Program.checkingPoint = new System.Numerics.Vector3(x2.X,x2.Z,x2.Y);
+            // Program.updateVertices();
+            Vector3D miniPoint = new Vector3D();
+            float ptDistance = float.MaxValue;
+            targetV = null;
+            foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
+            {
+                if (v.Positions[0] == null) { continue; }
+                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                if (ptDistance > dis)
+                {
+
+                    miniPoint = new Vector3D(v.Positions[0]);
+                    ptDistance = dis;
+                    targetV = v;
+                }
+
+            }
+
+            if (Program.setVertexPos)
+            {
+                targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+            }
+
+            Program.useCheckingPoint = true;
+            Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
+
+            if (targetV.Normals != null && targetV.Normals.Count > 0)
+            {
+                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+            }
+            else
+            {
+                Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
+            }
+
+            Program.updateVertices();
+
+            if (targetV != null)
+            {
+                string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
+                int l = text.Length / 2;
+                System.Windows.Forms.MessageBox.Show(text.Substring(0, l), "Vertex info1:");
+                System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
+
+            }
+
+
+        }
+
+
         protected override void Update(GameTime gameTime)
         {
 
@@ -221,7 +432,20 @@ namespace MySFformat
                 renderMode = RenderMode.Both;
             }
 
-            if (mState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B))
+            {
+                Program.boneDisplay = !Program.boneDisplay;
+                Program.updateVertices();
+            }
+
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M))
+            {
+                Program.dummyDisplay = !Program.dummyDisplay;
+                Program.updateVertices();
+            }
+
+            //1.73 Added focus detect
+            if (mState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && this.IsActive && false)
             {
                 Ray r = GetMouseRay(new Vector2(mState.Position.X,mState.Position.Y), GraphicsDevice.Viewport, effect);
                 r.Position = new Vector3(r.Position.X,r.Position.Z,r.Position.Y);
@@ -249,16 +473,30 @@ namespace MySFformat
                     }
 
                 }
-               
+                
+                if (Program.setVertexPos)
+                {
+                    targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+                }
+
                 Program.useCheckingPoint = true;
                 Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
+
+                if (targetV.Normals != null && targetV.Normals.Count > 0)
+                {
+                    Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+                }
+                else {
+                    Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
+                }
+                
                 Program.updateVertices();
 
                 if (targetV != null) {
                     string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
                     int l = text.Length / 2;
-                    MessageBox.Show(text.Substring(0,l)  ,"Vertex info1:");
-                    MessageBox.Show(text.Substring(l,text.Length- l), "Vertex info2:");
+                    System.Windows.Forms.MessageBox.Show(  text.Substring(0,l)  ,"Vertex info1:");
+                    System.Windows.Forms.MessageBox.Show(text.Substring(l,text.Length- l), "Vertex info2:");
 
                 }
             }
@@ -406,6 +644,17 @@ namespace MySFformat
 
             //new Vector3(cameraX + offsetX, cameraY + offsetY, cameraZ + offsetZ)
 
+
+
+           /* if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D1)) { Program.rotOrder = RotationOrder.XYZ; Program.updateVertices(); }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D2)) { Program.rotOrder = RotationOrder.XZY; Program.updateVertices(); }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D3)) { Program.rotOrder = RotationOrder.YXZ; Program.updateVertices(); }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D4)) { Program.rotOrder = RotationOrder.YZX; Program.updateVertices(); }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D5)) { Program.rotOrder = RotationOrder.ZXY; Program.updateVertices(); }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D6)) { Program.rotOrder = RotationOrder.ZYX; Program.updateVertices(); }*/
+
+
+
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F))
             {
 
@@ -461,24 +710,29 @@ namespace MySFformat
                 
             }*/
 
-            if (vertices.Length > 0 && triVertices.Length > 0)
+            if (vertices.Length > 0 || triVertices.Length > 0)
             {
-                if (renderMode == RenderMode.Line)
+                if (renderMode == RenderMode.Line && vertices.Length > 0)
                 {
                     GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
 
                 }
-                else if (renderMode == RenderMode.Triangle)
+                else if (renderMode == RenderMode.Triangle && triVertices.Length > 0)
                 {
-                    
+
                     graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3);
                 }
-                else {
-                    graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3);
-                    GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2);
+                else
+                {
+
+
+                    if (vertices.Length > 0) { GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2); }
+                    if (triVertices.Length > 0) { graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3); }
+
+
                 }
             }
-            
+
 
             spriteBatch.End();
             base.Draw(gameTime);
