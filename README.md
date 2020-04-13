@@ -5,7 +5,7 @@ Users can view and edit models, materials, dummy points inside the FLVER file an
 
 ![Screenshot](Tools2.jpg)
 
-![Screenshot](Tools3.jpg)
+![Screenshot](Tools3.png)
 
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
 
