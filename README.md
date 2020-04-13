@@ -5,6 +5,8 @@ Users can view and edit models, materials, dummy points inside the FLVER file an
 
 ![Screenshot](Tools2.jpg)
 
+![Screenshot](Tools3.jpg)
+
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
 
 If you just want the .exe executable program, please download the release version at here: https://github.com/asasasasasbc/FLVER_Editor/releases
