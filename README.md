@@ -3,6 +3,8 @@
 A probably multi-functional editor to edit Fromsoftware game's FLVER model file (Sekiro, Dark Souls, Bloodborne etc.)
 Users can view and edit models, materials, dummy points inside the FLVER file and can also import external models into the FLVER file.
 
+![Screenshot](Tools2.jpg)
+
 ![Screenshot](Tools.jpg)
 
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
@@ -20,6 +22,49 @@ Yabber(Further unpack&repack files usch as partsbnd.dcx, .tpf texture file etc.)
 BB model extractor(Convert .flver model file to importable XPS file):https://forum.xentax.com/viewtopic.php?f=16&t=17332
 
 ## Update log
+
+
+
+
+
+
+v1.9 Update
+
+-Added texture loading functionality: the tpf file's name must be the same as flver file name.
+
+-Added MySFormat.ini to help tweaking some special setting, such as loadTexture.
+
+-Added more shading mode and F6: flat shading mode for better display.
+
+1.87 Update
+
+-In "Check vertex" window, added vertex mesh index info and vertex index info.
+
+-Added : "delete vertex" and "delete vertex above/below" functionality
+
+-Added: Silence vertex deletion functionality: ctrl + right click in 3d model viewing software to enter such mode, then press alt + right click to quick delete vertex.
+
+v1.86 Update
+
+-Added experimental "Export DAE" functionality
+
+-More general bone display functionality
+
+-Window maxmimum bug fixed
+
+-Added LOD setting when import models
+
+-Added Mesh->TBF ALL button
+
+-Fixed minor LOD importing bug 
+
+v1.82 Update
+
+Added mesh->M. Reset functionality to help you port DS2 .flv file and make it compatible with new P[ARSN] material. 
+
+Added Mesh->TBF, so that you can choose to render the back face or not.
+
+Added back face rendering functionality
 
 1.81 Update
 
