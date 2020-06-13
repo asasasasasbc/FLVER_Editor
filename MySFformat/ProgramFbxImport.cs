@@ -234,7 +234,7 @@ namespace MySFformat
 
                             //if such bone can not be found in flver, then check its parent to see if it can be convert to its parent bone.
                             //check up to 5th grand parent.
-                            for (int bp = 0; bp < 5; bp++)
+                            for (int bp = 0; bp < boneFindParentTimes; bp++)
                             {
 
                                 if (boneIndex == -1)
@@ -282,7 +282,7 @@ namespace MySFformat
                     var uv1 = new Vector3D();
                     var uv2 = new Vector3D();
 
-                    if (channels != null)
+                    if (channels != null && m.TextureCoordinateChannelCount > 0)
                     {
 
                         uv1 = getMyV3D(channels[i]);
@@ -295,10 +295,28 @@ namespace MySFformat
                         }
                     }
 
-                    var normal = getMyV3D(m.Normals[i]).normalize();
+                    var normal = new Vector3D(0,1,0);
+                    if (m.HasNormals && m.Normals.Count > i) 
+                    {
+                        normal = getMyV3D(m.Normals[i]).normalize();
+                    }
+
+
+
+
                     //Vector3D tangent = new Vector3D( crossPorduct( getMyV3D(m.Tangents[i]).normalize().toXnaV3() , normal.toXnaV3())).normalize();
                     //var tangent = RotatePoint(normal.toNumV3(), 0, (float)Math.PI / 2, 0);
-                    var tangent = getMyV3D(m.Tangents[i]).normalize();
+                    var tangent = new Vector3D(1,0,0);
+                    if (m.Tangents.Count > i)
+                    {
+                        tangent = getMyV3D(m.Tangents[i]).normalize();
+                    }
+                    else {
+                        //Calculate tanget instead
+                        if (m.HasNormals && m.Normals.Count > i)
+                            tangent = new Vector3D(crossPorduct(getMyV3D(m.Normals[i]).normalize().toXnaV3(), normal.toXnaV3())).normalize();
+                    }
+
                     FLVER.Vertex v = generateVertex(new Vector3(vit.X, vit.Y, vit.Z), uv1.toNumV3(), uv2.toNumV3(), normal.toNumV3(), tangent.toNumV3(), 1);
 
                     if (flipYZ)

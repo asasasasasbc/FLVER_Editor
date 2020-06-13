@@ -2,8 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using System.Windows.Forms;
@@ -16,7 +18,13 @@ using Microsoft.Xna.Framework.Media;
 
 namespace MySFformat
 {
-    enum RenderMode { Line, Triangle, Both }
+    enum RenderMode { Line, Triangle, Both, BothNoTex, TexOnly }
+
+    public class MeshInfos 
+    {
+        public VertexPositionColorTexture[] triTextureVertices = new VertexPositionColorTexture[0];
+        public string textureName = "";
+    }
     class Mono3D : Game
     {
         GraphicsDeviceManager graphics;
@@ -24,10 +32,14 @@ namespace MySFformat
         Texture2D test;
         KeyboardState prevState = new KeyboardState();
         MouseState prevMState = new MouseState();
-        RenderMode renderMode = RenderMode.Both;
+       public RenderMode renderMode = RenderMode.Both;
         public VertexPositionColor[] vertices = new VertexPositionColor[0];
         public VertexPositionColor[] triVertices = new VertexPositionColor[0];
+        public bool flatShading = false;
 
+
+      //  public VertexPositionColorTexture[] triTextureVertices = new VertexPositionColorTexture[0];
+        public MeshInfos[] meshInfos = new MeshInfos[0];
         VertexPositionTexture[] floorVerts;
         BasicEffect effect;
 
@@ -49,13 +61,16 @@ namespace MySFformat
         public float lightY = 1;
         public float lightZ = 1;
         SoulsFormats.FLVER.Vertex targetV = null;
-
-        
+        VertexInfo targetVinfo = null;
+        ContextMenu cm = new ContextMenu();
+        bool rightClickSilence = false;
         Form f;
-
+        Texture2D testTexture;
+        Dictionary<string, Texture2D> textureMap = new Dictionary<string, Texture2D>();
+        private static GCHandle handle;
         public Mono3D()
         {
-            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
+            Window.Title = "FLVER Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             Window.AllowUserResizing = true;
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
@@ -64,14 +79,12 @@ namespace MySFformat
             //test = Content.Load<Texture2D>(@"data\img\27.png");
             f =  (Form)Form.FromHandle(Window.Handle);
 
-            ContextMenu cm = new ContextMenu();
+   
             cm.MenuItems.Add("Cancel");
 
             cm.MenuItems.Add("Check Vertex", new EventHandler(delegate (Object o, EventArgs a)
             {
                 displayVerticesInfo();
-
-
             })
             );
 
@@ -79,16 +92,125 @@ namespace MySFformat
             cm.MenuItems.Add("Edit Vertex", new EventHandler(delegate (Object o, EventArgs a)
             {
                 editVerticesInfo();
-
-
             })
             );
 
+            MenuItem mi0 = new MenuItem();
+            mi0.Text = "Delete Selected Vertex's Faceset";
+           // mi0.Shortcut = Shortcut.Alt1;
+          //  mi0.ShowShortcut = true;
+            mi0.Click += new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertex();
+                // editVerticesInfo();
+                //    MessageBox.Show(targetV);
+            });
+            cm.MenuItems.Add(mi0);
+
+          /*  cm.MenuItems.Add("Delete Vertex (related faceset)", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertex();
+                // editVerticesInfo();
+                //    MessageBox.Show(targetV);
+
+            }));*/
+
+
+            cm.MenuItems.Add("Delete Vertices Above", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertexAbove();
+               // editVerticesInfo();
+               //    MessageBox.Show(targetV);
+           }));
+
+            MenuItem mi = new MenuItem();
+            mi.Text = "Delete Vertices Below";
+        //    mi.Shortcut = Shortcut.CtrlD;
+         //   mi.ShowShortcut = true;
+            mi.Click += new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertexBelow();
+                // editVerticesInfo();
+                //    MessageBox.Show(targetV);
+
+            });
+            cm.MenuItems.Add(mi);
+          /*  cm.MenuItems.Add("Delete Vertices Below", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertexBelow();
+                // editVerticesInfo();
+                //    MessageBox.Show(targetV);
+
+            }));
+            */
 
             f.ContextMenu = cm;
-
+           
             f.MouseDown += new MouseEventHandler(this.pictureBox1_MouseDown);
+            f.MouseUp += new MouseEventHandler(this.pictureBox1_MouseUp);
+        }
 
+
+
+        private void deleteVertexBelow()
+        {
+            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            uint index = targetVinfo.vertexIndex;
+            float yValue = targetV.Positions[0].Y;
+            for (int i = 0; i < m.Vertices.Count; i++)
+            {
+                if (m.Vertices[i].Positions[0].Y < yValue)
+                {
+
+                    deleteMeshVertexFaceset(m, (uint)i);
+                    m.Vertices[i].Positions[0] = new System.Numerics.Vector3(0, 0, 0);
+                }
+            }
+
+            Program.updateVertices();
+        }
+
+        private void deleteVertexAbove()
+        {
+            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            uint index = targetVinfo.vertexIndex;
+            float yValue = targetV.Positions[0].Y;
+            for (int i = 0;i < m.Vertices.Count;i++) 
+            {
+                if (m.Vertices[i].Positions[0].Y > yValue) 
+                {
+
+                    deleteMeshVertexFaceset(m, (uint)i);
+                    m.Vertices[i].Positions[0] = new System.Numerics.Vector3(0,0,0);
+                }
+            }
+
+            Program.updateVertices();
+        }
+        private void deleteMeshVertexFaceset(SoulsFormats.FLVER.Mesh m, uint index)
+        {
+            foreach (var fs in m.FaceSets)
+            {
+                for (uint i = 0; i + 2 < fs.Vertices.Length; i += 3)
+                {
+                    if (fs.Vertices[i] == index || fs.Vertices[i + 1] == index || fs.Vertices[i + 2] == index)
+                    {
+                        fs.Vertices[i] = index;
+                        fs.Vertices[i + 1] = index;
+                        fs.Vertices[i + 2] = index;
+                    }
+                }
+            }
+        }
+        private void deleteVertex()
+        {
+            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            uint index = targetVinfo.vertexIndex;
+            deleteMeshVertexFaceset(m,index);
+       
+            targetV.Positions[0] = new System.Numerics.Vector3(0,0,0);
+
+            Program.updateVertices();
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -97,16 +219,50 @@ namespace MySFformat
             {
                 case MouseButtons.Right:
                     {
+                        f.ContextMenu = null;
                         prevMState = Mouse.GetState();
 
                         checkVerticesSilent();
-                        //f.ContextMenu.Show(f, new System.Drawing.Point(e.X, e.Y));//places the menu at the pointer position
+
+                        f.ContextMenu = null;
+                        //f.ContextMenu.Show();
+                        if (prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) && !rightClickSilence)
+                        {
+                            rightClickSilence = true;
+                            System.Windows.MessageBox.Show("Ctrl + Right Click pressed. Switch To Right Click Slience Mode.");
+                        }
+                        else if (prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl) &&rightClickSilence)
+                        {
+                            rightClickSilence =false;
+                            System.Windows.MessageBox.Show("Ctrl + Right Click pressed. Switch To Right Click Non-Slience Mode.");
+                        }
 
                     }
                     break;
             }
         }
+        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
+        {
+            switch (e.Button)
+            {
+                case MouseButtons.Right:
+                    {
+                        if ( !rightClickSilence)
+                        {
+                            f.ContextMenu = cm;
+                               f.ContextMenu.Show(f, new System.Drawing.Point(e.X + 1, e.Y + 1));//places the menu at the pointer position
+                        }
+                        else if (prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftAlt) && rightClickSilence)
+                        {
+                            deleteVertex();
+                           // System.Windows.MessageBox.Show("Ctrl + Right Click pressed. Switch To Right Click Slience Mode.");
+                        }
 
+                    }
+                    break;
+            }
+
+        }
 
 
         /// <summary>
@@ -140,8 +296,49 @@ namespace MySFformat
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            testTexture = null;
+            if (!Program.loadTexture) { return; }
+            //decrypt tpf file;
+            string tpfFile = Program.orgFileName.Substring(0,Program.orgFileName.Length - 5) + "tpf";
 
-        
+            try {
+
+                if (Program.targetTPF != null)
+                {
+                    foreach (var t in Program.targetTPF.Textures)
+                    {
+                        textureMap.Add(t.Name, getTextureFromBitmap(readDdsStreamToBitmap(new MemoryStream(t.Bytes)), this.GraphicsDevice));
+                        //   System.Windows.MessageBox.Show("Added:" + t.Name);
+                    }
+                }
+                else
+                 if (File.Exists(tpfFile))
+                {
+                    var tpf = SoulsFormats.TPF.Read(tpfFile);
+                    foreach (var t in tpf.Textures)
+                    {
+                        textureMap.Add(t.Name, getTextureFromBitmap(readDdsStreamToBitmap(new MemoryStream(t.Bytes)), this.GraphicsDevice));
+                        //   System.Windows.MessageBox.Show("Added:" + t.Name);
+                    }
+
+
+                }
+
+
+
+            } catch (Exception e) 
+            {
+            
+            }
+
+
+            using (var stream = TitleContainer.OpenStream("singleColor.png"))
+            {
+                testTexture = Texture2D.FromStream(this.GraphicsDevice, stream);
+            }
+            //  testTexture = getTextureFromBitmap(readDdsFileToBitmap("EliteKnight.dds"),this.GraphicsDevice);
+
+
             /*  string path = @"data\img\27.png";
 
               System.Drawing.Bitmap btt = new System.Drawing.Bitmap(path);
@@ -150,7 +347,143 @@ namespace MySFformat
             // TODO: use this.Content to load your game content here
         }
 
+        //Read dds file to bitmap
+        System.Drawing.Bitmap readDdsFileToBitmap(string f)
+        {
 
+            Pfim.IImage image = Pfim.Pfim.FromFile(f);
+            PixelFormat format;
+
+            switch (image.Format)
+            {
+                case Pfim.ImageFormat.Rgb24:
+                    format = PixelFormat.Format24bppRgb;
+                    break;
+
+                case Pfim.ImageFormat.Rgba32:
+                    format = PixelFormat.Format32bppArgb;
+                    break;
+
+                case Pfim.ImageFormat.R5g5b5:
+                    format = PixelFormat.Format16bppRgb555;
+                    break;
+
+                case Pfim.ImageFormat.R5g6b5:
+                    format = PixelFormat.Format16bppRgb565;
+                    break;
+
+
+                case Pfim.ImageFormat.R5g5b5a1:
+                    format = PixelFormat.Format16bppArgb1555;
+                    break;
+
+
+
+                case Pfim.ImageFormat.Rgb8:
+                    format = PixelFormat.Format8bppIndexed;
+                    break;
+
+
+
+                default:
+                   /* var msg = $"{image.Format} is not recognized for Bitmap on Windows Forms. " +
+
+                               "You'd need to write a conversion function to convert the data to known format";
+
+                    var caption = "Unrecognized format";
+
+                    MessageBox.Show(msg, caption, MessageBoxButtons.OK);
+                    */
+                    return null;
+
+            }
+
+
+
+            if (handle.IsAllocated)
+            {
+                handle.Free();
+            }
+
+           handle = System.Runtime.InteropServices.GCHandle.Alloc(image.Data, System.Runtime.InteropServices.GCHandleType.Pinned);
+
+            var ptr = System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
+
+            var bitmap = new System.Drawing.Bitmap(image.Width, image.Height, image.Stride, format, ptr);
+
+
+            return bitmap;
+
+        }
+
+
+        System.Drawing.Bitmap readDdsStreamToBitmap(Stream  f)
+        {
+
+            Pfim.IImage image = Pfim.Pfim.FromStream(f);
+            PixelFormat format;
+
+            switch (image.Format)
+            {
+                case Pfim.ImageFormat.Rgb24:
+                    format = PixelFormat.Format24bppRgb;
+                    break;
+
+                case Pfim.ImageFormat.Rgba32:
+                    format = PixelFormat.Format32bppArgb;
+                    break;
+
+                case Pfim.ImageFormat.R5g5b5:
+                    format = PixelFormat.Format16bppRgb555;
+                    break;
+
+                case Pfim.ImageFormat.R5g6b5:
+                    format = PixelFormat.Format16bppRgb565;
+                    break;
+
+
+                case Pfim.ImageFormat.R5g5b5a1:
+                    format = PixelFormat.Format16bppArgb1555;
+                    break;
+
+
+
+                case Pfim.ImageFormat.Rgb8:
+                    format = PixelFormat.Format8bppIndexed;
+                    break;
+
+
+
+                default:
+                    /* var msg = $"{image.Format} is not recognized for Bitmap on Windows Forms. " +
+
+                                "You'd need to write a conversion function to convert the data to known format";
+
+                     var caption = "Unrecognized format";
+
+                     MessageBox.Show(msg, caption, MessageBoxButtons.OK);
+                     */
+                    return null;
+
+            }
+
+
+
+            if (handle.IsAllocated)
+            {
+                handle.Free();
+            }
+
+            handle = System.Runtime.InteropServices.GCHandle.Alloc(image.Data, System.Runtime.InteropServices.GCHandleType.Pinned);
+
+            var ptr = System.Runtime.InteropServices.Marshal.UnsafeAddrOfPinnedArrayElement(image.Data, 0);
+
+            var bitmap = new System.Drawing.Bitmap(image.Width, image.Height, image.Stride, format, ptr);
+
+
+            return bitmap;
+
+        }
 
         //Refer to the code at http://florianblock.blogspot.com/2008/06/copying-dynamically-created-bitmap-to.html
         //Also refer to https://gamedev.stackexchange.com/questions/6440/bitmap-to-texture2d-problem-with-colors
@@ -198,8 +531,12 @@ namespace MySFformat
             Vector3D miniPoint = new Vector3D();
             float ptDistance = float.MaxValue;
             targetV = null;
-            foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
+            targetVinfo = null;
+
+            for(int i = 0; i < Program.vertices.Count;i++)
+          //  foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
             {
+                SoulsFormats.FLVER.Vertex v = Program.vertices[i];
                 if (v.Positions[0] == null) { continue; }
                 float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
                 if (ptDistance > dis)
@@ -208,6 +545,7 @@ namespace MySFformat
                     miniPoint = new Vector3D(v.Positions[0]);
                     ptDistance = dis;
                     targetV = v;
+                    targetVinfo = Program.verticesInfo[i];
                 }
 
             }
@@ -242,7 +580,7 @@ namespace MySFformat
             {
                 string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
                 int l = text.Length / 2;
-                System.Windows.Forms.MessageBox.Show(text.Substring(0, l), "Vertex info1:");
+                System.Windows.Forms.MessageBox.Show("Parent mesh index:" + targetVinfo.meshIndex + "\nVertex index:" + targetVinfo.vertexIndex  + "\n"+ text.Substring(0, l), "Vertex info1:");
                 System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
 
             }
@@ -430,6 +768,20 @@ namespace MySFformat
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F3))
             {
                 renderMode = RenderMode.Both;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F4))
+            {
+                renderMode = RenderMode.BothNoTex;
+            }
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
+            {
+                renderMode = RenderMode.TexOnly;
+            }
+
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F6) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F6))
+            {
+                flatShading = !flatShading;
+                Program.updateVertices();
             }
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B))
@@ -725,11 +1077,47 @@ namespace MySFformat
                 else
                 {
 
+                    if (renderMode != RenderMode.TexOnly)
+                        if (vertices.Length > 0) { GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2); }
 
-                    if (vertices.Length > 0) { GraphicsDevice.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, vertices, 0, vertices.Length / 2); }
-                    if (triVertices.Length > 0) { graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3); }
+                    if (renderMode == RenderMode.BothNoTex || Program.loadTexture == false)
+                    {
+                        if (triVertices.Length > 0) { graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, triVertices, 0, triVertices.Length / 3); }
+                    }
+                    else {
+                        foreach (var mi in meshInfos) 
+                        {
+                            if (textureMap.ContainsKey(mi.textureName))
+                            {
+                                effect.TextureEnabled = true;
+                                effect.Texture = textureMap[mi.textureName];
+                                //no texture found, don't draw.
+                                //continue;
+                            }
+                            else {
+                                effect.TextureEnabled = true;
+                                effect.Texture = testTexture;
+                            }
+                           
+                            foreach (var pass in effect.CurrentTechnique.Passes)
+                            {
+                                pass.Apply();
+
+                                if (mi.triTextureVertices.Length > 0) { graphics.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, mi.triTextureVertices, 0, mi.triTextureVertices.Length / 3); }
+
+                            }
+
+                        }
+                
 
 
+                    }
+
+               
+
+                
+                
+                
                 }
             }
 
@@ -766,22 +1154,23 @@ namespace MySFformat
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(
                 fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
 
-            
-           /* foreach (var pass in effect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
 
-                graphics.GraphicsDevice.DrawUserPrimitives(
-                    // We’ll be rendering two trinalges
-                    PrimitiveType.TriangleList,
-                    // The array of verts that we want to render
-                    floorVerts,
-                    // The offset, which is 0 since we want to start 
-                    // at the beginning of the floorVerts array
-                    0,
-                    // The number of triangles to draw
-                    2);
-            }*/
+
+            /* foreach (var pass in effect.CurrentTechnique.Passes)
+             {
+                 pass.Apply();
+
+                 graphics.GraphicsDevice.DrawUserPrimitives(
+                     // We’ll be rendering two trinalges
+                     PrimitiveType.TriangleList,
+                     // The array of verts that we want to render
+                     floorVerts,
+                     // The offset, which is 0 since we want to start 
+                     // at the beginning of the floorVerts array
+                     0,
+                     // The number of triangles to draw
+                     2);
+             }*/
 
 
             VertexPositionColor[] lines;
@@ -798,7 +1187,7 @@ namespace MySFformat
             lines[4] = new VertexPositionColor(new Vector3(0, 0, 0), Color.Yellow);
 
             lines[5] = new VertexPositionColor(new Vector3(0, 0, 10), Color.Yellow);
-
+            effect.TextureEnabled = false;
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
 
             {

@@ -12,6 +12,13 @@
             <returns>A bounding box that encapsulates the given point cloud.</returns>
             <exception cref="T:System.ArgumentException">Thrown if the given list has no points.</exception>
         </member>
+        <member name="M:Microsoft.Xna.Framework.BoundingBox.Deconstruct(Microsoft.Xna.Framework.Vector3@,Microsoft.Xna.Framework.Vector3@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.BoundingBox"/>.
+            </summary>
+            <param name="min"></param>
+            <param name="max"></param>
+        </member>
         <member name="T:Microsoft.Xna.Framework.BoundingFrustum">
             <summary>
             Defines a viewing frustum for intersection operations.
@@ -454,6 +461,13 @@
             <param name="matrix">The transformation <see cref="T:Microsoft.Xna.Framework.Matrix"/>.</param>
             <param name="result">Transformed <see cref="T:Microsoft.Xna.Framework.BoundingSphere"/> as an output parameter.</param>
         </member>
+        <member name="M:Microsoft.Xna.Framework.BoundingSphere.Deconstruct(Microsoft.Xna.Framework.Vector3@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.BoundingSphere"/>.
+            </summary>
+            <param name="center"></param>
+            <param name="radius"></param>
+        </member>
         <member name="M:Microsoft.Xna.Framework.BoundingSphere.op_Equality(Microsoft.Xna.Framework.BoundingSphere,Microsoft.Xna.Framework.BoundingSphere)">
             <summary>
             Compares whether two <see cref="T:Microsoft.Xna.Framework.BoundingSphere"/> instances are equal.
@@ -656,6 +670,23 @@
             </summary>
             <param name="other">The <see cref="T:Microsoft.Xna.Framework.Color"/> to compare.</param>
             <returns><c>true</c> if the instances are equal; <c>false</c> otherwise.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Color.Deconstruct(System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Color"/>.
+            </summary>
+            <param name="r"></param>
+            <param name="g"></param>
+            <param name="b"></param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Color.Deconstruct(System.Single@,System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Color"/> with Alpha.
+            </summary>
+            <param name="r"></param>
+            <param name="g"></param>
+            <param name="b"></param>
+            <param name="a"></param>
         </member>
         <member name="P:Microsoft.Xna.Framework.Color.B">
             <summary>
@@ -1770,6 +1801,33 @@
             Shuts down the component.
             </summary>
         </member>
+        <member name="T:Microsoft.Xna.Framework.EventHelpers">
+            <summary>
+            Provides helper methods to make it easier
+            to safely raise events.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.EventHelpers.Raise``1(System.Object,System.EventHandler{``0},``0)">
+            <summary>
+            Safely raises an event by storing a copy of the event's delegate
+            in the <paramref name="handler"/> parameter and checking it for
+            null before invoking it.
+            </summary>
+            <typeparam name="TEventArgs"></typeparam>
+            <param name="sender">The object raising the event.</param>
+            <param name="handler"><see cref="T:System.EventHandler`1"/> to be invoked</param>
+            <param name="e">The <typeparamref name="TEventArgs"/> passed to <see cref="T:System.EventHandler`1"/></param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.EventHelpers.Raise(System.Object,System.EventHandler,System.EventArgs)">
+            <summary>
+            Safely raises an event by storing a copy of the event's delegate
+            in the <paramref name="handler"/> parameter and checking it for
+            null before invoking it.
+            </summary>
+            <param name="sender">The object raising the event.</param>
+            <param name="handler"><see cref="T:System.EventHandler"/> to be invoked</param>
+            <param name="e">The <see cref="T:System.EventArgs"/> passed to <see cref="T:System.EventHandler"/></param>
+        </member>
         <member name="T:Microsoft.Xna.Framework.FrameworkDispatcher">
             <summary>
             Helper class for processing internal framework events.
@@ -1928,11 +1986,12 @@
             rely on the Game class's functionality, this method and any overrides should be removed.
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.GamePlatform.OnPresentationChanged">
+        <member name="M:Microsoft.Xna.Framework.GamePlatform.OnPresentationChanged(Microsoft.Xna.Framework.Graphics.PresentationParameters)">
             <summary>
-            Used by the GraphicsDeviceManager to update the platform window
-            after the graphics device has changed the presentation.
+            Called by the GraphicsDeviceManager to notify the platform
+            that the presentation parameters have changed.
             </summary>
+            <param name="pp">The new presentation parameters.</param>
         </member>
         <member name="M:Microsoft.Xna.Framework.GamePlatform.Dispose">
             <summary>
@@ -3094,19 +3153,9 @@
             The right vector formed from the first row M11, M12, M13 elements.
             </summary>
         </member>
-        <member name="P:Microsoft.Xna.Framework.Matrix.Rotation">
-            <summary>
-            Rotation stored in this matrix.
-            </summary>
-        </member>
         <member name="P:Microsoft.Xna.Framework.Matrix.Translation">
             <summary>
             Position stored in this matrix.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Xna.Framework.Matrix.Scale">
-            <summary>
-            Scale stored in this matrix.
             </summary>
         </member>
         <member name="P:Microsoft.Xna.Framework.Matrix.Up">
@@ -3176,6 +3225,13 @@
             <param name="plane">The normalized plane to transform.</param>
             <param name="rotation">The quaternion rotation.</param>
             <param name="result">The transformed plane.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Plane.Deconstruct(Microsoft.Xna.Framework.Vector3@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Plane"/>.
+            </summary>
+            <param name="normal"></param>
+            <param name="d"></param>
         </member>
         <member name="T:Microsoft.Xna.Framework.PlaneIntersectionType">
             <summary>
@@ -3330,6 +3386,13 @@
             Gets a <see cref="T:Microsoft.Xna.Framework.Vector2"/> representation for this object.
             </summary>
             <returns>A <see cref="T:Microsoft.Xna.Framework.Vector2"/> representation for this object.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Point.Deconstruct(System.Int32@,System.Int32@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Point"/>.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
         </member>
         <member name="P:Microsoft.Xna.Framework.Point.Zero">
             <summary>
@@ -3736,7 +3799,7 @@
             </summary>
             <param name="quaternion1"><see cref="T:Microsoft.Xna.Framework.Quaternion"/> instance on the left of the not equal sign.</param>
             <param name="quaternion2"><see cref="T:Microsoft.Xna.Framework.Quaternion"/> instance on the right of the not equal sign.</param>
-            <returns><c>true</c> if the instances are not equal; <c>false</c> otherwise.</returns>	
+            <returns><c>true</c> if the instances are not equal; <c>false</c> otherwise.</returns>
         </member>
         <member name="M:Microsoft.Xna.Framework.Quaternion.op_Multiply(Microsoft.Xna.Framework.Quaternion,Microsoft.Xna.Framework.Quaternion)">
             <summary>
@@ -3773,6 +3836,13 @@
             <summary>
             Returns a quaternion representing no rotation.
             </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Ray.Deconstruct(Microsoft.Xna.Framework.Vector3@,Microsoft.Xna.Framework.Vector3@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Ray"/>.
+            </summary>
+            <param name="position">Receives the start position of the ray.</param>
+            <param name="direction">Receives the direction of the ray.</param>
         </member>
         <member name="T:Microsoft.Xna.Framework.Rectangle">
             <summary>
@@ -4003,6 +4073,15 @@
             <param name="value1">The first <see cref="T:Microsoft.Xna.Framework.Rectangle"/>.</param>
             <param name="value2">The second <see cref="T:Microsoft.Xna.Framework.Rectangle"/>.</param>
             <param name="result">The union of the two rectangles as an output parameter.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Rectangle.Deconstruct(System.Int32@,System.Int32@,System.Int32@,System.Int32@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Rectangle"/>.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <param name="width"></param>
+            <param name="height"></param>
         </member>
         <member name="P:Microsoft.Xna.Framework.Rectangle.Empty">
             <summary>
@@ -4694,6 +4773,13 @@
             <param name="matrix">The transformation <see cref="T:Microsoft.Xna.Framework.Matrix"/>.</param>
             <param name="destinationArray">Destination array.</param>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Vector2.Deconstruct(System.Single@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Vector2"/>.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+        </member>
         <member name="P:Microsoft.Xna.Framework.Vector2.Zero">
             <summary>
             Returns a <see cref="T:Microsoft.Xna.Framework.Vector2"/> with components 0, 0.
@@ -5285,6 +5371,14 @@
             <param name="sourceArray">Source array.</param>
             <param name="matrix">The transformation <see cref="T:Microsoft.Xna.Framework.Matrix"/>.</param>
             <param name="destinationArray">Destination array.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Vector3.Deconstruct(System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Vector3"/>.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <param name="z"></param>
         </member>
         <member name="M:Microsoft.Xna.Framework.Vector3.op_Equality(Microsoft.Xna.Framework.Vector3,Microsoft.Xna.Framework.Vector3)">
             <summary>
@@ -6003,6 +6097,15 @@
             </summary>
             <returns>A <see cref="T:System.String"/> representation of this <see cref="T:Microsoft.Xna.Framework.Vector4"/>.</returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Vector4.Deconstruct(System.Single@,System.Single@,System.Single@,System.Single@)">
+            <summary>
+            Deconstruction method for <see cref="T:Microsoft.Xna.Framework.Vector4"/>.
+            </summary>
+            <param name="x"></param>
+            <param name="y"></param>
+            <param name="z"></param>
+            <param name="w"></param>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Vector4.op_UnaryNegation(Microsoft.Xna.Framework.Vector4)">
             <summary>
             Inverts values in the specified <see cref="T:Microsoft.Xna.Framework.Vector4"/>.
@@ -6456,13 +6559,24 @@
             <summary>
             Creates a new SoundEffect object based on the specified data stream.
             </summary>
-            <param name="stream">A stream containing the PCM wave data.</param>
+            <param name="stream">A stream containing the wave data.</param>
             <returns>A new SoundEffect object.</returns>
-            <remarks>The stream must point to the head of a valid PCM wave file in the RIFF bitstream format.</remarks>
+            <remarks>The stream must point to the head of a valid wave file in the RIFF bitstream format.  The formats supported are:
+            <list type="bullet">
+            <item>
+            <description>8-bit unsigned PCM</description>
+            <description>16-bit signed PCM</description>
+            <description>24-bit signed PCM</description>
+            <description>32-bit IEEE float PCM</description>
+            <description>MS-ADPCM 4-bit compressed</description>
+            <description>IMA/ADPCM (IMA4) 4-bit compressed</description>
+            </item>
+            </list>
+            </remarks>
         </member>
         <member name="M:Microsoft.Xna.Framework.Audio.SoundEffect.GetSampleDuration(System.Int32,System.Int32,Microsoft.Xna.Framework.Audio.AudioChannels)">
             <summary>
-            Returns the duration for 16bit PCM audio.
+            Returns the duration for 16-bit PCM audio.
             </summary>
             <param name="sizeInBytes">The length of the audio data in bytes.</param>
             <param name="sampleRate">Sample rate, in Hertz (Hz). Must be between 8000 Hz and 48000 Hz</param>
@@ -6616,6 +6730,114 @@
         </member>
         <member name="F:Microsoft.Xna.Framework.Audio.SoundState.Stopped">
             <summary>The SoundEffectInstance is currently stopped.</summary>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Audio.MicrophoneState">
+            <summary>
+            Microphone state. 
+            </summary>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Audio.Microphone">
+            <summary>
+            Provides microphones capture features. 
+            </summary>
+            <summary>
+            Provides microphones capture features. 
+            </summary>	
+        </member>
+        <member name="F:Microsoft.Xna.Framework.Audio.Microphone.Name">
+            <summary>
+            Returns the friendly name of the microphone.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.GetSampleDuration(System.Int32)">
+            <summary>
+            Returns the duration based on the size of the buffer (assuming 16-bit PCM data).
+            </summary>
+            <param name="sizeInBytes">Size, in bytes</param>
+            <returns>TimeSpan of the duration.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.GetSampleSizeInBytes(System.TimeSpan)">
+            <summary>
+            Returns the size, in bytes, of the array required to hold the specified duration of 16-bit PCM data. 
+            </summary>
+            <param name="duration">TimeSpan of the duration of the sample.</param>
+            <returns>Size, in bytes, of the buffer.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.Start">
+            <summary>
+            Starts microphone capture.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.Stop">
+            <summary>
+            Stops microphone capture.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.GetData(System.Byte[])">
+            <summary>
+            Gets the latest available data from the microphone.
+            </summary>
+            <param name="buffer">Buffer, in bytes, of the captured data (16-bit PCM).</param>
+            <returns>The buffer size, in bytes, of the captured data.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.Microphone.GetData(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Gets the latest available data from the microphone.
+            </summary>
+            <param name="buffer">Buffer, in bytes, of the captured data (16-bit PCM).</param>
+            <param name="offset">Byte offset.</param>
+            <param name="count">Amount, in bytes.</param>
+            <returns>The buffer size, in bytes, of the captured data.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.BufferDuration">
+            <summary>
+            Gets or sets the capture buffer duration. This value must be greater than 100 milliseconds, lower than 1000 milliseconds, and must be 10 milliseconds aligned (BufferDuration % 10 == 10).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.IsHeadset">
+            <summary>
+            Determines if the microphone is a wired headset.
+            Note: XNA could know if a headset microphone was plugged in an Xbox 360 controller but MonoGame can't.
+            Hence, this is always true on mobile platforms, and always false otherwise.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.SampleRate">
+            <summary>
+            Returns the sample rate of the captured audio.
+            Note: default value is 44100hz
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.State">
+            <summary>
+            Returns the state of the Microphone. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.All">
+            <summary>
+            Returns all compatible microphones.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Audio.Microphone.Default">
+            <summary>
+            Returns the default microphone.
+            </summary>
+        </member>
+        <member name="E:Microsoft.Xna.Framework.Audio.Microphone.BufferReady">
+            <summary>
+            Event fired when the audio data are available.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Audio.NoMicrophoneConnectedException">
+            <summary>
+            The exception thrown when no audio hardware is present, or driver issues are detected.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.NoMicrophoneConnectedException.#ctor(System.String)">
+            <param name="msg">A message describing the error.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Audio.NoMicrophoneConnectedException.#ctor(System.String,System.Exception)">
+            <param name="msg">A message describing the error.</param>
+            <param name="innerException">The exception that is the underlying cause of the current exception. If not null, the current exception is raised in a try/catch block that handled the innerException.</param>
         </member>
         <member name="T:Microsoft.Xna.Framework.Audio.AudioCategory">
             <summary>
@@ -8237,6 +8459,19 @@
             Lazily computes derived parameter values immediately before applying the effect.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsAdapter.QueryRenderTargetFormat(Microsoft.Xna.Framework.Graphics.GraphicsProfile,Microsoft.Xna.Framework.Graphics.SurfaceFormat,Microsoft.Xna.Framework.Graphics.DepthFormat,System.Int32,Microsoft.Xna.Framework.Graphics.SurfaceFormat@,Microsoft.Xna.Framework.Graphics.DepthFormat@,System.Int32@)">
+            <summary>
+            Queries for support of the requested render target format on the adaptor.
+            </summary>
+            <param name="graphicsProfile">The graphics profile.</param>
+            <param name="format">The requested surface format.</param>
+            <param name="depthFormat">The requested depth stencil format.</param>
+            <param name="multiSampleCount">The requested multisample count.</param>
+            <param name="selectedFormat">Set to the best format supported by the adaptor for the requested surface format.</param>
+            <param name="selectedDepthFormat">Set to the best format supported by the adaptor for the requested depth stencil format.</param>
+            <param name="selectedMultiSampleCount">Set to the best count supported by the adaptor for the requested multisample count.</param>
+            <returns>True if the requested format is supported by the adaptor. False if one or more of the values was changed.</returns>
+        </member>
         <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsAdapter.UseReferenceDevice">
             <summary>
             Used to request creation of the reference graphics device, 
@@ -8256,6 +8491,12 @@
             These values only work on DirectX platforms and must be defined before the graphics device
             is created. <see cref="F:Microsoft.Xna.Framework.Graphics.GraphicsAdapter.DriverType.Hardware"/> by default.
             </remarks>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsAdapter.UseDebugLayers">
+            <summary>
+            Used to request the graphics device should be created with debugging
+            features enabled.
+            </summary>
         </member>
         <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsAdapter.IsWideScreen">
             <summary>
@@ -8334,6 +8575,45 @@
             On OpenGL platforms, it is <code>true</code> if both framebuffer sRGB
             and texture sRGB are supported.
             </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsCapabilities.SupportsFloatTextures">
+            <summary>
+            True, if the underlying platform supports floating point textures. 
+            For Direct3D platforms this is always <code>true</code>.
+            For OpenGL Desktop platforms it is always <code>true</code>.
+            For OpenGL Mobile platforms it requires `GL_EXT_color_buffer_float`.
+            If the requested format is not supported an <code>NotSupportedException</code>
+            will be thrown.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsCapabilities.SupportsHalfFloatTextures">
+            <summary>
+            True, if the underlying platform supports half floating point textures. 
+            For Direct3D platforms this is always <code>true</code>.
+            For OpenGL Desktop platforms it is always <code>true</code>.
+            For OpenGL Mobile platforms it requires `GL_EXT_color_buffer_half_float`.
+            If the requested format is not supported an <code>NotSupportedException</code>
+            will be thrown.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsCapabilities.MaxTextureAnisotropy">
+            <summary>
+            Gets the max texture anisotropy. This value typically lies
+            between 0 and 16, where 0 means anisotropic filtering is not
+            supported.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDebug.TryDequeueMessage(Microsoft.Xna.Framework.Graphics.GraphicsDebugMessage@)">
+            <summary>
+            Attempt to dequeue a debugging message from the graphics subsystem.
+            </summary>
+            <remarks>
+            When running on a graphics device with debugging enabled, this allows you to retrieve
+            subsystem-specific (e.g. DirectX, OpenGL, etc.) debugging messages including information
+            about improper usage of shaders and APIs.
+            </remarks>
+            <param name="message">The graphics debugging message if retrieved, null otherwise.</param>
+            <returns>True if a graphics debugging message was retrieved, false otherwise.</returns>
         </member>
         <member name="F:Microsoft.Xna.Framework.Graphics.GraphicsDevice._vertexShader">
             <summary>
@@ -8519,10 +8799,29 @@
             <param name="instanceCount">The number of instances to render.</param>
             <remarks>Draw geometry with data from multiple bound vertex streams at different frequencies.</remarks>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.GetBackBufferData``1(``0[])">
+            <summary>
+            Gets the Pixel data of what is currently drawn on screen.
+            The format is whatever the current format of the backbuffer is.
+            </summary>
+            <typeparam name="T">A byte[] of size (ViewPort.Width * ViewPort.Height * 4)</typeparam>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.CreateDeviceResources">
             <summary>
             Create graphics device specific resources.
             </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.GetMultiSamplingQuality(SharpDX.DXGI.Format,System.Int32)">
+            <summary>
+            Get highest multisample quality level for specified format and multisample count.
+            Returns 0 if multisampling is not supported for input parameters.
+            </summary>
+            <param name="format">The texture format.</param>
+            <param name="multiSampleCount">The number of samples during multisampling.</param>
+            <returns>
+            Higher than zero if multiSampleCount is supported. 
+            Zero if multiSampleCount is not supported.
+            </returns>
         </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.Flush">
             <summary>
@@ -8533,6 +8832,11 @@
             <summary>
             The rendering information for debugging and profiling.
             The metrics are reset every frame after draw within <see cref="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.Present"/>. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsDevice.GraphicsDebug">
+            <summary>
+            Access debugging APIs for the graphics subsystem.
             </summary>
         </member>
         <member name="P:Microsoft.Xna.Framework.Graphics.GraphicsDevice.BlendFactor">
@@ -9570,6 +9874,87 @@
             </summary>
             <value>The packed representation of the value.</value>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.PresentationParameters.#ctor">
+            <summary>
+            Create a <see cref="T:Microsoft.Xna.Framework.Graphics.PresentationParameters"/> instance with default values for all properties.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.PresentationParameters.Clear">
+            <summary>
+            Reset all properties to their default values.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.PresentationParameters.Clone">
+            <summary>
+            Create a copy of this <see cref="T:Microsoft.Xna.Framework.Graphics.PresentationParameters"/> instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.BackBufferFormat">
+            <summary>
+            Get or set the format of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.BackBufferHeight">
+            <summary>
+            Get or set the height of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.BackBufferWidth">
+            <summary>
+            Get or set the width of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.Bounds">
+            <summary>
+            Get the bounds of the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.DeviceWindowHandle">
+            <summary>
+            Get or set the handle of the window that will present the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.DepthStencilFormat">
+            <summary>
+            Get or set the depth stencil format for the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.IsFullScreen">
+            <summary>
+            Get or set a value indicating if we are in full screen mode.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.HardwareModeSwitch">
+            <summary>
+            If <code>true</code> the <see cref="T:Microsoft.Xna.Framework.Graphics.GraphicsDevice"/> will do a mode switch
+            when going to full screen mode. If <code>false</code> it will instead do a
+            soft full screen by maximizing the window and making it borderless.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.MultiSampleCount">
+            <summary>
+            Get or set the multisample count for the back buffer.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.PresentationInterval">
+            <summary>
+            Get or set the presentation interval.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.DisplayOrientation">
+            <summary>
+            Get or set the display orientation.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.PresentationParameters.RenderTargetUsage">
+            <summary>
+            Get or set the RenderTargetUsage for the back buffer.
+            Determines if the back buffer is cleared when it is set as the
+            render target by the <see cref="T:Microsoft.Xna.Framework.Graphics.GraphicsDevice"/>.
+            <see cref="T:Microsoft.Xna.Framework.Graphics.GraphicsDevice"/> target.
+            </summary>
+        </member>
         <member name="T:Microsoft.Xna.Framework.Graphics.PresentInterval">
             <summary>
             Defines how <see cref="M:Microsoft.Xna.Framework.Graphics.GraphicsDevice.Present"/> updates the game window.
@@ -9748,9 +10133,13 @@
             Creates a Texture2D from a stream, supported formats bmp, gif, jpg, png, tif and dds (only for simple textures).
             May work with other formats, but will not work with tga files.
             </summary>
-            <param name="graphicsDevice"></param>
-            <param name="stream"></param>
-            <returns></returns>
+            <param name="graphicsDevice">The graphics device where the texture will be created.</param>
+            <param name="stream">The stream from which to read the image data.</param>
+            <returns>The <see cref="F:Microsoft.Xna.Framework.Graphics.SurfaceFormat.Color"/> texture created from the image stream.</returns>
+            <remarks>Note that different image decoders may generate slight differences between platforms, but perceptually 
+            the images should be identical.  This call does not premultiply the image alpha, but areas of zero alpha will
+            result in black color data.
+            </remarks>
         </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.Texture2D.SaveAsJpeg(System.IO.Stream,System.Int32,System.Int32)">
             <summary>
@@ -9771,6 +10160,16 @@
         <member name="P:Microsoft.Xna.Framework.Graphics.Texture2D.Bounds">
             <summary>
             Gets the dimensions of the texture
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.Texture2D.Width">
+            <summary>
+            Gets the width of the texture in pixels.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.Texture2D.Height">
+            <summary>
+            Gets the height of the texture in pixels.
             </summary>
         </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.RenderTarget2D.#ctor(Microsoft.Xna.Framework.Graphics.GraphicsDevice,System.Int32,System.Int32,System.Boolean,Microsoft.Xna.Framework.Graphics.SurfaceFormat,Microsoft.Xna.Framework.Graphics.DepthFormat,System.Int32,Microsoft.Xna.Framework.Graphics.RenderTargetUsage,Microsoft.Xna.Framework.Graphics.Texture2D.SurfaceType)">
@@ -10249,6 +10648,19 @@
             Render the sprite reversed along the Y axis.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Graphics.SpriteFont.#ctor(Microsoft.Xna.Framework.Graphics.Texture2D,System.Collections.Generic.List{Microsoft.Xna.Framework.Rectangle},System.Collections.Generic.List{Microsoft.Xna.Framework.Rectangle},System.Collections.Generic.List{System.Char},System.Int32,System.Single,System.Collections.Generic.List{Microsoft.Xna.Framework.Vector3},System.Nullable{System.Char})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Graphics.SpriteFont"/> class.
+            </summary>
+            <param name="texture">The font texture.</param>
+            <param name="glyphBounds">The rectangles in the font texture containing letters.</param>
+            <param name="cropping">The cropping rectangles, which are applied to the corresponding glyphBounds to calculate the bounds of the actual character.</param>
+            <param name="characters">The characters.</param>
+            <param name="lineSpacing">The line spacing (the distance from baseline to baseline) of the font.</param>
+            <param name="spacing">The spacing (tracking) between characters in the font.</param>
+            <param name="kerning">The letters kernings(X - left side bearing, Y - width and Z - right side bearing).</param>
+            <param name="defaultCharacter">The character that will be substituted when a given character is not included in the font.</param>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.SpriteFont.GetGlyphs">
             <summary>
             Returns a copy of the dictionary containing the glyphs in this SpriteFont.
@@ -10272,6 +10684,11 @@
             <param name="text">The text to measure.</param>
             <returns>The size, in pixels, of 'text' when rendered in
             this font.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Graphics.SpriteFont.Glyphs">
+            <summary>
+            All the glyphs in this SpriteFont.
+            </summary>
         </member>
         <member name="P:Microsoft.Xna.Framework.Graphics.SpriteFont.Texture">
             <summary>
@@ -10785,7 +11202,7 @@
         </member>
         <member name="F:Microsoft.Xna.Framework.Graphics.SurfaceFormat.NormalizedByte4">
             <summary>
-            Signed 16-bit bump-map format for store 8 bits per channel.
+            Signed 32-bit bump-map format for store 8 bits per channel.
             </summary>
         </member>
         <member name="F:Microsoft.Xna.Framework.Graphics.SurfaceFormat.Rgba1010102">
@@ -10980,7 +11397,32 @@
             The GraphicsDevice is resetting, so GPU resources must be recreated.
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Microsoft.Xna.Framework.Graphics.VertexBuffer.GetData``1(System.Int32,``0[],System.Int32,System.Int32,System.Int32)" -->
+        <member name="M:Microsoft.Xna.Framework.Graphics.VertexBuffer.GetData``1(System.Int32,``0[],System.Int32,System.Int32,System.Int32)">
+             <summary>
+             Get the vertex data froom this VertexBuffer.
+             </summary>
+             <typeparam name="T">The struct you want to fill.</typeparam>
+             <param name="offsetInBytes">The offset to the first element in the vertex buffer in bytes.</param>
+             <param name="data">An array of T's to be filled.</param>
+             <param name="startIndex">The index to start filling the data array.</param>
+             <param name="elementCount">The number of T's to get.</param>
+             <param name="vertexStride">The size of how a vertex buffer element should be interpreted.</param>
+            
+             <remarks>
+             Note that this pulls data from VRAM into main memory and because of that is a very expensive operation.
+             It is often a better idea to keep a copy of the data in main memory.
+             </remarks>
+            
+             <remarks>
+             <p>Using this operation it is easy to get certain vertex elements from a VertexBuffer.</p>
+             <p>
+             For example to get the texture coordinates from a VertexBuffer of <see cref="T:Microsoft.Xna.Framework.Graphics.VertexPositionTexture"/> you can call 
+             GetData(4 * 3, data, elementCount, 20). 'data'should be an array of <see cref="T:Microsoft.Xna.Framework.Vector2"/> in this example.
+             The offsetInBytes is the number of bytes taken up by the <see cref="F:Microsoft.Xna.Framework.Graphics.VertexPositionTexture.Position"/> of the vertex.
+             For vertexStride we pass the size of a <see cref="T:Microsoft.Xna.Framework.Graphics.VertexPositionTexture"/>.
+             </p>
+             </remarks>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Graphics.VertexBuffer.SetData``1(System.Int32,``0[],System.Int32,System.Int32,System.Int32)">
             <summary>
             Sets the vertex buffer data, specifying the index at which to start copying from the source data array,
@@ -11797,6 +12239,7 @@
         <member name="M:Microsoft.Xna.Framework.Graphics.Viewport.Unproject(Microsoft.Xna.Framework.Vector3,Microsoft.Xna.Framework.Matrix,Microsoft.Xna.Framework.Matrix,Microsoft.Xna.Framework.Matrix)">
             <summary>
             Unprojects a <see cref="T:Microsoft.Xna.Framework.Vector3"/> from screen space into world space.
+            Note source.Z must be less than or equal to MaxDepth.
             </summary>
             <param name="source">The <see cref="T:Microsoft.Xna.Framework.Vector3"/> to unproject.</param>
             <param name="projection">The projection <see cref="T:Microsoft.Xna.Framework.Matrix"/>.</param>
@@ -12052,6 +12495,26 @@
             <param name="deadZoneMode">Enumerated value that specifies what dead zone type to use.</param>
             <returns>The state of the controller.</returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePad.GetState(Microsoft.Xna.Framework.PlayerIndex,Microsoft.Xna.Framework.Input.GamePadDeadZone,Microsoft.Xna.Framework.Input.GamePadDeadZone)">
+            <summary>
+            Gets the current state of a game pad controller, using a specified dead zone
+            on analog stick positions.
+            </summary>
+            <param name="playerIndex">Player index for the controller you want to query.</param>
+            <param name="leftDeadZoneMode">Enumerated value that specifies what dead zone type to use for the left stick.</param>
+            <param name="rightDeadZoneMode">Enumerated value that specifies what dead zone type to use for the right stick.</param>
+            <returns>The state of the controller.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePad.GetState(System.Int32,Microsoft.Xna.Framework.Input.GamePadDeadZone,Microsoft.Xna.Framework.Input.GamePadDeadZone)">
+            <summary>
+            Gets the current state of a game pad controller, using a specified dead zone
+            on analog stick positions.
+            </summary>
+            <param name="index">Index for the controller you want to query.</param>
+            <param name="leftDeadZoneMode">Enumerated value that specifies what dead zone type to use for the left stick.</param>
+            <param name="rightDeadZoneMode">Enumerated value that specifies what dead zone type to use for the right stick.</param>
+            <returns>The state of the controller.</returns>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePad.SetVibration(Microsoft.Xna.Framework.PlayerIndex,System.Single,System.Single)">
             <summary>
             Sets the vibration motor speeds on the controller device if supported.
@@ -12077,6 +12540,11 @@
             being thrown by the API.
             </summary>
         </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadButtons">
+            <summary>
+            A struct that represents the current button states for the controller.
+            </summary>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePadButtons.op_Equality(Microsoft.Xna.Framework.Input.GamePadButtons,Microsoft.Xna.Framework.Input.GamePadButtons)">
             <summary>
             Determines whether two specified instances of <see cref="T:Microsoft.Xna.Framework.Input.GamePadButtons"/> are equal.
@@ -12099,6 +12567,337 @@
             </summary>
             <param name="obj">An object to compare to this instance.</param>
             <returns>true if <paramref name="obj"/> is a <see cref="T:Microsoft.Xna.Framework.Input.GamePadButtons"/> and has the same value as this instance; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadButtons.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadButtons"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadButtons.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadButtons"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadButtons"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.A">
+            <summary>
+            Gets a value indicating if the button A is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button A is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.B">
+            <summary>
+            Gets a value indicating if the button B is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button B is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.Back">
+            <summary>
+            Gets a value indicating if the button Back is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button Back is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.X">
+            <summary>
+            Gets a value indicating if the button X is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button X is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.Y">
+            <summary>
+            Gets a value indicating if the button Y is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button Y is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.Start">
+            <summary>
+            Gets a value indicating if the button Start is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the button Start is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.LeftShoulder">
+            <summary>
+            Gets a value indicating if the left shoulder button is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the left shoulder button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.LeftStick">
+            <summary>
+            Gets a value indicating if the left stick button is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the left stick button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.RightShoulder">
+            <summary>
+            Gets a value indicating if the right shoulder button is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the right shoulder button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.RightStick">
+            <summary>
+            Gets a value indicating if the right stick button is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the right stick button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadButtons.BigButton">
+            <summary>
+            Gets a value indicating if the guide button is pressed.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the guide button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadCapabilities">
+            <summary>
+            A stuct that represents the controller capabilities.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadCapabilities.op_Equality(Microsoft.Xna.Framework.Input.GamePadCapabilities,Microsoft.Xna.Framework.Input.GamePadCapabilities)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>
+            is equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadCapabilities.op_Inequality(Microsoft.Xna.Framework.Input.GamePadCapabilities,Microsoft.Xna.Framework.Input.GamePadCapabilities)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>
+            is not equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadCapabilities.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadCapabilities.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadCapabilities.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadCapabilities"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.IsConnected">
+            <summary>
+            Gets a value indicating if the controller is connected.
+            </summary>
+            <value><c>true</c> if it is connected; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.DisplayName">
+            <summary>
+            Gets the gamepad display name.
+            
+            This property is not available in XNA.
+            </summary>
+            <value>String representing the display name of the gamepad.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.Identifier">
+            <summary>
+            Gets the unique identifier of the gamepad.
+            
+            This property is not available in XNA.
+            </summary>
+            <value>String representing the unique identifier of the gamepad.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasAButton">
+            <summary>
+            Gets a value indicating whether the controller has the button A.
+            </summary>
+            <value><c>true</c> if it has the button A; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasBackButton">
+            <summary>
+            Gets a value indicating whether the controller has the button Back.
+            </summary>
+            <value><c>true</c> if it has the button Back; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasBButton">
+            <summary>
+            Gets a value indicating whether the controller has the button B.
+            </summary>
+            <value><c>true</c> if it has the button B; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasDPadDownButton">
+            <summary>
+            Gets a value indicating whether the controller has the directional pad down button.
+            </summary>
+            <value><c>true</c> if it has the directional pad down button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasDPadLeftButton">
+            <summary>
+            Gets a value indicating whether the controller has the directional pad left button.
+            </summary>
+            <value><c>true</c> if it has the directional pad left button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasDPadRightButton">
+            <summary>
+            Gets a value indicating whether the controller has the directional pad right button.
+            </summary>
+            <value><c>true</c> if it has the directional pad right button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasDPadUpButton">
+            <summary>
+            Gets a value indicating whether the controller has the directional pad up button.
+            </summary>
+            <value><c>true</c> if it has the directional pad up button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftShoulderButton">
+            <summary>
+            Gets a value indicating whether the controller has the left shoulder button.
+            </summary>
+            <value><c>true</c> if it has the left shoulder button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftStickButton">
+            <summary>
+            Gets a value indicating whether the controller has the left stick button.
+            </summary>
+            <value><c>true</c> if it has the left stick button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightShoulderButton">
+            <summary>
+            Gets a value indicating whether the controller has the right shoulder button.
+            </summary>
+            <value><c>true</c> if it has the right shoulder button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightStickButton">
+            <summary>
+            Gets a value indicating whether the controller has the right stick button.
+            </summary>
+            <value><c>true</c> if it has the right stick button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasStartButton">
+            <summary>
+            Gets a value indicating whether the controller has the button Start.
+            </summary>
+            <value><c>true</c> if it has the button Start; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasXButton">
+            <summary>
+            Gets a value indicating whether the controller has the button X.
+            </summary>
+            <value><c>true</c> if it has the button X; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasYButton">
+            <summary>
+            Gets a value indicating whether the controller has the button Y.
+            </summary>
+            <value><c>true</c> if it has the button Y; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasBigButton">
+            <summary>
+            Gets a value indicating whether the controller has the guide button.
+            </summary>
+            <value><c>true</c> if it has the guide button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftXThumbStick">
+            <summary>
+            Gets a value indicating whether the controller has X axis for the left stick (thumbstick) button.
+            </summary>
+            <value><c>true</c> if it has X axis for the left stick (thumbstick) button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftYThumbStick">
+            <summary>
+            Gets a value indicating whether the controller has Y axis for the left stick (thumbstick) button.
+            </summary>
+            <value><c>true</c> if it has Y axis for the left stick (thumbstick) button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightXThumbStick">
+            <summary>
+            Gets a value indicating whether the controller has X axis for the right stick (thumbstick) button.
+            </summary>
+            <value><c>true</c> if it has X axis for the right stick (thumbstick) button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightYThumbStick">
+            <summary>
+            Gets a value indicating whether the controller has Y axis for the right stick (thumbstick) button.
+            </summary>
+            <value><c>true</c> if it has Y axis for the right stick (thumbstick) button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftTrigger">
+            <summary>
+            Gets a value indicating whether the controller has the left trigger button.
+            </summary>
+            <value><c>true</c> if it has the left trigger button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightTrigger">
+            <summary>
+            Gets a value indicating whether the controller has the right trigger button.
+            </summary>
+            <value><c>true</c> if it has the right trigger button; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasLeftVibrationMotor">
+            <summary>
+            Gets a value indicating whether the controller has the left vibration motor.
+            </summary>
+            <value><c>true</c> if it has the left vibration motor; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasRightVibrationMotor">
+            <summary>
+            Gets a value indicating whether the controller has the right vibration motor.
+            </summary>
+            <value><c>true</c> if it has the right vibration motor; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.HasVoiceSupport">
+            <summary>
+            Gets a value indicating whether the controller has a microphone.
+            </summary>
+            <value><c>true</c> if it has a microphone; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.GamePadType">
+            <summary>
+            Gets the type of the controller.
+            </summary>
+            <value>A <see cref="P:Microsoft.Xna.Framework.Input.GamePadCapabilities.GamePadType"/> representing the controller type..</value>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadDeadZone">
+            <summary>
+            Specifies a type of dead zone processing to apply to Xbox 360 Controller
+            analog sticks when calling GetState.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Xna.Framework.Input.GamePadDeadZone.None">
+            <summary>
+            The values of each stick are not processed and are returned by GetState as
+            "raw" values. This is best if you intend to implement your own dead zone
+            processing.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Xna.Framework.Input.GamePadDeadZone.IndependentAxes">
+            <summary>
+            The X and Y positions of each stick are compared against the dead zone independently.
+            This setting is the default when calling GetState.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Xna.Framework.Input.GamePadDeadZone.Circular">
+            <summary>
+            The combined X and Y position of each stick is compared to the dead zone.
+            This provides better control than IndependentAxes when the stick is used
+            as a two-dimensional control surface, such as when controlling a character's
+            view in a first-person game.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadDPad.#ctor(Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Input.GamePadDPad"/> struct.
+            </summary>
+            <param name="upValue">Current state of directional pad up.</param>
+            <param name="downValue">Current state of directional pad down.</param>
+            <param name="leftValue">Current state of directional pad left.</param>
+            <param name="rightValue">Current state of directional pad right.</param>
         </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePadDPad.op_Equality(Microsoft.Xna.Framework.Input.GamePadDPad,Microsoft.Xna.Framework.Input.GamePadDPad)">
             <summary>
@@ -12123,14 +12922,187 @@
             <param name="obj">An object to compare to this instance.</param>
             <returns>true if <paramref name="obj"/> is a <see cref="T:Microsoft.Xna.Framework.Input.GamePadDPad"/> and has the same value as this instance; otherwise, false.</returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadDPad.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadDPad"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadDPad.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadDPad"/>
+            in a format of 0000 where each number represents a boolean value of each respecting object property: Left, Up, Right, Down.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadDPad"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadDPad.Down">
+            <summary>
+            Gets a value indicating wethever down is pressed on the directional pad.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the down button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadDPad.Left">
+            <summary>
+            Gets a value indicating wethever left is pressed on the directional pad.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the left button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadDPad.Right">
+            <summary>
+            Gets a value indicating wethever right is pressed on the directional pad.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the right button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadDPad.Up">
+            <summary>
+            Gets a value indicating wethever up is pressed on the directional pad.
+            </summary>
+            <value><see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Pressed"/> if the up button is pressed; otherwise, <see cref="F:Microsoft.Xna.Framework.Input.ButtonState.Released"/>.</value>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadState">
+             <summary>
+             Represents specific information about the state of the controller,
+             including the current state of buttons and sticks.
+            
+             This is implemented as a partial struct to allow for individual platforms
+             to offer additional data without separate state queries to GamePad.
+             </summary>
+        </member>
         <member name="F:Microsoft.Xna.Framework.Input.GamePadState.Default">
             <summary>
             The default initialized gamepad state.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.#ctor(Microsoft.Xna.Framework.Input.GamePadThumbSticks,Microsoft.Xna.Framework.Input.GamePadTriggers,Microsoft.Xna.Framework.Input.GamePadButtons,Microsoft.Xna.Framework.Input.GamePadDPad)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> struct
+            using the specified GamePadThumbSticks, GamePadTriggers, GamePadButtons, and GamePadDPad.
+            </summary>
+            <param name="thumbSticks">Initial thumbstick state.</param>
+            <param name="triggers">Initial trigger state..</param>
+            <param name="buttons">Initial button state.</param>
+            <param name="dPad">Initial directional pad state.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.#ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single,System.Single,Microsoft.Xna.Framework.Input.Buttons)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> struct
+            using the specified stick, trigger, and button values.
+            </summary>
+            <param name="leftThumbStick">Left stick value. Each axis is clamped between −1.0 and 1.0.</param>
+            <param name="rightThumbStick">Right stick value. Each axis is clamped between −1.0 and 1.0.</param>
+            <param name="leftTrigger">Left trigger value. This value is clamped between 0.0 and 1.0.</param>
+            <param name="rightTrigger">Right trigger value. This value is clamped between 0.0 and 1.0.</param>
+            <param name="button">Button(s) to initialize as pressed.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.#ctor(Microsoft.Xna.Framework.Vector2,Microsoft.Xna.Framework.Vector2,System.Single,System.Single,Microsoft.Xna.Framework.Input.Buttons[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> struct
+            using the specified stick, trigger, and button values.
+            </summary>
+            <param name="leftThumbStick">Left stick value. Each axis is clamped between −1.0 and 1.0.</param>
+            <param name="rightThumbStick">Right stick value. Each axis is clamped between −1.0 and 1.0.</param>
+            <param name="leftTrigger">Left trigger value. This value is clamped between 0.0 and 1.0.</param>
+            <param name="rightTrigger">Right trigger value. This value is clamped between 0.0 and 1.0.</param>
+            <param name="buttons"> Array of Buttons to initialize as pressed.</param>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePadState.GetVirtualButtons">
             <summary>
             Gets the button mask along with 'virtual buttons' like LeftThumbstickLeft.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.IsButtonDown(Microsoft.Xna.Framework.Input.Buttons)">
+            <summary>
+            Determines whether specified input device buttons are pressed in this GamePadState.
+            </summary>
+            <returns><c>true</c>, if button was pressed, <c>false</c> otherwise.</returns>
+            <param name="button">Buttons to query. Specify a single button, or combine multiple buttons using a bitwise OR operation.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.IsButtonUp(Microsoft.Xna.Framework.Input.Buttons)">
+            <summary>
+            Determines whether specified input device buttons are released (not pressed) in this GamePadState.
+            </summary>
+            <returns><c>true</c>, if button was released (not pressed), <c>false</c> otherwise.</returns>
+            <param name="button">Buttons to query. Specify a single button, or combine multiple buttons using a bitwise OR operation.</param>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.op_Equality(Microsoft.Xna.Framework.Input.GamePadState,Microsoft.Xna.Framework.Input.GamePadState)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> is equal
+            to another specified <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.op_Inequality(Microsoft.Xna.Framework.Input.GamePadState,Microsoft.Xna.Framework.Input.GamePadState)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> is not
+            equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadState.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadState"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.IsConnected">
+            <summary>
+            Gets a value indicating if the controller is connected.
+            </summary>
+            <value><c>true</c> if it is connected; otherwise, <c>false</c>.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.PacketNumber">
+            <summary>
+            Gets the packet number associated with this state.
+            </summary>
+            <value>The packet number.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.Buttons">
+            <summary>
+            Gets a structure that identifies what buttons on the controller are pressed.
+            </summary>
+            <value>The buttons structure.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.DPad">
+            <summary>
+            Gets a structure that identifies what directions of the directional pad on the controller are pressed.
+            </summary>
+            <value>The directional pad structure.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.ThumbSticks">
+            <summary>
+            Gets a structure that indicates the position of the controller sticks (thumbsticks).
+            </summary>
+            <value>The thumbsticks position.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadState.Triggers">
+            <summary>
+            Gets a structure that identifies the position of triggers on the controller.
+            </summary>
+            <value>Positions of the triggers.</value>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadThumbSticks">
+            <summary>
+            A struct that represents the current stick (thumbstick) states for the controller.
             </summary>
         </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePadThumbSticks.op_Equality(Microsoft.Xna.Framework.Input.GamePadThumbSticks,Microsoft.Xna.Framework.Input.GamePadThumbSticks)">
@@ -12156,6 +13128,43 @@
             <param name="obj">An object to compare to this instance.</param>
             <returns>true if <paramref name="obj"/> is a <see cref="T:Microsoft.Xna.Framework.Input.GamePadThumbSticks"/> and has the same value as this instance; otherwise, false.</returns>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadThumbSticks.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadThumbSticks"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadThumbSticks.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadThumbSticks"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadThumbSticks"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadThumbSticks.Left">
+            <summary>
+            Gets a value indicating the position of the left stick (thumbstick). 
+            </summary>
+            <value>A <see cref="T:Microsoft.Xna.Framework.Vector2"/> indicating the current position of the left stick (thumbstick).</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadThumbSticks.Right">
+            <summary>
+            Gets a value indicating the position of the right stick (thumbstick). 
+            </summary>
+            <value>A <see cref="T:Microsoft.Xna.Framework.Vector2"/> indicating the current position of the right stick (thumbstick).</value>
+        </member>
+        <member name="T:Microsoft.Xna.Framework.Input.GamePadTriggers">
+            <summary>
+            A struct that countains information on the left and the right trigger buttons.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadTriggers.#ctor(System.Single,System.Single)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/> struct.
+            </summary>
+            <param name="leftTrigger">The position of the left trigger, the value will get clamped between 0.0f and 1.0f.</param>
+            <param name="rightTrigger">The position of the right trigger, the value will get clamped between 0.0f and 1.0f.</param>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Input.GamePadTriggers.op_Equality(Microsoft.Xna.Framework.Input.GamePadTriggers,Microsoft.Xna.Framework.Input.GamePadTriggers)">
             <summary>
             Determines whether two specified instances of <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/> are equal.
@@ -12178,6 +13187,31 @@
             </summary>
             <param name="obj">An object to compare to this instance.</param>
             <returns>true if <paramref name="obj"/> is a <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/> and has the same value as this instance; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadTriggers.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.GamePadTriggers.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.GamePadTriggers"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadTriggers.Left">
+            <summary>
+            Gets the position of the left trigger.
+            </summary>
+            <value>A value from 0.0f to 1.0f representing left trigger.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.GamePadTriggers.Right">
+            <summary>
+            Gets the position of the right trigger.
+            </summary>
+            <value>A value from 0.0f to 1.0f representing right trigger.</value>
         </member>
         <member name="T:Microsoft.Xna.Framework.Input.GamePadType">
             <summary>
@@ -12253,10 +13287,55 @@
             <param name="index">Index of the joystick you want to access.</param>
             <returns>The state of the joystick.</returns>
         </member>
+        <member name="P:Microsoft.Xna.Framework.Input.Joystick.IsSupported">
+            <summary>
+            Gets a value indicating whether the current platform supports reading raw joystick data.
+            </summary>
+            <value><c>true</c> if the current platform supports reading raw joystick data; otherwise, <c>false</c>.</value>
+        </member>
         <member name="T:Microsoft.Xna.Framework.Input.JoystickCapabilities">
             <summary>
             Describes joystick capabilities.
             </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickCapabilities.op_Equality(Microsoft.Xna.Framework.Input.JoystickCapabilities,Microsoft.Xna.Framework.Input.JoystickCapabilities)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>
+            is equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickCapabilities.op_Inequality(Microsoft.Xna.Framework.Input.JoystickCapabilities,Microsoft.Xna.Framework.Input.JoystickCapabilities)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>
+            is not equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickCapabilities.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickCapabilities.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickCapabilities.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickCapabilities"/>.</returns>
         </member>
         <member name="P:Microsoft.Xna.Framework.Input.JoystickCapabilities.IsConnected">
             <summary>
@@ -12264,11 +13343,17 @@
             </summary>
             <value><c>true</c> if the joystick is connected; otherwise, <c>false</c>.</value>
         </member>
-        <member name="P:Microsoft.Xna.Framework.Input.JoystickCapabilities.Id">
+        <member name="P:Microsoft.Xna.Framework.Input.JoystickCapabilities.Identifier">
             <summary>
             Gets the unique identifier of the joystick.
             </summary>
             <value>String representing the unique identifier of the joystick.</value>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.JoystickCapabilities.IsGamepad">
+            <summary>
+            Gets a value indicating if the joystick is a gamepad.
+            </summary>
+            <value><c>true</c> if the joystick is a gamepad; otherwise, <c>false</c>.</value>
         </member>
         <member name="P:Microsoft.Xna.Framework.Input.JoystickCapabilities.AxisCount">
             <summary>
@@ -12292,6 +13377,45 @@
             <summary>
             Describes joystick hat state.
             </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickHat.op_Equality(Microsoft.Xna.Framework.Input.JoystickHat,Microsoft.Xna.Framework.Input.JoystickHat)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> is equal
+            to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickHat.op_Inequality(Microsoft.Xna.Framework.Input.JoystickHat,Microsoft.Xna.Framework.Input.JoystickHat)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> is not
+            equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickHat.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickHat.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickHat.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/> in a format of 0000 where each number represents a boolean value of each respecting object property: Left, Up, Right, Down.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickHat"/>.</returns>
         </member>
         <member name="P:Microsoft.Xna.Framework.Input.JoystickHat.Down">
             <summary>
@@ -12322,6 +13446,45 @@
             Describes current joystick state.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickState.op_Equality(Microsoft.Xna.Framework.Input.JoystickState,Microsoft.Xna.Framework.Input.JoystickState)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> is
+            equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickState.op_Inequality(Microsoft.Xna.Framework.Input.JoystickState,Microsoft.Xna.Framework.Input.JoystickState)">
+            <summary>
+            Determines whether a specified instance of <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> is not
+            equal to another specified <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.
+            </summary>
+            <param name="left">The first <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> to compare.</param>
+            <param name="right">The second <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> to compare.</param>
+            <returns><c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickState.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.
+            </summary>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickState.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/> object.
+            </summary>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+            hash table.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.JoystickState.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Microsoft.Xna.Framework.Input.JoystickState"/>.</returns>
+        </member>
         <member name="P:Microsoft.Xna.Framework.Input.JoystickState.IsConnected">
             <summary>
             Gets a value indicating whether the joystick is connected.
@@ -12332,7 +13495,7 @@
             <summary>
             Gets the joystick axis values.
             </summary>
-            <value>An array list of floats that indicate axis values.</value>
+            <value>An array list of ints that indicate axis values.</value>
         </member>
         <member name="P:Microsoft.Xna.Framework.Input.JoystickState.Buttons">
             <summary>
@@ -12363,6 +13526,36 @@
             </summary>
             <param name="playerIndex">Player index of the keyboard.</param>
             <returns>Current keyboard state.</returns>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.KeyboardInput.Show(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Displays the keyboard input interface asynchronously.
+            </summary>
+            <param name="title">Title of the dialog box.</param>
+            <param name="description">Description of the dialog box.</param>
+            <param name="defaultText">Default text displayed in the input area.</param>
+            <param name="usePasswordMode">If password mode is enabled, the characters entered are not displayed.</param>
+            <returns>Text entered by the player. Null if back was used.</returns>
+            <exception cref="T:System.Exception">Thrown when the message box is already visible</exception>
+            <example>
+            <code>
+            var name = await KeyboardInput.Show("Name", "What's your name?", "Player");
+            </code>
+            </example>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.KeyboardInput.Cancel(System.String)">
+            <summary>
+            Hides the keyboard input interface and returns the parameter as the result of <see cref="M:Microsoft.Xna.Framework.Input.KeyboardInput.Show(System.String,System.String,System.String,System.Boolean)"/>
+            </summary>
+            <param name="result">Result to return</param>
+            <exception cref="T:System.Exception">Thrown when the keyboard input is not visible</exception>
+            <example>
+            <code>
+            var nameTask = KeyboardInput.Show("Name", "What's your name?", "Player");
+            KeyboardInput.Cancel("John Doe");
+            var name = await nameTask;
+            </code>
+            </example>
         </member>
         <member name="T:Microsoft.Xna.Framework.Input.KeyboardState">
             <summary>
@@ -13269,6 +14462,35 @@
             Key is pressed.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.MessageBox.Show(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Displays the message box interface asynchronously.
+            </summary>
+            <param name="title">Title of the message box.</param>
+            <param name="description">Description of the message box.</param>
+            <param name="buttons">Captions of the message box buttons. Up to three supported.</param>
+            <returns>Index of button selected by the player. Null if back was used.</returns>
+            <exception cref="T:System.Exception">Thrown when the message box is already visible</exception>
+            <example>
+            <code>
+            var color = await MessageBox.Show("Color", "What's your favorite color?", new[] { "Red", "Green", "Blue" });
+            </code>
+            </example>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Input.MessageBox.Cancel(System.Nullable{System.Int32})">
+            <summary>
+            Hides the message box interface and returns the parameter as the result of <see cref="M:Microsoft.Xna.Framework.Input.MessageBox.Show(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})"/>
+            </summary>
+            <param name="result">Result to return</param>
+            <exception cref="T:System.Exception">Thrown when the message box is not visible</exception>
+            <example>
+            <code>
+            var colorTask = MessageBox.Show("Color", "What's your favorite color?", new[] { "Red", "Green", "Blue" });
+            MessageBox.Cancel(0);
+            var color = await colorTask;
+            </code>
+            </example>
+        </member>
         <member name="T:Microsoft.Xna.Framework.Input.Mouse">
             <summary>
             Allows reading position and button click information from mouse.
@@ -13399,6 +14621,21 @@
             <param name="xButton2">XBUTTON2's state.</param>
             <remarks>Normally <see cref="M:Microsoft.Xna.Framework.Input.Mouse.GetState"/> should be used to get mouse current state. The constructor is provided for simulating mouse input.</remarks>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Input.MouseState.#ctor(System.Int32,System.Int32,System.Int32,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,Microsoft.Xna.Framework.Input.ButtonState,System.Int32)">
+            <summary>
+            Initializes a new instance of the MouseState.
+            </summary>
+            <param name="x">Horizontal position of the mouse in relation to the window.</param>
+            <param name="y">Vertical position of the mouse in relation to the window.</param>
+            <param name="scrollWheel">Mouse scroll wheel's value.</param>
+            <param name="leftButton">Left mouse button's state.</param>
+            <param name="middleButton">Middle mouse button's state.</param>
+            <param name="rightButton">Right mouse button's state.</param>
+            <param name="xButton1">XBUTTON1's state.</param>
+            <param name="xButton2">XBUTTON2's state.</param>
+            <param name="horizontalScrollWheel">Mouse horizontal scroll wheel's value.</param>
+            <remarks>Normally <see cref="M:Microsoft.Xna.Framework.Input.Mouse.GetState"/> should be used to get mouse current state. The constructor is provided for simulating mouse input.</remarks>
+        </member>
         <member name="M:Microsoft.Xna.Framework.Input.MouseState.op_Equality(Microsoft.Xna.Framework.Input.MouseState,Microsoft.Xna.Framework.Input.MouseState)">
             <summary>
             Compares whether two MouseState instances are equal.
@@ -13461,6 +14698,11 @@
         <member name="P:Microsoft.Xna.Framework.Input.MouseState.ScrollWheelValue">
             <summary>
             Returns cumulative scroll wheel value since the game start.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Xna.Framework.Input.MouseState.HorizontalScrollWheelValue">
+            <summary>
+            Returns the cumulative horizontal scroll wheel value since the game start
             </summary>
         </member>
         <member name="P:Microsoft.Xna.Framework.Input.MouseState.XButton1">
@@ -14140,6 +15382,14 @@
             Playback starts immediately at the given position of the song.
             </summary>
         </member>
+        <member name="M:Microsoft.Xna.Framework.Media.Song.FromUri(System.String,System.Uri)">
+            <summary>
+            Returns a song that can be played via <see cref="T:Microsoft.Xna.Framework.Media.MediaPlayer"/>.
+            </summary>
+            <param name="name">The name for the song. See <see cref="P:Microsoft.Xna.Framework.Media.Song.Name"/>.</param>
+            <param name="uri">The path to the song file.</param>
+            <returns></returns>
+        </member>
         <member name="P:Microsoft.Xna.Framework.Media.Song.Album">
             <summary>
             Gets the Album on which the Song appears.
@@ -14298,7 +15548,7 @@
             http://stackoverflow.com/a/468084
             </remarks>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.FileHelpers.ResolveRelativePath(System.String,System.String)">
+        <member name="M:MonoGame.Utilities.FileHelpers.ResolveRelativePath(System.String,System.String)">
             <summary>
             Combines the filePath and relativeFile based on relativeFile being a file in the same location as filePath.
             Relative directory operators (..) are also resolved
@@ -14308,36 +15558,51 @@
             <param name="filePath">Path to the file we are starting from</param>
             <param name="relativeFile">Relative location of another file to resolve the path to</param>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.IsConcreteClass(System.Type)">
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.GetAssembly(System.Type)">
+            <summary>
+            Returns the Assembly of a Type
+            </summary>
+        </member>
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.IsConcreteClass(System.Type)">
             <summary>
             Returns true if the given type represents a non-object type that is not abstract.
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.PropertyIsPublic(System.Reflection.PropertyInfo)">
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.PropertyIsPublic(System.Reflection.PropertyInfo)">
             <summary>
             Returns true if the get method of the given property exist and are public.
             Note that we allow a getter-only property to be serialized (and deserialized),
             *if* CanDeserializeIntoExistingObject is true for the property type.
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.IsAssignableFrom(System.Type,System.Object)">
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.IsAssignableFrom(System.Type,System.Object)">
             <summary>
             Returns true if the given type can be assigned the given value
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.IsAssignableFromType(System.Type,System.Type)">
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.IsAssignableFromType(System.Type,System.Type)">
             <summary>
             Returns true if the given type can be assigned a value with the given object type
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.ManagedSizeOf(System.Type)">
+        <member name="M:MonoGame.Utilities.ReflectionHelpers.ManagedSizeOf(System.Type)">
             <summary>
             Fallback handler for Marshal.SizeOf(type)
             </summary>
         </member>
-        <member name="T:Microsoft.Xna.Framework.Utilities.ReflectionHelpers.SizeOf`1">
+        <member name="T:MonoGame.Utilities.ReflectionHelpers.SizeOf`1">
             <summary>
             Generics handler for Marshal.SizeOf
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Utilities.TimerHelper.GetCurrentResolution">
+            <summary>
+            Returns the current timer resolution in milliseconds
+            </summary>
+        </member>
+        <member name="M:Microsoft.Xna.Framework.Utilities.TimerHelper.SleepForNoMoreThan(System.Double)">
+            <summary>
+            Sleeps as long as possible without exceeding the specified period
             </summary>
         </member>
         <member name="T:MonoGame.Utilities.ZlibStream">
@@ -16773,16 +18038,24 @@
             <param name="input"></param>
             <returns></returns>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ByteBufferPool.Get(System.Int32)">
+        <member name="M:MonoGame.Utilities.ByteBufferPool.Get(System.Int32)">
             <summary>
             Get a buffer that is at least as big as size.
             </summary>
         </member>
-        <member name="M:Microsoft.Xna.Framework.Utilities.ByteBufferPool.Return(System.Byte[])">
+        <member name="M:MonoGame.Utilities.ByteBufferPool.Return(System.Byte[])">
             <summary>
             Return the given buffer to the pool.
             </summary>
             <param name="buffer"></param>
+        </member>
+        <member name="M:MonoGame.Utilities.Imaging.frexp(System.Double,System.Int32*)">
+            <summary>
+            This code had been borrowed from here: https://github.com/MachineCognitis/C.math.NET
+            </summary>
+            <param name="number"></param>
+            <param name="exponent"></param>
+            <returns></returns>
         </member>
     </members>
 </doc>
