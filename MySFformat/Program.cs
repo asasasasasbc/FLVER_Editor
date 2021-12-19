@@ -79,7 +79,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "1.96";
+        public static string version = "1.971";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -123,6 +123,9 @@ namespace MySFformat
             //1.95: find bones' parent 15 times.
 
             //1.96: fix "affect bones" function. Now bones can be scaled properly
+
+            //1.97： added experimental Sekiro and Elden Ring .dcx Support
+                //1.971: repair minor flver crash problem
         public static string[] argments = { };
         /// <summary>
         /// 应用程序的主入口点。
@@ -633,71 +636,97 @@ namespace MySFformat
             {
                 if (openFileDialog1.FileName.Substring(fname.Length-4) == ".dcx") 
                 {
+                    //遇到不是DS3,BB的情况会报错，这时候进入DCX状态
+                    SoulsFormats.BND4 bnds = null;
                     List<BinderFile> flverFiles = new List<BinderFile>();
-                    //Support BND4(DS2,DS3,BB) only
-                    var bnds = SoulsFormats.SoulsFile<SoulsFormats.BND4>.Read(openFileDialog1.FileName);
-                
-                    Form cf = new Form();
-                    cf.Size = new System.Drawing.Size(520,400);
-                    cf.Text = "Select the flver file you want to view";
-                    cf.FormBorderStyle = FormBorderStyle.FixedDialog;
-
-                    ListBox lv = new ListBox();
-                    lv.Size = new System.Drawing.Size(490, 330);
-                    lv.Location = new System.Drawing.Point(10, 10);
-                    lv.MultiColumn = false;
-                    
-                    
-                    foreach (var bf in bnds.Files) 
+                    try
                     {
-                        //  MessageBox.Show("Found:" + bf.Name);
+                       
+                        //Support BND4(DS2,DS3,BB) only
+                        bnds = SoulsFormats.SoulsFile<SoulsFormats.BND4>.Read(openFileDialog1.FileName);
+                    }
+                    catch (Exception e) //进入dcx状态
+                    {
+                        Console.WriteLine("Is not BND4... Try DCX decompress");
+                        var fileName = openFileDialog1.FileName;
+                        byte[] bytes = DCX.Decompress(fileName, out DCX.Type compression);
+                        if (BND4.Is(bytes))
+                        {
+                            Console.WriteLine($"Unpacking BND4: {fileName}...");
+                            bnds = SoulsFormats.SoulsFile<SoulsFormats.BND4>.Read(bytes);
+                        }
 
-                        if (bf.Name.Contains(".flver")) 
+                        //throw e;
+
+                    }
+                    if (bnds == null)
+                    {
+                        MessageBox.Show("Read error.");
+                        Application.Exit();
+                    }
+                    Form cf = new Form();
+                        cf.Size = new System.Drawing.Size(520, 400);
+                        cf.Text = "Select the flver file you want to view";
+                        cf.FormBorderStyle = FormBorderStyle.FixedDialog;
+
+                        ListBox lv = new ListBox();
+                        lv.Size = new System.Drawing.Size(490, 330);
+                        lv.Location = new System.Drawing.Point(10, 10);
+                        lv.MultiColumn = false;
+
+                        foreach (var bf in bnds.Files)
                         {
-                            flverFiles.Add(bf);
-                            lv.Items.Add(bf.Name);
-                        } else if (bf.Name.Length >= 4 && loadTexture)
-                        {
-                            if (bf.Name.Substring(bf.Name.Length-4) == ".tpf") 
+                            //  MessageBox.Show("Found:" + bf.Name);
+
+                            if (bf.Name.Contains(".flver"))
                             {
-                                try { targetTPF = TPF.Read(bf.Bytes); } catch (Exception e) { MessageBox.Show("Unsupported tpf file"); }
-                             
+                                flverFiles.Add(bf);
+                                lv.Items.Add(bf.Name);
+                            }
+                            else if (bf.Name.Length >= 4 && loadTexture)
+                            {
+                                if (bf.Name.Substring(bf.Name.Length - 4) == ".tpf")
+                                {
+                                    try { targetTPF = TPF.Read(bf.Bytes); } catch (Exception e) { MessageBox.Show("Unsupported tpf file"); }
+                                }
                             }
 
                         }
 
-                    }
-
-                    Button select = new Button();
-                    select.Text = "Select";
-                    select.Size = new System.Drawing.Size(490, 20);
-                    select.Location = new System.Drawing.Point(10,340);
-                    select.Click += (s, e) =>
-                     {
-                         if (lv.SelectedIndices.Count == 0) { return; }
-                         b = FLVER.Read( flverFiles[lv.SelectedIndices[0]].Bytes);
-                         openFileDialog1.FileName = openFileDialog1.FileName + "." + FindFileName(flverFiles[0].Name) + ".flver";
-                         flverName = openFileDialog1.FileName;
-                         cf.Close();
-                     };
+                        Button select = new Button();
+                        select.Text = "Select";
+                        select.Size = new System.Drawing.Size(490, 20);
+                        select.Location = new System.Drawing.Point(10, 340);
+                        select.Click += (s, e) =>
+                        {
+                            if (lv.SelectedIndices.Count == 0) { return; }
+                            b = FLVER.Read(flverFiles[lv.SelectedIndices[0]].Bytes);
+                            openFileDialog1.FileName = openFileDialog1.FileName + "." + FindFileName(flverFiles[0].Name) + ".flver";
+                            flverName = openFileDialog1.FileName;
+                            cf.Close();
+                        };
                         cf.Controls.Add(lv);
-                    cf.Controls.Add(select);
+                        cf.Controls.Add(select);
 
-                    if (flverFiles.Count == 0)
-                    {
-                        MessageBox.Show("No FLVER files found!");
+                        if (flverFiles.Count == 0)
+                        {
+                            MessageBox.Show("No FLVER files found!");
 
-                        return;
-                    }
-                    else if (flverFiles.Count == 1)
-                    {
-                        b = FLVER.Read(flverFiles[0].Bytes);
-                        openFileDialog1.FileName = openFileDialog1.FileName + "." + FindFileName(flverFiles[0].Name) + ".flver";
-                       flverName = openFileDialog1.FileName;
-                    } else 
-                    {
-                        cf.ShowDialog();
-                    }
+                            return;
+                        }
+                        else if (flverFiles.Count == 1)
+                        {
+                            b = FLVER.Read(flverFiles[0].Bytes);
+                            openFileDialog1.FileName = openFileDialog1.FileName + "." + FindFileName(flverFiles[0].Name) + ".flver";
+                            flverName = openFileDialog1.FileName;
+                        }
+                        else
+                        {
+                            cf.ShowDialog();
+                        }
+
+                  
+                   
 
                   
                    // MessageBox.Show("Entering dcx mode");
