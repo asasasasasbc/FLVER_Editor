@@ -154,16 +154,17 @@ namespace MySFformat
 
         private void deleteVertexBelow()
         {
-            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+          
+            SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
-            float yValue = targetV.Positions[0].Y;
+            float yValue = targetV.Position.Y;
             for (int i = 0; i < m.Vertices.Count; i++)
             {
-                if (m.Vertices[i].Positions[0].Y < yValue)
+                if (m.Vertices[i].Position.Y < yValue)
                 {
 
-                    deleteMeshVertexFaceset(m, (uint)i);
-                    m.Vertices[i].Positions[0] = new System.Numerics.Vector3(0, 0, 0);
+                    deleteMeshVertexFaceset(m, i);
+                    m.Vertices[i].Position = new System.Numerics.Vector3(0, 0, 0);
                 }
             }
 
@@ -172,43 +173,43 @@ namespace MySFformat
 
         private void deleteVertexAbove()
         {
-            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
-            float yValue = targetV.Positions[0].Y;
+            float yValue = targetV.Position.Y;
             for (int i = 0;i < m.Vertices.Count;i++) 
             {
-                if (m.Vertices[i].Positions[0].Y > yValue) 
+                if (m.Vertices[i].Position.Y > yValue) 
                 {
 
-                    deleteMeshVertexFaceset(m, (uint)i);
-                    m.Vertices[i].Positions[0] = new System.Numerics.Vector3(0,0,0);
+                    deleteMeshVertexFaceset(m, i);
+                    m.Vertices[i].Position = new System.Numerics.Vector3(0,0,0);
                 }
             }
 
             Program.updateVertices();
         }
-        private void deleteMeshVertexFaceset(SoulsFormats.FLVER.Mesh m, uint index)
+        private void deleteMeshVertexFaceset(SoulsFormats.FLVER2.Mesh m, int index)
         {
             foreach (var fs in m.FaceSets)
             {
-                for (uint i = 0; i + 2 < fs.Vertices.Length; i += 3)
+                for (int i = 0; i + 2 < fs.Indices.Count; i += 3)
                 {
-                    if (fs.Vertices[i] == index || fs.Vertices[i + 1] == index || fs.Vertices[i + 2] == index)
+                    if (fs.Indices[i] == index || fs.Indices[i + 1] == index || fs.Indices[i + 2] == index)
                     {
-                        fs.Vertices[i] = index;
-                        fs.Vertices[i + 1] = index;
-                        fs.Vertices[i + 2] = index;
+                        fs.Indices[i] = index;
+                        fs.Indices[i + 1] = index;
+                        fs.Indices[i + 2] = index;
                     }
                 }
             }
         }
         private void deleteVertex()
         {
-            SoulsFormats.FLVER.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
-            deleteMeshVertexFaceset(m,index);
+            deleteMeshVertexFaceset(m,(int)(index));
        
-            targetV.Positions[0] = new System.Numerics.Vector3(0,0,0);
+            targetV.Position = new System.Numerics.Vector3(0,0,0);
 
             Program.updateVertices();
         }
@@ -537,12 +538,12 @@ namespace MySFformat
           //  foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
             {
                 SoulsFormats.FLVER.Vertex v = Program.vertices[i];
-                if (v.Positions[0] == null) { continue; }
-                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                if (v.Position == null) { continue; }
+                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Position), x1, x2);
                 if (ptDistance > dis)
                 {
 
-                    miniPoint = new Vector3D(v.Positions[0]);
+                    miniPoint = new Vector3D(v.Position);
                     ptDistance = dis;
                     targetV = v;
                     targetVinfo = Program.verticesInfo[i];
@@ -552,15 +553,15 @@ namespace MySFformat
 
             if (Program.setVertexPos)
             {
-                targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+                targetV.Position = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
             }
 
             Program.useCheckingPoint = true;
             Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
 
-            if (targetV.Normals != null && targetV.Normals.Count > 0)
+            if (targetV.Normal != null)
             {
-                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normal.X, targetV.Normal.Y, targetV.Normal.Z);
             }
             else
             {
@@ -602,7 +603,7 @@ namespace MySFformat
 
                 tb.Multiline = true;
 
-                tb.Text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV.Positions));
+                tb.Text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV.Position));
 
 
                 Button bn = new Button();
@@ -610,8 +611,8 @@ namespace MySFformat
                 bn.Location = new System.Drawing.Point(5, 560);
                 bn.Text = "Modify";
                 bn.Click += (s, o) => {
-                    List<System.Numerics.Vector3>  vn = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<List<System.Numerics.Vector3>>(tb.Text);
-                    targetV.Positions = vn;
+                    System.Numerics.Vector3  vn = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<System.Numerics.Vector3>(tb.Text);
+                    targetV.Position = vn;
                     Program.updateVertices();
                 };
 
@@ -641,12 +642,12 @@ namespace MySFformat
             targetV = null;
             foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
             {
-                if (v.Positions[0] == null) { continue; }
-                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                if (v.Position == null) { continue; }
+                float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Position), x1, x2);
                 if (ptDistance > dis)
                 {
 
-                    miniPoint = new Vector3D(v.Positions[0]);
+                    miniPoint = new Vector3D(v.Position);
                     ptDistance = dis;
                     targetV = v;
                 }
@@ -655,15 +656,15 @@ namespace MySFformat
 
             if (Program.setVertexPos)
             {
-                targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+                targetV.Position = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
             }
 
             Program.useCheckingPoint = true;
             Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
 
-            if (targetV.Normals != null && targetV.Normals.Count > 0)
+            if (targetV.Normal != null)
             {
-                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+                Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normal.X, targetV.Normal.Y, targetV.Normal.Z);
             }
             else
             {
@@ -814,12 +815,12 @@ namespace MySFformat
                 SoulsFormats.FLVER.Vertex targetV = null;
                 foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
                 {
-                    if (v.Positions[0] == null) { continue; }
-                    float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Positions[0]), x1, x2);
+                    if (v.Position == null) { continue; }
+                    float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Position), x1, x2);
                     if (ptDistance > dis)
                     {
 
-                        miniPoint = new Vector3D(v.Positions[0]);
+                        miniPoint = new Vector3D(v.Position);
                         ptDistance = dis;
                         targetV = v;
                     }
@@ -828,15 +829,15 @@ namespace MySFformat
                 
                 if (Program.setVertexPos)
                 {
-                    targetV.Positions[0] = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
+                    targetV.Position = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
                 }
 
                 Program.useCheckingPoint = true;
                 Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
 
-                if (targetV.Normals != null && targetV.Normals.Count > 0)
+                if (targetV.Normal != null)
                 {
-                    Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normals[0].X, targetV.Normals[0].Y, targetV.Normals[0].Z);
+                    Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normal.X, targetV.Normal.Y, targetV.Normal.Z);
                 }
                 else {
                     Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);

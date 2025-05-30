@@ -44,7 +44,7 @@
             fileStream.Close();
 
 
-            FLVER.Mesh mn = new FLVER.Mesh();
+            FLVER2.Mesh mn = new FLVER2.Mesh();
             mn.MaterialIndex = 0;
             mn.BoneIndices = new List<int>();
             mn.BoneIndices.Add(0);

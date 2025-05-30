@@ -24,7 +24,10 @@ BB model extractor(Convert .flver model file to importable XPS file):https://for
 ## Update log
 
 
+v1.971X Update:
+-Swaped to SoulsFormatNEXT https://github.com/soulsmods/SoulsFormatsNEXT library to support Elden Ring Nightreign model viewing functionality
 
+-Credit to Soulsmods community
 
 
 
