@@ -442,14 +442,10 @@ namespace MySFformat
 
         static void autoBackUp()
         {
-
             if (!File.Exists(orgFileName + ".bak"))
             {
                 System.IO.File.Copy(orgFileName, orgFileName + ".bak", false);
             }
-
-
-
         }
 
 
@@ -632,17 +628,6 @@ namespace MySFformat
             p.AutoScroll = true;
             f.Controls.Add(p);
 
-            //Basic mod disabled
-            /* if (b.Nodes.Count > 80)
-             {
-                 var confirmResult = MessageBox.Show("looks like there are too many bones, do you want the basic mode to save CPU resources?",
-                                   "Caution",
-                                   MessageBoxButtons.YesNo);
-                 if (confirmResult == DialogResult.Yes)
-                 {
-                     basicMode = true;
-                 }
-             }*/
             DataGridView dg = new DataGridView();
 
             /* int index = dg.Rows.Add();
@@ -758,38 +743,6 @@ namespace MySFformat
 
             p.Controls.Add(dg);
             currentY += 450;
-
-
-
-
-            //Swift value usage
-            /*
-            {
-                flexA = new TextBox();
-                flexA.Text = "1";
-                flexA.Location = new System.Drawing.Point(20,currentY);
-                p.Controls.Add(flexA);
-
-                currentY += 20;
-
-                flexB = new TextBox();
-                flexB.Text = "2";
-                flexB.Location = new System.Drawing.Point(20, currentY);
-                p.Controls.Add(flexB);
-
-                currentY += 20;
-
-                flexC = new TextBox();
-                flexC.Text = "3";
-                flexC.Location = new System.Drawing.Point(20, currentY);
-                p.Controls.Add(flexC);
-
-                currentY += 20;
-
-            }*/
-           
-
-            //f.Show();
 
             Button button = new Button();
             ButtonTips("Save the changes you made in the bones part.（Such as changing parents ID, bone names...）\n" +
@@ -962,28 +915,7 @@ namespace MySFformat
 "导出当前骨骼信息到一个json文件内。", button6ex);
             button6ex.Location = new System.Drawing.Point(435, 400);
             button6ex.Click += (s, e) => {
-
-                /*var openFileDialog2 = new SaveFileDialog();
-                openFileDialog2.FileName = "Nodes.json";
-                string res = "";
-                if (openFileDialog2.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-
-                        var sw = new StreamWriter(openFileDialog2.FileName);
-                        sw.Write(FormatOutput(serializer.Serialize(b.Nodes)));
-                        sw.Close();
-                        MessageBox.Show("Nodes json text exported!", "Info");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
-                        $"Details:\n\n{ex.StackTrace}");
-                    }
-                }*/
                 exportJson(FormatOutput(serializer.Serialize(b.Nodes)),"Nodes.json", "Nodes json text exported!");
-
             };
 
             Button button7 = new Button();
@@ -1114,8 +1046,6 @@ namespace MySFformat
                 autoBackUp(); targetFlver.Write(flverName);
 
                 MessageBox.Show("BB pelvis bone fix completed! Please exit the program!", "Info");
-
-
             };
 
             Button button8 = new Button();
@@ -1126,10 +1056,7 @@ namespace MySFformat
             button8.Location = new System.Drawing.Point(435, 500);
             //button8.AutoSize = true;
             button8.Click += (s, e) => {
-
                 bufferLayout();
-
-
             };
 
             Button button9 = new Button();
@@ -1145,7 +1072,6 @@ namespace MySFformat
             //button9.AutoSize = true;
             button9.Location = new System.Drawing.Point(435, 550);
             button9.Click += (s, e) => {
-
                 //importObj();
                 importFBX();
             };
@@ -1157,14 +1083,12 @@ namespace MySFformat
 "<实验性质>到出场景至DAE模型文件。", button10);
             button10.Location = new System.Drawing.Point(435, 600);
             button10.Click += (s, e) => {
-
                 ExportFBX();
-
             };
 
             Label thanks = new Label();
-            thanks.Text = "FLVER Editor " + version + " Author: Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash ";
-            thanks.Location = new System.Drawing.Point(10, f.Size.Height - 60);
+            thanks.Text = "FLVER Editor " + version + " Author: Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash & 莫 & SoulsformatsNEXT";
+            thanks.Location = new System.Drawing.Point(10, f.Size.Height - 80);
             thanks.Size = new System.Drawing.Size(700, 50);
 
             f.Resize += (s, e) =>
@@ -1184,7 +1108,7 @@ namespace MySFformat
                 button9.Location = new System.Drawing.Point(f.Size.Width - 115, 550);
                 button10.Location = new System.Drawing.Point(f.Size.Width - 115, 600);
 
-                thanks.Location = new System.Drawing.Point(10, f.Size.Height - 60);
+                thanks.Location = new System.Drawing.Point(10, f.Size.Height - 80);
                 dg.Size = new System.Drawing.Size(f.Size.Width - 200, 450);
             };
             p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
@@ -1207,6 +1131,12 @@ namespace MySFformat
             f.Controls.Add(button10);
             f.BringToFront();
             f.WindowState = FormWindowState.Normal;
+            // Make bone editor on top
+            // 尝试将窗口带到最前面
+            f.Load += (sender, eventArgs) => {
+                ((Form)sender).Activate();
+                ((Form)sender).BringToFront();
+            };
             Application.Run(f);
 
 
