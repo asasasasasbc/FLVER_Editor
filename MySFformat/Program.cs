@@ -1840,7 +1840,6 @@ namespace MySFformat
 
 
         }
-        #endregion Material_Window
         private static void XmlEdit()
         {
             System.Windows.Forms.OpenFileDialog openFileDialog1;
@@ -1921,7 +1920,7 @@ namespace MySFformat
 
             MessageBox.Show("Xml auto edited!");
         }
-
+        #endregion Material_Window
         static void ModelMesh()
         {
 
@@ -3206,7 +3205,6 @@ namespace MySFformat
             f.ShowDialog();
         }
 
-
         //1.83 New
         //Experimental
         public static void ExportFBX()
@@ -3235,41 +3233,8 @@ namespace MySFformat
             {
                 try
                 {
-
-
-
                     Assimp.Scene s = new Scene();
                     s.RootNode = new Node();
-
-
-                    //s.Meshes = new List<Mesh>();
-
-
-                    /*
-                    Assimp.Mesh m = new Mesh("Test triangles",Assimp.PrimitiveType.Triangle);
-                    m.Vertices.Add(new Assimp.Vector3D(1,0,0));
-                    m.Vertices.Add(new Assimp.Vector3D(0, 1, 0));
-                    m.Vertices.Add(new Assimp.Vector3D(0, 0, 1));
-                   
-                    
-                    m.Normals.Add(new Assimp.Vector3D(0,1,0));
-                    m.Normals.Add(new Assimp.Vector3D(0, 1, 0));
-                    m.Normals.Add(new Assimp.Vector3D(0, 1, 0));
-                    m.Faces.Add(new Face(new int[] { 0,1,2}));
-                    m.MaterialIndex = 0;
-                   
-                   
-                    s.Meshes.Add(m);
-
-                    s.Materials.Add(new Material());
-
-                    s.RootNode = new Node();
-
-                    Node nbase = new Node();
-                    nbase.Name = "MeshName";
-                    nbase.MeshIndices.Add(0);
-
-                    s.RootNode.Children.Add(nbase);*/
                   
                     for (int i = 0; i < targetFlver.Materials.Count; i++)
                     {
@@ -3286,20 +3251,34 @@ namespace MySFformat
                         Assimp.Mesh meshNew = new Mesh("Mesh_M" + i, Assimp.PrimitiveType.Triangle);
                         foreach (var v in m.Vertices)
                         {
-                            meshNew.Vertices.Add(new Assimp.Vector3D(v.Position.X, v.Position.Y, v.Position.Z));
-                            meshNew.Normals.Add(new Assimp.Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
-                            meshNew.Tangents.Add(new Assimp.Vector3D(v.Tangents[0].X, v.Tangents[0].Y, v.Tangents[0].Z));
+                            // To make the exported model looks correct, need to flip the 3d model's Z axis
+                            //meshNew.Vertices.Add(new Assimp.Vector3D(v.Position.X, v.Position.Y, v.Position.Z));
+                            //meshNew.Normals.Add(new Assimp.Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
+                            //meshNew.Tangents.Add(new Assimp.Vector3D(v.Tangents[0].X, v.Tangents[0].Y, v.Tangents[0].Z));
+                            meshNew.Vertices.Add(new Assimp.Vector3D(v.Position.X, v.Position.Y, -v.Position.Z));
+                            meshNew.Normals.Add(new Assimp.Vector3D(v.Normal.X, v.Normal.Y, -v.Normal.Z));
+                            meshNew.Tangents.Add(new Assimp.Vector3D(v.Tangents[0].X, v.Tangents[0].Y, -v.Tangents[0].Z));
+
                             meshNew.TextureCoordinateChannels[0].Add(new Assimp.Vector3D(v.UVs[0].X,1 - v.UVs[0].Y,0));
                             
                         }
-                        
-                        
+
+                        var vs = m.GetFaces();
                         foreach (var fs in m.FaceSets)
-                        {
-                            //TODO ADAPT:foreach (var arr in fs.GetFaces())
-                            //TODO ADAPT:{
-                            //TODO ADAPT:    meshNew.Faces.Add(new Face(new int[] { (int)arr[0], (int)arr[1],(int)arr[2] }));
-                            //TODO ADAPT:}
+                        {   
+                            // Ignore LOD facesets
+                            if (fs.Flags != FLVER2.FaceSet.FSFlags.None) { continue; }
+                            var arr = fs.Triangulate(m.Vertices.Count < 65535);
+                            for (int j = 0; j < arr.Count - 2;j+=3)
+                            {
+                                meshNew.Faces.Add(new Face(new int[] { (int)arr[j], (int)arr[j+1], (int)arr[j+2] }));
+                            }
+                                
+                            
+                            //OLD:foreach (var arr in fs.GetFaces())
+                            //OLD:{
+                            //OLD:    meshNew.Faces.Add(new Face(new int[] { (int)arr[0], (int)arr[1],(int)arr[2] }));
+                            //OLD:}
                         }
 
                         meshNew.MaterialIndex = m.MaterialIndex;
