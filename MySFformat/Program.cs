@@ -1498,6 +1498,8 @@ namespace MySFformat
             f.ShowDialog();
         }
 
+
+        #region Material_Window
         static void ModelMaterial() {
 
             Form f = new Form();
@@ -1529,7 +1531,7 @@ namespace MySFformat
             }
             {
                 Label l = new Label();
-                l.Text = "type";
+                l.Text = "mtd";
                 l.Size = new System.Drawing.Size(150, 15);
                 l.Location = new System.Drawing.Point(270, currentY + 5);
                 p.Controls.Add(l);
@@ -1544,6 +1546,7 @@ namespace MySFformat
             currentY += 20;
 
             List<TextBox> material_names_text = new List<TextBox>();
+            List<TextBox> mtd_text = new List<TextBox>();
             for (int i = 0; i < targetFlver.Materials.Count; i++)
             {
                 // foreach (FLVER.Bone bn in b.Nodes)
@@ -1565,10 +1568,11 @@ namespace MySFformat
                 
 
                 TextBox t2 = new TextBox();
-                t2.Size = new System.Drawing.Size(70, 15);
+                t2.Size = new System.Drawing.Size(300, 15);
                 t2.Location = new System.Drawing.Point(270, currentY);
                 t2.Text = bn.MTD;//Original is : bn.Flags + ",GX" + bn.GXBytes + ",Unk" + bn.Unk18;
                 p.Controls.Add(t2);
+                mtd_text.Add(t2);
 
                 Button buttonCheck = new Button();
                 int btnI = i;
@@ -1605,14 +1609,15 @@ namespace MySFformat
 
             Button button = new Button();
             button.Text = "Modify";
-            ButtonTips("Save materials' names' modification to the flver file.\n" +
-               "保存对材质名称的修改至Flver文件中。", button);
+            ButtonTips("Save materials' names and mtd modification to the flver file.\n" +
+               "保存对材质名称和mtd的修改至Flver文件中。", button);
             button.Location = new System.Drawing.Point(650, btnY);
             button.Click += (s, e) => {
                 for (int i = 0; i < targetFlver.Materials.Count; i++)
                 { 
                     var material = targetFlver.Materials[i];
                     material.Name = material_names_text[i].Text;
+                    material.MTD = mtd_text[i].Text;
                 }
                 autoBackUp(); targetFlver.Write(flverName);
             };
@@ -1669,10 +1674,7 @@ namespace MySFformat
 "导出当前材质信息到一个json文件内。", button3ex);
             button3ex.Location = new System.Drawing.Point(650, btnY);
             button3ex.Click += (s, e) => {
-
-             
                 exportJson(FormatOutput(serializer.Serialize(targetFlver.Materials)), "Material.json", "Material json text exported!");
-
             };
             btnY += 50;
 
@@ -1721,9 +1723,6 @@ namespace MySFformat
                 }
                 autoBackUp(); targetFlver.Write(flverName);
                 MessageBox.Show("Material change completed! Please exit the program!", "Info");
-
-
-
             };
             btnY += 50;
 
@@ -1744,7 +1743,6 @@ namespace MySFformat
                     {
                         continue;
                     }
-
                     if (m.MTD.IndexOf("_e") >= 0)
                     {
                         m.MTD = "N:\\NTC\\data\\Material\\mtd\\character\\c9990_dummy.mtd";
@@ -1842,7 +1840,7 @@ namespace MySFformat
 
 
         }
-
+        #endregion Material_Window
         private static void XmlEdit()
         {
             System.Windows.Forms.OpenFileDialog openFileDialog1;
