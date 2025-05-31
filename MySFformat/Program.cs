@@ -1087,13 +1087,14 @@ namespace MySFformat
             };
 
             Label thanks = new Label();
+            int thanks_text_h = 60;
             thanks.Text = "FLVER Editor " + version + " Author: Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash & 莫 & SoulsformatsNEXT";
-            thanks.Location = new System.Drawing.Point(10, f.Size.Height - 80);
-            thanks.Size = new System.Drawing.Size(700, 50);
+            thanks.Location = new System.Drawing.Point(10, f.Size.Height - 10 - thanks_text_h);
+            thanks.Size = new System.Drawing.Size(700, thanks_text_h);
 
             f.Resize += (s, e) =>
             {
-                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
+                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 20 - thanks_text_h);
                 button.Location = new System.Drawing.Point(f.Size.Width - 115, 50);
                 button2.Location = new System.Drawing.Point(f.Size.Width - 115, 100);
                 button3.Location = new System.Drawing.Point(f.Size.Width - 115, 150);
@@ -1108,10 +1109,10 @@ namespace MySFformat
                 button9.Location = new System.Drawing.Point(f.Size.Width - 115, 550);
                 button10.Location = new System.Drawing.Point(f.Size.Width - 115, 600);
 
-                thanks.Location = new System.Drawing.Point(10, f.Size.Height - 80);
+                thanks.Location = new System.Drawing.Point(10, f.Size.Height - 10 - thanks_text_h);
                 dg.Size = new System.Drawing.Size(f.Size.Width - 200, 450);
             };
-            p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
+            p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 20 - thanks_text_h);
 
             if (basicMode == false)
                 f.Controls.Add(button);
@@ -1270,10 +1271,7 @@ namespace MySFformat
                 int i = int.Parse(t.Text);
                 if (i >= 0 && i < targetFlver.Dummies.Count)
                 {
-
-                    //TODO ADAPT:targetFlver.Dummies[i].Position.X += float.Parse(tX.Text);
-                    //TODO ADAPT:targetFlver.Dummies[i].Position.Y += float.Parse(tY.Text);
-                    //TODO ADAPT:targetFlver.Dummies[i].Position.Z += float.Parse(tZ.Text);
+                    targetFlver.Dummies[i].Position += new Vector3(float.Parse(tX.Text), float.Parse(tY.Text), float.Parse(tZ.Text));
                     autoBackUp(); targetFlver.Write(flverName);
                     updateVertices();
                 }
