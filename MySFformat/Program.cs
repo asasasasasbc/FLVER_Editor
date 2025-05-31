@@ -126,6 +126,8 @@ namespace MySFformat
 
             //1.97： added experimental Sekiro and Elden Ring .dcx Support
                 //1.971: repair minor flver crash problem
+
+            // X2 : Swaped to SoulsFormatsNEXT library
         public static string[] argments = { };
         /// <summary>
         /// 应用程序的主入口点。
@@ -133,11 +135,7 @@ namespace MySFformat
         [STAThread]
         static void Main(string[] args)
         {
-            /* Application.EnableVisualStyles();
-             Application.SetCompatibleTextRenderingDefault(false);
-             Application.Run(new Form1());*/
             argments = args;
-            //ExportFBX();
             Console.WriteLine("Hello!");
             string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             IniParser settingFile = new IniParser(assemblyPath + "\\MySFformat.ini");
@@ -145,11 +143,7 @@ namespace MySFformat
           //  MessageBox.Show(settingFile.GetSetting("FLVER", "loadTexture"));
             show3D = (settingFile.GetSetting("FLVER", "show3D").Trim() != "0") ? true : false;
             legacyDisplay = (settingFile.GetSetting("FLVER", "legacyDisplay").Trim() != "0") ? true : false;
-
-
             ModelAdjModule();
-
-
         }
 
         public static void updateVerticesLegacy() 
@@ -161,8 +155,6 @@ namespace MySFformat
             vertices.Clear();
             verticesInfo.Clear();
             List<MeshInfos> mis = new List<MeshInfos>();
-
-
 
             if (useCheckingPoint)
             {
@@ -1551,9 +1543,8 @@ namespace MySFformat
             }
             currentY += 20;
 
-
+            List<TextBox> material_names_text = new List<TextBox>();
             for (int i = 0; i < targetFlver.Materials.Count; i++)
-
             {
                 // foreach (FLVER.Bone bn in b.Nodes)
                 FLVER2.Material bn = targetFlver.Materials[i];
@@ -1564,46 +1555,20 @@ namespace MySFformat
                 t.Location = new System.Drawing.Point(70, currentY);
                 t.Text = bn.Name;
                 p.Controls.Add(t);
+                material_names_text.Add(t);
 
                 Label l = new Label();
                 l.Text = "[" + i + "]";
                 l.Size = new System.Drawing.Size(50, 15);
                 l.Location = new System.Drawing.Point(10, currentY + 5);
                 p.Controls.Add(l);
+                
 
                 TextBox t2 = new TextBox();
                 t2.Size = new System.Drawing.Size(70, 15);
                 t2.Location = new System.Drawing.Point(270, currentY);
-                t2.Text = "???";//TODO ADAPT: bn.Flags + ",GX" + bn.GXBytes + ",Unk" + bn.Unk18;
+                t2.Text = bn.MTD;//Original is : bn.Flags + ",GX" + bn.GXBytes + ",Unk" + bn.Unk18;
                 p.Controls.Add(t2);
-
-                /* TextBox t3 = new TextBox();
-                 t3.Size = new System.Drawing.Size(770, 15);
-                 t3.Location = new System.Drawing.Point(340, currentY);
-                 string allMat = "";
-                 foreach (FLVER2.Texture tex in bn.Textures)
-                 {
-                     if (tex.Type == "g_DiffuseTexture")
-                      {
-                          tex.Type = "Character_AMSN_snp_Texture2D_2_AlbedoMap_0";
-                      }
-                      if (tex.Type == "g_BumpmapTexture")
-                      {
-                          tex.Type = "Character_AMSN_snp_Texture2D_7_NormalMap_4";
-                      }
-                      if (tex.Type == "g_SpecularTexture")
-                      {
-                          tex.Type = "Character_AMSN_snp_Texture2D_0_ReflectanceMap_0";
-                      }
-                      if (tex.Type == "g_ShininessTexture")
-                      {
-                          tex.Type = "Character_AMSN_snp_Texture2D_0_ReflectanceMap_0";
-                      }
-
-                     allMat += "{" + tex.Type + "->" + tex.Path + "," + tex.Unk10 + "," + tex.Unk11 + "," + tex.Unk14 + "," + tex.Unk18 + "," + tex.Unk1C + "}";
-                 }
-                 t3.Text = allMat;
-                 p.Controls.Add(t3);*/
 
                 Button buttonCheck = new Button();
                 int btnI = i;
@@ -1614,36 +1579,14 @@ namespace MySFformat
                 buttonCheck.Location = new System.Drawing.Point(350, currentY);
 
                 buttonCheck.Click += (s, e) => {
-
-                    //useCheckingMesh = true;
-                    // checkingMeshNum = btnI;
-
                     materialQuickEdit(targetFlver.Materials[btnI],btnI);
-
-                    //mes = jse.Deserialize<FLVER2.Mesh>(jse.Serialize(mes));
-                    // mes.Vertices = null;
-                    
-                    //updateVertices();
                 };
 
                 p.Controls.Add(buttonCheck);
 
-
                 currentY += 20;
                 sizeY += 20;
-                /*tList.Add(t);
-                parentList.Add(t2);
-                childList.Add(t3);*/
             }
-
-            /*  var xmlserializer = new XmlSerializer(typeof( List<FLVER2.Material>));
-              var stringWriter = new StringWriter();
-              string res;
-              using (var writer = XmlWriter.Create(stringWriter))
-              {
-                  xmlserializer.Serialize(writer, targetFlver.Materials);
-                res = stringWriter.ToString();
-              }*/
 
 
             var serializer = new JavaScriptSerializer();
@@ -1662,16 +1605,15 @@ namespace MySFformat
 
             Button button = new Button();
             button.Text = "Modify";
-            ButtonTips("Save materials' modification to the flver file.\n" +
-               "保存对材质的修改至Flver文件中。", button);
+            ButtonTips("Save materials' names' modification to the flver file.\n" +
+               "保存对材质名称的修改至Flver文件中。", button);
             button.Location = new System.Drawing.Point(650, btnY);
             button.Click += (s, e) => {
-                /*  for (int i = 0; i < b.Nodes.Count; i++)
-                  {
-                      b.Nodes[i].Name = tList[i].Text;
-                      b.Nodes[i].ParentIndex = short.Parse(parentList[i].Text);
-                      b.Nodes[i].FirstChildIndex = short.Parse(childList[i].Text);
-                  }*/
+                for (int i = 0; i < targetFlver.Materials.Count; i++)
+                { 
+                    var material = targetFlver.Materials[i];
+                    material.Name = material_names_text[i].Text;
+                }
                 autoBackUp(); targetFlver.Write(flverName);
             };
 
