@@ -70,7 +70,7 @@ namespace MySFformat
         private static GCHandle handle;
         public Mono3D()
         {
-            Window.Title = "FLVER-NR Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
+            Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             Window.AllowUserResizing = true;
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
@@ -581,7 +581,9 @@ namespace MySFformat
             {
                 string text = Program.FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(targetV));
                 int l = text.Length / 2;
-                System.Windows.Forms.MessageBox.Show("Parent mesh index:" + targetVinfo.meshIndex + "\nVertex index:" + targetVinfo.vertexIndex  + "\n"+ text.Substring(0, l), "Vertex info1:");
+                string boneweights = targetV.BoneWeights.ToString();
+                string boneindices = targetV.BoneIndices.ToString();
+                System.Windows.Forms.MessageBox.Show("Parent mesh index:" + targetVinfo.meshIndex + "\nVertex index:" + targetVinfo.vertexIndex  + "\nVertex weights" + boneweights + "\nVertex indices:" + boneindices+ text.Substring(0, l), "Vertex info1:");
                 System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
 
             }

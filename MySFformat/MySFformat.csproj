@@ -63,6 +63,14 @@
     <Reference Include="CjClutter.ObjLoader.Loader">
       <HintPath>lib\ObjLoader\CjClutter.ObjLoader.Loader.dll</HintPath>
     </Reference>
+    <Reference Include="MeshIO, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\MeshIO.dll</HintPath>
+    </Reference>
+    <Reference Include="MeshIO.FBX, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\MeshIO.FBX.dll</HintPath>
+    </Reference>
     <Reference Include="MonoGame.Framework, Version=3.6.0.1625, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>lib\MonogameWindows\MonoGame.Framework.dll</HintPath>
@@ -105,6 +113,7 @@
     <Compile Include="Matrix3D.cs" />
     <Compile Include="Mono3D.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ProgramFbxExport.cs" />
     <Compile Include="ProgramFbxImport.cs" />
     <Compile Include="ProgramUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -161,6 +170,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="icon_lSi_icon.ico" />
+    <Content Include="MeshIO.dll" />
+    <Content Include="MeshIO.FBX.dll" />
+    <Content Include="MeshIO.FBX.pdb" />
+    <Content Include="MeshIO.FBX.xml" />
+    <Content Include="MeshIO.pdb" />
+    <Content Include="MeshIO.xml" />
     <Content Include="Note.txt" />
     <Content Include="oo2core_6_win64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

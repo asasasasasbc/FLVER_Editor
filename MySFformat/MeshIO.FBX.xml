@@ -1,0 +1,620 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MeshIO.FBX</name>
+    </assembly>
+    <members>
+        <member name="T:MeshIO.FBX.DeflateWithChecksum">
+            <summary>
+            A wrapper for DeflateStream that calculates the Adler32 checksum of the payload
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.DeflateWithChecksum.Checksum">
+            <summary>
+            Gets the Adler32 checksum at the current point in the stream
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.DeflateWithChecksum.#ctor(System.IO.Stream,System.IO.Compression.CompressionMode)">
+            <inheritdoc />
+        </member>
+        <member name="M:MeshIO.FBX.DeflateWithChecksum.#ctor(System.IO.Stream,System.IO.Compression.CompressionMode,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:MeshIO.FBX.DeflateWithChecksum.Write(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:MeshIO.FBX.DeflateWithChecksum.Read(System.Byte[],System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:MeshIO.FBX.DeflateWithChecksum.ResetChecksum">
+            <summary>
+            Initializes the checksum values
+            </summary>
+        </member>
+        <member name="T:MeshIO.FBX.ErrorLevel">
+            <summary>
+            Indicates when a reader should throw errors
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.ErrorLevel.Permissive">
+            <summary>
+            Ignores inconsistencies unless the parser can no longer continue
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.ErrorLevel.Checked">
+            <summary>
+            Checks data integrity, such as checksums and end points
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.ErrorLevel.Strict">
+            <summary>
+            Checks everything, including magic bytes
+            </summary>
+        </member>
+        <member name="T:MeshIO.FBX.Exceptions.FbxException">
+            <summary>
+            An error with the FBX data input
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.Exceptions.FbxException.#ctor(System.Int64,System.String)">
+            <summary>
+            An error at a binary stream offset
+            </summary>
+            <param name="position"></param>
+            <param name="message"></param>
+        </member>
+        <member name="M:MeshIO.FBX.Exceptions.FbxException.#ctor(System.Int32,System.Int32,System.String)">
+            <summary>
+            An error in a text file
+            </summary>
+            <param name="line"></param>
+            <param name="column"></param>
+            <param name="message"></param>
+        </member>
+        <member name="M:MeshIO.FBX.Exceptions.FbxException.#ctor(System.Collections.Generic.Stack{System.String},System.Int32,System.String)">
+            <summary>
+            An error in a node object
+            </summary>
+            <param name="nodePath"></param>
+            <param name="propertyID"></param>
+            <param name="message"></param>
+        </member>
+        <member name="T:MeshIO.FBX.FbxBinary">
+            <summary>
+            Base class for binary stream wrappers
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxBinary.footerCodeSize">
+            <summary>
+            The size of the footer code
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxBinary.binarySeparator">
+            <summary>
+            The namespace separator in the binary format (remember to reverse the identifiers)
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxBinary.asciiSeparator">
+            <summary>
+            The namespace separator in the ASCII format and in object data
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.CheckEqual(System.Byte[],System.Byte[])">
+            <summary>
+            Checks if the first part of 'data' matches 'original'
+            </summary>
+            <param name="data"></param>
+            <param name="original"></param>
+            <returns><c>true</c> if it does, otherwise <c>false</c></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.WriteHeader(System.IO.Stream)">
+            <summary>
+            Writes the FBX header string
+            </summary>
+            <param name="stream"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.ReadHeader(System.IO.Stream)">
+            <summary>
+            Reads the FBX header string
+            </summary>
+            <param name="stream"></param>
+            <returns><c>true</c> if it's compliant</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.GenerateFooterCode(MeshIO.FBX.FbxNodeCollection)">
+            <summary>
+            Generates the unique footer code based on the document's timestamp
+            </summary>
+            <param name="document"></param>
+            <returns>A 16-byte code</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.GenerateFooterCode(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Generates a unique footer code based on a timestamp
+            </summary>
+            <param name="year"></param>
+            <param name="month"></param>
+            <param name="day"></param>
+            <param name="hour"></param>
+            <param name="minute"></param>
+            <param name="second"></param>
+            <param name="millisecond"></param>
+            <returns>A 16-byte code</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.WriteFooter(System.IO.BinaryWriter,System.Int32)">
+            <summary>
+            Writes the FBX footer extension (NB - not the unique footer code)
+            </summary>
+            <param name="stream"></param>
+            <param name="version"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinary.CheckFooter(System.IO.BinaryReader,MeshIO.FBX.FbxVersion)">
+            <summary>
+            Reads and checks the FBX footer extension (NB - not the unique footer code)
+            </summary>
+            <param name="stream"></param>
+            <param name="version"></param>
+            <returns><c>true</c> if it's compliant</returns>
+        </member>
+        <member name="T:MeshIO.FBX.FbxGlobalSettings">
+            <summary>
+            Global settings to be setup in the fbx file
+            </summary>
+        </member>
+        <member name="T:MeshIO.FBX.FbxNode">
+            <summary>
+            Represents a node in an FBX file
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNode.Name">
+            <summary>
+            The node name, which is often a class type
+            </summary>
+            <remarks>
+            The name must be smaller than 256 characters to be written to a binary stream
+            </remarks>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNode.IsEmpty">
+            <summary>
+            Whether the node is empty of data
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNode.Properties">
+            <summary>
+            The list of properties associated with the node
+            </summary>
+            <remarks>
+            Supported types are primitives (apart from byte and char),arrays of primitives, and strings
+            </remarks>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNode.Value">
+            <summary>
+            The first property element
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNode.#ctor">
+            <summary>
+            Default constructor
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNode.#ctor(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="name"></param>
+        </member>
+        <member name="T:MeshIO.FBX.FbxNodeCollection">
+            <summary>
+            Base class for nodes and documents
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNodeCollection.Nodes">
+            <summary>
+            The list of child/nested nodes
+            </summary>
+            <remarks>
+            A list with one or more null elements is treated differently than an empty list,
+            and represented differently in all FBX output files.
+            </remarks>
+        </member>
+        <member name="P:MeshIO.FBX.FbxNodeCollection.Item(System.String)">
+            <summary>
+            Gets a named child node
+            </summary>
+            <param name="name"></param>
+            <returns>The child node, or null</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.Add(System.String,System.Object[])">
+            <summary>
+            Add a note into the collection
+            </summary>
+            <param name="name"></param>
+            <param name="args"></param>
+            <returns>the added node</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.GetRelative(System.String)">
+            <summary>
+            Gets a child node, using a '/' separated path
+            </summary>
+            <param name="path"></param>
+            <returns>The child node, or null</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.MultipleNodes(System.String)">
+            <summary>
+            Checks if the name of the node is repeated
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.TryGetNode(System.String,MeshIO.FBX.FbxNode@)">
+            <summary>
+            Gets the first named node if exists
+            </summary>
+            <param name="name"></param>
+            <param name="node"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:MeshIO.FBX.FbxNodeCollection.System#Collections#IEnumerable#GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="P:MeshIO.FBX.FbxProperty.FbxType">
+            <summary>
+            Fbx equivalent type name
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxProperty.Label">
+            <summary>
+            Fbx label
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxProperty.CreateFrom(MeshIO.Property)">
+            <summary>
+            Create a <see cref="T:MeshIO.FBX.FbxProperty"/> based on a <see cref="T:MeshIO.Property"/>
+            </summary>
+            <param name="property"></param>
+            <returns></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxPropertyTemplate.GetUpdated(System.String,System.Object,MeshIO.FBX.FbxProperty@)">
+            <summary>
+            
+            </summary>
+            <param name="name"></param>
+            <param name="value"></param>
+            <param name="fbxProperty"></param>
+            <returns>True if the property has been updated</returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MeshIO.FBX.FbxReader"/> class for the specified file.
+            </summary>
+            <param name="path">The complete file path to read from</param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.#ctor(System.IO.Stream)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MeshIO.FBX.FbxReader"/> class for the specified stream.
+            </summary>
+            <param name="stream">The stream to read from</param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.Read(System.String,MeshIO.Core.NotificationEventHandler)">
+            <summary>
+            Read a fbx file into an scene
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.Read(System.IO.Stream,MeshIO.Core.NotificationEventHandler)">
+            <summary>
+            Read a fbx stream into an scene
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.Parse">
+            <summary>
+            Parse the FBX file
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxReader.Read">
+            <summary>
+            Read the FBX file
+            </summary>
+        </member>
+        <member name="T:MeshIO.FBX.FbxRootNode">
+            <summary>
+            A top-level FBX node
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxRootNode.Version">
+            <summary>
+            Describes the format and data of the document
+            </summary>
+            <remarks>
+            It isn't recommended that you change this value directly, because
+            it won't change any of the document's data which can be version-specific.
+            Most FBX importers can cope with any version.
+            </remarks>
+        </member>
+        <member name="T:MeshIO.FBX.FbxVersion">
+            <summary>
+            Enumerates the FBX file versions
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v2000">
+            <summary>
+            FBX version 2.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v3000">
+            <summary>
+            FBX version 3.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v4000">
+            <summary>
+            FBX version 4.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v5000">
+            <summary>
+            FBX version 5.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v5800">
+            <summary>
+            FBX version 5.8
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v6000">
+            <summary>
+            FBX version 6.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v6100">
+            <summary>
+            FBX version 6.1
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7000">
+            <summary>
+            FBX version 7.0
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7100">
+            <summary>
+            FBX 2011 version
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7200">
+            <summary>
+            FBX 2012 version
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7300">
+            <summary>
+            FBX 2013 version
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7400">
+            <summary>
+            FBX 2014 version
+            </summary>
+        </member>
+        <member name="F:MeshIO.FBX.FbxVersion.v7500">
+            <summary>
+            FBX 2016 version, adds large file (>2GB support), not compatible with older versions
+            </summary>
+        </member>
+        <member name="T:MeshIO.FBX.FbxWriter">
+            <summary>
+            Implements a <see cref="T:MeshIO.FBX.FbxWriter"/> for writing fbx files.
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxWriter.Version">
+            <summary>
+            Version to be used in the fbx file
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxWriter.Scene">
+            <summary>
+            Scene to write in the stream
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxWriter.Options">
+            <summary>
+            Writers fot this writer instance
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.#ctor(System.String,MeshIO.Scene,MeshIO.FBX.FbxWriterOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MeshIO.FBX.FbxWriter"/> class for the specified file.
+            </summary>
+            <param name="path">The complete file path to write to.</param>
+            <param name="scene"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.#ctor(System.IO.Stream,MeshIO.Scene,MeshIO.FBX.FbxWriterOptions)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MeshIO.FBX.FbxWriter"/> class for the specified stream.
+            </summary>
+            <param name="stream">The stream to write to.</param>
+            <param name="scene"></param>
+            <param name="options"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.Write(System.String,MeshIO.Scene,MeshIO.FBX.FbxWriterOptions,MeshIO.Core.NotificationEventHandler)">
+            <summary>
+            Write a <see cref="T:MeshIO.Scene"/> into a fbx file
+            </summary>
+            <param name="path"></param>
+            <param name="scene"></param>
+            <param name="options"></param>
+            <param name="onNotification"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.Write(System.IO.Stream,MeshIO.Scene,MeshIO.FBX.FbxWriterOptions,MeshIO.Core.NotificationEventHandler)">
+            <summary>
+            Write a <see cref="T:MeshIO.Scene"/> into a stream
+            </summary>
+            <param name="stream"></param>
+            <param name="scene"></param>
+            <param name="options"></param>
+            <param name="onNotification"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.Write">
+            <summary>
+            Write a <see cref="T:MeshIO.Scene"/>
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.Write(MeshIO.FBX.FbxWriterOptions)">
+            <summary>
+            Write a <see cref="T:MeshIO.Scene"/>
+            </summary>
+            <param name="options">Options to apply during the write operation</param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxWriter.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:MeshIO.FBX.Helpers.EulerAngleConverter.ConvertRotationOrder(MeshIO.FBX.Helpers.MyVector3,MeshIO.FBX.Helpers.RotationOrder,MeshIO.FBX.Helpers.RotationOrder)">
+            <summary>
+            Converts Euler angles from one rotation order to another.
+            </summary>
+            <param name="eulerAnglesDegrees">Input Euler angles in degrees.</param>
+            <param name="sourceOrder">The rotation order of the input Euler angles.</param>
+            <param name="targetOrder">The desired rotation order for the output Euler angles.</param>
+            <returns>Euler angles in degrees in the target rotation order, representing the same orientation.</returns>
+        </member>
+        <member name="T:MeshIO.FBX.Readers.Parsers.FbxAsciiParser">
+            <summary>
+            Reads FBX nodes from a text stream
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.Readers.Parsers.FbxAsciiParser.MaxArrayLength">
+            <summary>
+            The maximum array size that will be allocated
+            </summary>
+            <remarks>
+            If you trust the source, you can expand this value as necessary.
+            Malformed files could cause large amounts of memory to be allocated
+            and slow or crash the system as a result.
+            </remarks>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxAsciiParser.#ctor(System.IO.Stream,MeshIO.FBX.ErrorLevel)">
+            <summary>
+            Creates a new reader
+            </summary>
+            <param name="stream"></param>
+            <param name="errorLevel"></param>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxAsciiParser.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxAsciiParser.ReadNode">
+            <summary>
+            Reads the next node from the stream
+            </summary>
+            <returns>The read node, or <c>null</c></returns>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxAsciiParser.Parse">
+            <summary>
+            Reads a full document from the stream
+            </summary>
+            <returns>The complete document object</returns>
+        </member>
+        <member name="T:MeshIO.FBX.Readers.Parsers.FbxBinaryParser">
+            <summary>
+            Reads FBX nodes from a binary stream
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxBinaryParser.#ctor(System.IO.Stream,MeshIO.FBX.ErrorLevel)">
+            <summary>
+            Creates a new reader
+            </summary>
+            <param name="stream">The stream to read from</param>
+            <param name="errorLevel">When to throw an <see cref="T:MeshIO.FBX.Exceptions.FbxException"/></param>
+            <exception cref="T:System.ArgumentException"><paramref name="stream"/> does
+            not support seeking</exception>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxBinaryParser.ReadNode(MeshIO.FBX.FbxRootNode)">
+            <summary>
+            Reads a single node.
+            </summary>
+            <remarks>
+            This won't read the file header or footer, and as such will fail if the stream is a full FBX file
+            </remarks>
+            <returns>The node</returns>
+            <exception cref="T:MeshIO.FBX.Exceptions.FbxException">The FBX data was malformed
+            for the reader's error level</exception>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxBinaryParser.Parse">
+            <summary>
+            Reads an FBX document from the stream
+            </summary>
+            <returns>The top-level node</returns>
+            <exception cref="T:MeshIO.FBX.Exceptions.FbxException">The FBX data was malformed
+            for the reader's error level</exception>
+        </member>
+        <member name="M:MeshIO.FBX.Readers.Parsers.FbxBinaryParser.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:MeshIO.FBX.FbxAsciiWriter">
+            <summary>
+            Writes an FBX document in a text format
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxAsciiWriter.MaxLineLength">
+            <summary>
+            The maximum line length in characters when outputting arrays
+            </summary>
+            <remarks>
+            Lines might end up being a few characters longer than this, visibly and otherwise,
+            so don't rely on it as a hard limit in code!
+            </remarks>
+        </member>
+        <member name="P:MeshIO.FBX.FbxAsciiWriter.ApplyLineMaxLength">
+            <summary>
+            If this is active the max line length will not be applied
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxAsciiWriter.#ctor(MeshIO.FBX.FbxRootNode,System.IO.Stream)">
+            <summary>
+            Creates a new reader
+            </summary>
+            <param name="root"></param>
+            <param name="stream"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxAsciiWriter.Write">
+            <summary>
+            Writes an FBX document to the stream
+            </summary>
+            <remarks>
+            ASCII FBX files have no header or footer, so you can call this multiple times
+            </remarks>
+        </member>
+        <member name="M:MeshIO.FBX.FbxAsciiWriter.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:MeshIO.FBX.FbxBinaryWriter">
+            <summary>
+            Writes an FBX document to a binary stream
+            </summary>
+        </member>
+        <member name="P:MeshIO.FBX.FbxBinaryWriter.CompressionThreshold">
+            <summary>
+            The minimum size of an array in bytes before it is compressed
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinaryWriter.#ctor(MeshIO.FBX.FbxRootNode,System.IO.Stream)">
+            <summary>
+            Creates a new writer
+            </summary>
+            <param name="root"></param>
+            <param name="stream"></param>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinaryWriter.Write">
+            <summary>
+            Writes an FBX file to the output
+            </summary>
+        </member>
+        <member name="M:MeshIO.FBX.FbxBinaryWriter.Dispose">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

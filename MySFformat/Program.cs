@@ -79,7 +79,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "1.971NR夜环预览版";
+        public static string version = "X2.0NR夜环预览版";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -730,7 +730,9 @@ namespace MySFformat
                 }
             }
 
-            f.Size = new System.Drawing.Size(550, 700);
+            int WINDOW_WIDTH = 550;
+            int WINDOW_HEIGHT = 750;
+            f.Size = new System.Drawing.Size(WINDOW_WIDTH, WINDOW_HEIGHT);
             p.Size = new System.Drawing.Size(400, 530);
 
             p.Controls.Add(dg);
@@ -1071,10 +1073,20 @@ namespace MySFformat
             Button button10 = new Button();
 
             button10.Text = "Export DAE";
-            ButtonTips("<Experimental> Export current scene to DAE (Collada) 3d model file.\n" +
-"<实验性质>到出场景至DAE模型文件。", button10);
+            ButtonTips("Export current scene to DAE (Collada) 3d model file.\n" +
+"导出场景至DAE模型文件。", button10);
             button10.Location = new System.Drawing.Point(435, 600);
             button10.Click += (s, e) => {
+                ExportDAE();
+            };
+
+            Button button11 = new Button();
+
+            button11.Text = "Export FBX";
+            ButtonTips("Export current bones/bone weights/scene to FBX 3d model file.\n" +
+"导出场景（包含骨骼、权重等信息）至FBX模型文件。", button11);
+            button11.Location = new System.Drawing.Point(435, 650);
+            button11.Click += (s, e) => {
                 ExportFBX();
             };
 
@@ -1100,6 +1112,7 @@ namespace MySFformat
                 button8.Location = new System.Drawing.Point(f.Size.Width - 115, 500);
                 button9.Location = new System.Drawing.Point(f.Size.Width - 115, 550);
                 button10.Location = new System.Drawing.Point(f.Size.Width - 115, 600);
+                button11.Location = new System.Drawing.Point(f.Size.Width - 115, 650);
 
                 thanks.Location = new System.Drawing.Point(10, f.Size.Height - 10 - thanks_text_h);
                 dg.Size = new System.Drawing.Size(f.Size.Width - 200, 450);
@@ -1122,6 +1135,7 @@ namespace MySFformat
 
             f.Controls.Add(thanks);
             f.Controls.Add(button10);
+            f.Controls.Add(button11);
             f.BringToFront();
             f.WindowState = FormWindowState.Normal;
             // Make bone editor on top
@@ -3205,114 +3219,7 @@ namespace MySFformat
             f.ShowDialog();
         }
 
-        //1.83 New
-        //Experimental
-        public static void ExportFBX()
-        {
-            /*var importer = new AssimpContext();
-             Scene md = importer.ImportFile("SampleFile.dae", PostProcessSteps.CalculateTangentSpace);// PostProcessPreset.TargetRealTimeMaximumQuality
-
-
-
-             MessageBox.Show("Meshes count:" + md.Meshes.Count + "Material count:" + md.MaterialCount + "\nRootNode:" + md.RootNode.MeshIndices.Count);
-
-             string status = "RNode children count " + md.RootNode.ChildCount;
-
-             foreach (var vc in md.RootNode.Children)
-             {
-                 status += "\n" + vc.Name + "- mesh count" + vc.MeshCount + "- has children" + vc.HasChildren;
-                 if (vc.MeshCount > 0) { status += "- index:" + vc.MeshIndices[0]; }
-             }
-
-             MessageBox.Show(status);*/
-             
-            var openFileDialog2 = new SaveFileDialog();
-            openFileDialog2.FileName = "Exported.dae";
-            string res = "";
-            if (openFileDialog2.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    Assimp.Scene s = new Scene();
-                    s.RootNode = new Node();
-                  
-                    for (int i = 0; i < targetFlver.Materials.Count; i++)
-                    {
-                        var m = targetFlver.Materials[i];
-
-                        var assimpMaterial = new Assimp.Material();
-                        assimpMaterial.Name = m.Name;
-                        s.Materials.Add(assimpMaterial);
-                    }
-
-                    for (int i = 0; i < targetFlver.Meshes.Count; i++)
-                    {
-                        var m = targetFlver.Meshes[i];
-                        Assimp.Mesh meshNew = new Mesh("Mesh_M" + i, Assimp.PrimitiveType.Triangle);
-                        foreach (var v in m.Vertices)
-                        {
-                            // To make the exported model looks correct, need to flip the 3d model's Z axis
-                            //meshNew.Vertices.Add(new Assimp.Vector3D(v.Position.X, v.Position.Y, v.Position.Z));
-                            //meshNew.Normals.Add(new Assimp.Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
-                            //meshNew.Tangents.Add(new Assimp.Vector3D(v.Tangents[0].X, v.Tangents[0].Y, v.Tangents[0].Z));
-                            meshNew.Vertices.Add(new Assimp.Vector3D(v.Position.X, v.Position.Y, -v.Position.Z));
-                            meshNew.Normals.Add(new Assimp.Vector3D(v.Normal.X, v.Normal.Y, -v.Normal.Z));
-                            meshNew.Tangents.Add(new Assimp.Vector3D(v.Tangents[0].X, v.Tangents[0].Y, -v.Tangents[0].Z));
-
-                            meshNew.TextureCoordinateChannels[0].Add(new Assimp.Vector3D(v.UVs[0].X,1 - v.UVs[0].Y,0));
-                            
-                        }
-
-                        var vs = m.GetFaces();
-                        foreach (var fs in m.FaceSets)
-                        {   
-                            // Ignore LOD facesets
-                            if (fs.Flags != FLVER2.FaceSet.FSFlags.None) { continue; }
-                            var arr = fs.Triangulate(m.Vertices.Count < 65535);
-                            for (int j = 0; j < arr.Count - 2;j+=3)
-                            {
-                                meshNew.Faces.Add(new Face(new int[] { (int)arr[j], (int)arr[j+1], (int)arr[j+2] }));
-                            }
-                                
-                            
-                            //OLD:foreach (var arr in fs.GetFaces())
-                            //OLD:{
-                            //OLD:    meshNew.Faces.Add(new Face(new int[] { (int)arr[0], (int)arr[1],(int)arr[2] }));
-                            //OLD:}
-                        }
-
-                        meshNew.MaterialIndex = m.MaterialIndex;
-                        s.Meshes.Add(meshNew);
-
-
-                        Node nbase = new Node();
-                        nbase.Name = "M_" + i + "_" + targetFlver.Materials[m.MaterialIndex].Name;
-                        nbase.MeshIndices.Add(i);
-
-                        s.RootNode.Children.Add(nbase);
-
-                    }
-
-
-                    AssimpContext exportor = new AssimpContext();
-                    exportor.ExportFile(s, openFileDialog2.FileName, "collada");
-
-                    MessageBox.Show("Export successful!", "Info");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
-                    $"Details:\n\n{ex.StackTrace}");
-                }
-            }
-            else {
-                return;
-            }
-
-
-        }
-
-
+        
         //1.73 New
         /// <summary>
         /// Dummy Text
