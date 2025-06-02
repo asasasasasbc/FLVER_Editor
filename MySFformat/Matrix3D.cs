@@ -156,5 +156,17 @@ namespace MySFformat
             return m;
 
         }
+
+        public static Matrix3D Identity()
+        {
+            Matrix3D m = new Matrix3D();
+            m.value = new float[,] {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
+            return m;
+        }
     }
 }

@@ -54,18 +54,95 @@ namespace MySFformat
         }
     }
 
+
+
     // Helper for global matrix (from your skinning example)
     public static class TransformExtensions
     {
+        /// <summary>
+        /// Calculates the local transformation matrix for a MeshIO.Transform
+        /// using MySFformat.Matrix3D and a specified RotationOrder.
+        /// Assumes MeshIO.Transform.EulerRotation is in DEGREES.
+        /// </summary>
+        public static Matrix3D GetLocalMatrix(MeshIO.Transform meshIoTransform, RotationOrder order)
+        {
+            if (meshIoTransform == null) return Matrix3D.Identity();
+
+            // Ensure MeshIO.Transform.EulerRotation provides angles in degrees.
+            // If it's in radians, you'd convert here:
+            // float rotX_deg = meshIoTransform.EulerRotation.X * (180f / (float)Math.PI);
+            // float rotY_deg = meshIoTransform.EulerRotation.Y * (180f / (float)Math.PI);
+            // float rotZ_deg = meshIoTransform.EulerRotation.Z * (180f / (float)Math.PI);
+            // For now, assuming they are already in degrees:
+            float rotX_deg = (float)meshIoTransform.EulerRotation.X;
+            float rotY_deg = (float)meshIoTransform.EulerRotation.Y;
+            float rotZ_deg = (float)meshIoTransform.EulerRotation.Z;
+
+            Matrix3D mS = Matrix3D.generateScaleMatrix((float)meshIoTransform.Scale.X, (float)meshIoTransform.Scale.Y, (float)meshIoTransform.Scale.Z);
+            Matrix3D mRx = Matrix3D.generateRotXMatrix(rotX_deg);
+            Matrix3D mRy = Matrix3D.generateRotYMatrix(rotY_deg);
+            Matrix3D mRz = Matrix3D.generateRotZMatrix(rotZ_deg);
+            Matrix3D mT = Matrix3D.generateTranslationMatrix((float)meshIoTransform.Translation.X, (float)meshIoTransform.Translation.Y, (float)meshIoTransform.Translation.Z);
+
+            Matrix3D rotationProduct;
+            switch (order)
+            {
+                case RotationOrder.XYZ: rotationProduct = mRx * mRy * mRz; break;
+                case RotationOrder.XZY: rotationProduct = mRx * mRz * mRy; break;
+                case RotationOrder.YXZ: rotationProduct = mRy * mRx * mRz; break;
+                case RotationOrder.YZX: rotationProduct = mRy * mRz * mRx; break;
+                case RotationOrder.ZXY: rotationProduct = mRz * mRx * mRy; break;
+                case RotationOrder.ZYX: rotationProduct = mRz * mRy * mRx; break;
+                default:
+                    // Fallback or throw exception
+                    Console.WriteLine($"Warning: Unknown rotation order {order}, using XYZ.");
+                    rotationProduct = mRx * mRy * mRz;
+                    break;
+            }
+
+            // Standard order: T * R * S
+            // This means scale is applied first, then rotation, then translation.
+            // M = T * R_compound * S
+            return mT * rotationProduct * mS;
+        }
+        public static Matrix4 GetUnityMatrix(this MeshIO.Node node, MeshIO.Node stopAtParent = null)
+        {
+            return new Matrix4(
+                1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+            );
+
+        }
+        //MeshIO的Matrix我感觉算的有问题，很有可能是EulerAngle-》Matrix的RotationOrder有问题，我这边自己算一遍
+        public static Matrix4 GetMatrix4(Transform t)
+        {
+            var pos = t.Translation; // pos.X pos.Y pos.Z
+            var rot = t.EulerRotation; // rot.X rot.Y rot.Z
+            var scale = t.Scale;  // scale.X scale.Y scale.Z
+            Matrix3D ans = GetLocalMatrix(t, RotationOrder.ZYX);
+
+            return new Matrix4(
+                ans.value[0, 0], ans.value[0, 1], ans.value[0, 2], ans.value[0, 3],
+                ans.value[1, 0], ans.value[1, 1], ans.value[1, 2], ans.value[1, 3],
+                ans.value[2, 0], ans.value[2, 1], ans.value[2, 2], ans.value[2, 3],
+                ans.value[3, 0], ans.value[3, 1], ans.value[3, 2], ans.value[3, 3]
+            );
+        }
+
         public static Matrix4 GetGlobalMatrix(this MeshIO.Node node, MeshIO.Node stopAtParent = null)
         {
-            Matrix4 globalMatrix = node.Transform.Matrix;
-            var parent = node.Parent;
+            if (node == null) return Matrix4.Identity;
 
-            while (parent != null && parent != stopAtParent && parent is MeshIO.Node parentNode)
+            //Matrix4 globalMatrix = Matrix4.Identity; // start with parent matrix
+            Matrix4 globalMatrix = GetMatrix4(node.Transform); // Start with the node's local matrix
+            MeshIO.Node currentParent = (MeshIO.Node)node.Parent;
+
+            while (currentParent != null && currentParent != stopAtParent)
             {
-                globalMatrix = parentNode.Transform.Matrix * globalMatrix;
-                parent = parentNode.Parent;
+                globalMatrix = GetMatrix4(currentParent.Transform) * globalMatrix; // Pre-multiply by parent's local matrix
+                currentParent = (MeshIO.Node)currentParent.Parent;
             }
             return globalMatrix;
         }
@@ -109,7 +186,7 @@ namespace MySFformat
                     {
                         var flverNode = targetFlver.Nodes[i];
                         MeshIO.Entities.Bone mioBone = new MeshIO.Entities.Bone(flverNode.Name ?? $"Node_{i}");
-                        mioBone.Length = 0.1; // Make it slightly smaller for readabililty
+                        mioBone.Length = 0.2; // Make it slightly smaller for readabililty
                         mioBone.GetIdOrDefault();
 
                         // Apply transforms (with Z-flip for position and rotation components)
@@ -162,10 +239,8 @@ namespace MySFformat
                         var mioMat = new MeshIO.Shaders.Material { Name = flverMaterial.Name };
                         mioMat.GetIdOrDefault();
                         // You can try to set diffuse color if available, e.g.:
-                        // if (flverMaterial.Parameters.TryGetValue("g_Diffuse", out var diffuseParam) && diffuseParam is FLVER.ShaderParameter.Vector4 diffuseVec)
-                        // {
-                        //    mioMat.DiffuseColor = new Color(diffuseVec.X, diffuseVec.Y, diffuseVec.Z, diffuseVec.W); // Assuming Color takes 0-1 floats
-                        // }
+                        mioMat.DiffuseColor = new Color(200,200,200,255); // Assuming Color takes 0-1 floats
+                        mioMat.TransparencyFactor = 0;
                         mioMaterials.Add(mioMat);
                     }
 
@@ -245,7 +320,7 @@ namespace MySFformat
                         meshNode.Entities.Add(mioMesh);
 
                         // Parent mesh node to armature root (common practice for skinned meshes)
-                        armatureRootNode.AddChildNode(meshNode);
+                        mioScene.RootNode.AddChildNode(meshNode);
                         // Alternatively, parent to scene root: mioScene.RootNode.AddChildNode(meshNode);
 
                         // Assign Material to Mesh Node
@@ -261,7 +336,7 @@ namespace MySFformat
                             materialLayer.Indexes.Add(0); // All polygons use the first material in meshNode.Materials
                             mioMesh.Layers.Add(materialLayer);
                         }
-                        /*
+                        
                         // Skinning
                         // FLVER2 Vertex.BoneIndices are indices into targetFlver.Nodes
                         if (flverMesh.UseBoneWeights) // A simple check for skinning
@@ -270,11 +345,6 @@ namespace MySFformat
                             skin.GetIdOrDefault();
                             skin.DeformedGeometry = mioMesh; // Link skin to the geometry
                             meshNode.Entities.Add(skin); // Attach skin deformer to the mesh node
-
-                            // The meshNode's transform is relative to its parent (armatureRootNode).
-                            // If armatureRootNode is at origin and meshNode has no local transform,
-                            // its global matrix is identity.
-                            Matrix4 meshNodeBindGlobalMatrix = meshNode.GetGlobalMatrix(mioScene.RootNode);
 
                             // Group vertex indices and weights by bone
                             // Key: bone's index in targetFlver.Nodes
@@ -314,9 +384,19 @@ namespace MySFformat
                                 cluster.GetIdOrDefault();
 
                                 // TransformMatrix is the world transformation of the bone at bind time.
-                                cluster.TransformMatrix = linkBone.GetGlobalMatrix(mioScene.RootNode);
+                                // 事实证明，TransformMatrix用Calc，TransformLinkMatrix用Unity是不行的，会导致Bind出问题
+                                // 事实证明，TransformMatrix用Unity，TransformLinkMatrix用Calc也是不行的，会导致Mesh出问题
+                                //cluster.TransformMatrix = linkBone.GetGlobalMatrix(mioScene.RootNode);
+                                
+
+
                                 // TransformLinkMatrix is the world transformation of the mesh at bind time.
-                                cluster.TransformLinkMatrix = meshNodeBindGlobalMatrix;
+                                //cluster.TransformLinkMatrix = meshNodeBindGlobalMatrix;
+                                cluster.TransformLinkMatrix = linkBone.GetGlobalMatrix(null);//mioScene.RootNode
+                                Matrix4 tmp;
+                                CSMath.Matrix4.Inverse(cluster.TransformLinkMatrix, out tmp);
+                                cluster.TransformMatrix = tmp;
+
 
                                 foreach (var influence in influences)
                                 {
@@ -325,7 +405,7 @@ namespace MySFformat
                                 }
                                 skin.Clusters.Add(cluster);
                             }
-                        } */
+                        } 
                     }
 
                     // 5. FBX Export
