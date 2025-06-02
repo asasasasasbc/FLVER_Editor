@@ -109,6 +109,7 @@ namespace MySFformat
                     {
                         var flverNode = targetFlver.Nodes[i];
                         MeshIO.Entities.Bone mioBone = new MeshIO.Entities.Bone(flverNode.Name ?? $"Node_{i}");
+                        mioBone.Length = 0.1; // Make it slightly smaller for readabililty
                         mioBone.GetIdOrDefault();
 
                         // Apply transforms (with Z-flip for position and rotation components)
@@ -153,7 +154,7 @@ namespace MySFformat
                             }
                         }
                     }
-                    /*
+                    
                     // 3. Process FLVER Materials
                     List<MeshIO.Shaders.Material> mioMaterials = new List<MeshIO.Shaders.Material>();
                     foreach (var flverMaterial in targetFlver.Materials)
@@ -260,7 +261,7 @@ namespace MySFformat
                             materialLayer.Indexes.Add(0); // All polygons use the first material in meshNode.Materials
                             mioMesh.Layers.Add(materialLayer);
                         }
-
+                        /*
                         // Skinning
                         // FLVER2 Vertex.BoneIndices are indices into targetFlver.Nodes
                         if (flverMesh.UseBoneWeights) // A simple check for skinning
@@ -324,9 +325,9 @@ namespace MySFformat
                                 }
                                 skin.Clusters.Add(cluster);
                             }
-                        }
+                        } */
                     }
-                    */
+
                     // 5. FBX Export
                     var writerGlobalSettings = new FbxGlobalSettings(FbxVersion.v7400);
                     FbxWriterOptions options = new FbxWriterOptions
