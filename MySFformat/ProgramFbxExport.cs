@@ -240,6 +240,7 @@ namespace MySFformat
                         mioMat.GetIdOrDefault();
                         // You can try to set diffuse color if available, e.g.:
                         mioMat.DiffuseColor = new Color(200,200,200,255); // Assuming Color takes 0-1 floats
+                        mioMat.ShadingModel = "Diffuse";
                         mioMat.TransparencyFactor = 0;
                         mioMaterials.Add(mioMat);
                     }

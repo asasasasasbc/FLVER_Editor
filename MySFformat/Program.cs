@@ -79,7 +79,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.0NR夜环预览版";
+        public static string version = "X2.1NR夜环版";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -760,6 +760,7 @@ namespace MySFformat
             };
 
             var serializer = new JavaScriptSerializer();
+            serializer.MaxJsonLength = Int32.MaxValue;
             string serializedResult = serializer.Serialize(b.Nodes);
 
             {
@@ -964,19 +965,16 @@ namespace MySFformat
                     {
                         if (targetFlver.Nodes[i].Name == "R_Foot" || targetFlver.Nodes[i].Name == "L_Foot")
                         {
-                            //TODO ADAPT:
-                            //TODO ADAPT:targetFlver.Nodes[i].Translation.X = 0.42884814f;
-                            //TODO ADAPT:targetFlver.Nodes[i].Translation.Z = 0.02f;
-
-                            //TODO ADAPT:targetFlver.Nodes[i].Rotation.Y -= 0.01f;
+                            targetFlver.Nodes[i].Translation += new Vector3(0.42884814f, 0, 0.02f);
+                            targetFlver.Nodes[i].Rotation += new Vector3(0, -0.01f, 0);
                         }
                         else if (targetFlver.Nodes[i].Name == "R_Calf" || targetFlver.Nodes[i].Name == "L_Calf")
                         {
-                            //TODO ADAPT:targetFlver.Nodes[i].Scale.X = 1.1f;
+                            targetFlver.Nodes[i].Scale = new Vector3(1.1f, targetFlver.Nodes[i].Scale.Y, targetFlver.Nodes[i].Scale.Z);
                         }
                         else if (targetFlver.Nodes[i].Name == "R_Toe0" || targetFlver.Nodes[i].Name == "L_Toe0")
                         {
-                            //TODO ADAPT:targetFlver.Nodes[i].Translation.X += 0.02f;
+                            targetFlver.Nodes[i].Translation += new Vector3(0.02f, 0, 0);
                         }
 
 
@@ -1056,10 +1054,10 @@ namespace MySFformat
             Button button9 = new Button();
 
             button9.Text = "ImportModel";
-            ButtonTips("Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
+            ButtonTips("[Not working in X2 version yet]Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
                 "UV, normal, tangent can be kept, but you still need to manually modify material information in Material window.\n" +
                 "Also,experimentally support meshes that has more than 65535 vertices.\n" +
-"导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
+"【X2版暂不可用】导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
 "可以保留UV贴图坐标，切线法线的信息，但你还是得手动修改贴图信息的。\n" +
 "另外，实验性质的加入了导入超过65535个顶点的面片集的功能。", button9);
             button9.Font = new System.Drawing.Font(button.Font.FontFamily, 8);
@@ -2100,7 +2098,7 @@ namespace MySFformat
                 t.Size = new System.Drawing.Size(200, 15);
                 t.Location = new System.Drawing.Point(70, currentY);
                 t.ReadOnly = true;
-                t.Text = "[M:" + targetFlver.Materials[bn.MaterialIndex].Name + "],Unk1:???" /*+ //TODO ADAPT:bn.Unk1*/ + ",Dyna:" + bn.Dynamic;
+                t.Text = "[M:" + targetFlver.Materials[bn.MaterialIndex].Name + "]" /*+ ,Unk1:???//TODO ADAPT:bn.Unk1*/ + ",Dyna:" + bn.Dynamic;
                 p.Controls.Add(t);
 
                 Label l = new Label();
@@ -2144,7 +2142,7 @@ namespace MySFformat
                     checkingMeshNum = btnI;
                     FLVER2.Mesh mes = targetFlver.Meshes[btnI];
                     JavaScriptSerializer jse = new JavaScriptSerializer();
-
+                    jse.MaxJsonLength = Int32.MaxValue; // Fix too large mesh crash issue
                     FLVER2.Mesh m2 = new FLVER2.Mesh();
                     m2.Vertices = new List<FLVER.Vertex>();
                     m2.VertexBuffers = mes.VertexBuffers;
@@ -2156,7 +2154,7 @@ namespace MySFformat
                         fs.Indices = null;
                     }
                     m2.Dynamic = mes.Dynamic;
-                    //TODO ADAPT://TODO ADAPT:m2.NodeIndex = mes.NodeIndex;
+                    m2.NodeIndex = mes.NodeIndex;
                     m2.BoundingBox = mes.BoundingBox;
                     //m2.BoundingBoxUnk = mes.BoundingBoxUnk;
                     //m2.BoundingBoxMin = mes.BoundingBoxMin;
@@ -2427,12 +2425,7 @@ namespace MySFformat
                             foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                             {
 
-                                    v.Position = new System.Numerics.Vector3(0, 0, 0);
-                                //TODO ADAPT:if (v.BoneWeights == null)
-                                //TODO ADAPT:{
-                                //TODO ADAPT:
-                                //TODO ADAPT:    continue;
-                                //TODO ADAPT:}
+                                v.Position = new System.Numerics.Vector3(0, 0, 0);
                                 for (int k = 0; k < v.BoneWeights.Length; k++)
                                     {
                                         v.BoneWeights[k] = 0;
@@ -2457,8 +2450,6 @@ namespace MySFformat
                         foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                         {
                             if (v.Position == null) { v.Position = new Vector3(); }
-
-                            //TODO ADAPT:if (v.BoneWeights == null) { v.BoneWeights = new float[4]; v.BoneIndices = new int[4]; }
                             //v.Positions[j] = new System.Numerics.Vector3(0, 0, 0);
                             for (int k = 0; k < v.BoneWeights.Length; k++)
                             {
@@ -2471,7 +2462,7 @@ namespace MySFformat
                         {
                             targetFlver.Meshes[i].BoneIndices.Add(i2);
                         }
-                        targetFlver.Meshes[i].Dynamic = 1; //TODO ADAPT: true
+                        targetFlver.Meshes[i].Dynamic = 1;
                     }
 
                     if (transCb.Checked)
@@ -2558,7 +2549,6 @@ namespace MySFformat
                         foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                         {
                             //v.Positions[j] = new System.Numerics.Vector3(0, 0, 0);
-                            //TODO ADAPT:if (v.BoneIndices != 0)
                             {
                                 for (int k = 0; k < v.BoneIndices.Length; k++)
                                 {
@@ -2617,14 +2607,13 @@ namespace MySFformat
                     {
                         if (true)
                         {   
-                            //TODO: 1.9X adaption
-                            //bs.Translation.X = x * bs.Translation.X;
-                            //bs.Translation.Y = y * bs.Translation.Y;
-                            //bs.Translation.Z = z * bs.Translation.Z;
-
-                            //   bs.Scale.X *= x;
-                            // bs.Scale.Y *= y;
-                            // bs.Scale.Z *= z;
+                            var tmpVector = new Vector3();
+                            tmpVector.X = x * bs.Translation.X;
+                            tmpVector.Y = y * bs.Translation.Y;
+                            tmpVector.Z = z * bs.Translation.Z;
+                            bs.Translation = tmpVector;
+                            
+                            bs.Scale *= new Vector3 (x, y, z);
 
                         }
 
@@ -2687,7 +2676,6 @@ namespace MySFformat
 
                             foreach (FLVER.Vertex v in m.Vertices)
                             {
-                                //TODO ADAPT:if (v.BoneIndices == null) { continue; }
                                 for (int i5 = 0; i5 < v.BoneIndices.Length; i5++)
                                 {
                                     if (sekiroToTarget.ContainsKey(v.BoneIndices[i5]))
@@ -2731,8 +2719,8 @@ namespace MySFformat
 
 
             Button button3 = new Button();
-            ButtonTips("Fix the problem that DS3 model does not show up in Sekiro.(All click yes)\n" +
-"修复黑魂三模型在只狼内无法显示的问题。(全点是即可)", button3);
+            ButtonTips("【Not working in X2】Fix the problem that DS3 model does not show up in Sekiro.(All click yes)\n" +
+"【X2版暂不支持】修复黑魂三模型在只狼内无法显示的问题。(全点是即可)", button3);
             button3.Text = "DS3_Fix";
             button3.Location = new System.Drawing.Point(650, 150);
             button3.Click += (s, e) => {
@@ -2890,21 +2878,11 @@ namespace MySFformat
                     float yaw = 0;
                     foreach (FLVER.Vertex v in targetFlver.Meshes[i].Vertices)
                     {
-                        //TODO ADAPT:for (int j = 0; j < v.Positions.Count; j++)
-                        //TODO ADAPT:{
-                        //TODO ADAPT:    v.Positions[j] = RotatePoint(v.Positions[j], pitch, roll, yaw);
-                        //TODO ADAPT:}
-                        //TODO ADAPT:
-                        //TODO ADAPT:for (int j2 = 0; j2 < v.Normals.Count; j2++)
-                        //TODO ADAPT:{
-                        //TODO ADAPT:    v.Normals[j2] = RotatePoint(v.Normals[j2], pitch, roll, yaw);
-                        //TODO ADAPT:
-                        //TODO ADAPT:}
+                        v.Position = RotatePoint(v.Position, pitch, roll, yaw);
+                        v.Normal = RotatePoint(v.Normal, pitch, roll, yaw);
                         for (int j2 = 0; j2 < v.Tangents.Count; j2++)
                         {
-
                             v.Tangents[j2] = RotatePoint(v.Tangents[j2], pitch, roll, yaw);
-
                         }
                     }
 
@@ -2994,8 +2972,8 @@ namespace MySFformat
 
 
             Button meshReset = new Button();
-            ButtonTips("Reset all mesh's info to DS3/Sekiro default, usually used to port DS2 version flver file.\n" +
-"部分重置面片信息，主要用于导入DS2flver文件至DS3之中。", meshReset);
+            ButtonTips("【Not working in X2】Reset all mesh's info to DS3/Sekiro default, usually used to port DS2 version flver file.\n" +
+"【X2版尚未支持】部分重置面片信息，主要用于导入DS2flver文件至DS3之中。", meshReset);
             meshReset.Text = "M. Reset";
             meshReset.Location = new System.Drawing.Point(650, 350);
             meshReset.Click += (s, e) => {
