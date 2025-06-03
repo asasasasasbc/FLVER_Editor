@@ -109,7 +109,7 @@ namespace MySFformat
         /// </summary>
         static void importObj()
         {
-            //TODO ADAPT:
+            //
         }
 
 
@@ -172,8 +172,8 @@ namespace MySFformat
             ans.CullBackfaces = true;
             ans.TriangleStrip = false;
             ans.Unk06 = 1;
-            //TODO ADAPT:ans.Unk07 = 0;
-            //TODO ADAPT:ans.IndexSize = 16;
+            //TODO ADAPT(Not sure what it is, deleted in SoulsFormatNEXT):ans.Unk07 = 0;
+            //Auto caculated by SoulsFormatNEXT:ans.IndexSize = 16;
 
             return ans;
 
@@ -181,84 +181,58 @@ namespace MySFformat
         static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector4 tangets, int tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
-            //TODO ADAPT:ans.Positions = new List<Vector3>();
-            //TODO ADAPT:ans.Positions.Add(pos);
-            //TODO ADAPT:ans.BoneIndices = new int[4] { 0, 0, 0, 0 };
-            //TODO ADAPT:ans.BoneWeights = new float[4] { 1, 0, 0, 0 };
-            //TODO ADAPT:ans.UVs = new List<Vector3>();
-            //TODO ADAPT:ans.UVs.Add(uv1);
-            //TODO ADAPT:ans.UVs.Add(uv2);
-            //TODO ADAPT:ans.Normals = new List<Vector4>();
-            //TODO ADAPT:ans.Normals.Add(new Vector4(normal.X, normal.Y, normal.Z, -1f));
-            //TODO ADAPT:ans.Tangents = new List<Vector4>();
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
-            //TODO ADAPT:ans.Colors = new List<FLVER.Vertex.Color>();
-            //TODO ADAPT:ans.Colors.Add(new FLVER.Vertex.Color(255, 255, 255, 255));
+            ans.Position = pos;
+            ans.BoneIndices[0] = 0; ans.BoneIndices[1] = 0; ans.BoneIndices[2] = 0; ans.BoneIndices[3] = 0;
+            ans.BoneWeights[0] = 1; ans.BoneWeights[1] = 0; ans.BoneWeights[2] = 0; ans.BoneWeights[3] = 0;
+            ans.UVs = new List<Vector3>();
+            ans.UVs.Add(uv1);
+            ans.UVs.Add(uv2);
+            ans.Normal = normal;
+            ans.NormalW = -1;
+            ans.Tangents = new List<Vector4>();
+            ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangets.W));
+            ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangets.W));
+            ans.Colors = new List<FLVER.VertexColor>();
+            ans.Colors.Add(new FLVER.VertexColor(255, 255, 255, 255));
 
             return ans;
         }
         static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, int tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
-            //TODO ADAPT:ans.Positions = new List<Vector3>();
-            //TODO ADAPT:ans.Positions.Add(pos);
-            //TODO ADAPT:ans.BoneIndices = new int[4] { 0, 0, 0, 0 };
-            //TODO ADAPT:ans.BoneWeights = new float[4] { 1, 0, 0, 0 };
-            //TODO ADAPT:ans.UVs = new List<Vector3>();
-            //TODO ADAPT:ans.UVs.Add(uv1);
-            //TODO ADAPT:ans.UVs.Add(uv2);
-            //TODO ADAPT:ans.Normals = new List<Vector4>();
-            //TODO ADAPT:ans.Normals.Add(new Vector4(normal.X, normal.Y, normal.Z, -1f));
-            //TODO ADAPT:ans.Tangents = new List<Vector4>();
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
-            //TODO ADAPT:ans.Colors = new List<FLVER.Vertex.Color>();
-            //TODO ADAPT:ans.Colors.Add(new FLVER.Vertex.Color(255, 255, 255, 255));
-
+            ans.Position = pos;
+            ans.BoneIndices[0] = 0; ans.BoneIndices[1] = 0; ans.BoneIndices[2] = 0; ans.BoneIndices[3] = 0;
+            ans.BoneWeights[0] = 1; ans.BoneWeights[1] = 0; ans.BoneWeights[2] = 0; ans.BoneWeights[3] = 0;
+            ans.UVs = new List<Vector3>();
+            ans.UVs.Add(uv1);
+            ans.UVs.Add(uv2);
+            ans.Normal = normal;
+            ans.NormalW = -1;
+            ans.Tangents = new List<Vector4>();
+            ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
+            ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
+            ans.Colors = new List<FLVER.VertexColor>();
+            ans.Colors.Add(new FLVER.VertexColor(255, 255, 255, 255));
             return ans;
         }
 
-
-        static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector4 normal, Vector4 tangets, int tangentW = -1)
-        {
-            FLVER.Vertex ans = new FLVER.Vertex();
-            //TODO ADAPT:ans.Positions = new List<Vector3>();
-            //TODO ADAPT:ans.Positions.Add(pos);
-            //TODO ADAPT:ans.BoneIndices = new int[4] { 0, 0, 0, 0 };
-            //TODO ADAPT:ans.BoneWeights = new float[4] { 1, 0, 0, 0 };
-            //TODO ADAPT:ans.UVs = new List<Vector3>();
-            //TODO ADAPT:ans.UVs.Add(uv1);
-            //TODO ADAPT:ans.UVs.Add(uv2);
-            //TODO ADAPT:ans.Normals = new List<Vector4>();
-            //TODO ADAPT:ans.Normals.Add(new Vector4(normal.X, normal.Y, normal.Z, normal.W));
-            //TODO ADAPT:ans.Tangents = new List<Vector4>();
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangets.W));
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangets.W));
-            //TODO ADAPT:ans.Colors = new List<FLVER.Vertex.Color>();
-            //TODO ADAPT:ans.Colors.Add(new FLVER.Vertex.Color(255, 255, 255, 255));
-
-            return ans;
-        }
 
         static FLVER.Vertex generateVertex2tan(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, Vector3 tangets2, int tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
-            //TODO ADAPT:ans.Positions = new List<Vector3>();
-            //TODO ADAPT:ans.Positions.Add(pos);
-            //TODO ADAPT:ans.BoneIndices = new int[4] { 0, 0, 0, 0 };
-            //TODO ADAPT:ans.BoneWeights = new float[4] { 1, 0, 0, 0 };
-            //TODO ADAPT:ans.UVs = new List<Vector3>();
-            //TODO ADAPT:ans.UVs.Add(uv1);
-            //TODO ADAPT:ans.UVs.Add(uv2);
-            //TODO ADAPT:ans.Normals = new List<Vector4>();
-            //TODO ADAPT:ans.Normals.Add(new Vector4(normal.X, normal.Y, normal.Z, -1f));
-            //TODO ADAPT:ans.Tangents = new List<Vector4>();
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
-            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets2.X, tangets2.Y, tangets2.Z, tangentW));
-            //TODO ADAPT:ans.Colors = new List<FLVER.Vertex.Color>();
-            //TODO ADAPT:ans.Colors.Add(new FLVER.Vertex.Color(255, 255, 255, 255));
-
+            ans.Position = pos;
+            ans.BoneIndices[0] = 0; ans.BoneIndices[1] = 0; ans.BoneIndices[2] = 0; ans.BoneIndices[3] = 0;
+            ans.BoneWeights[0] = 1; ans.BoneWeights[1] = 0; ans.BoneWeights[2] = 0; ans.BoneWeights[3] = 0;
+            ans.UVs = new List<Vector3>();
+            ans.UVs.Add(uv1);
+            ans.UVs.Add(uv2);
+            ans.Normal = normal;
+            ans.NormalW = -1;
+            ans.Tangents = new List<Vector4>();
+            ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
+            ans.Tangents.Add(new Vector4(tangets2.X, tangets2.Y, tangets2.Z, tangentW));
+            ans.Colors = new List<FLVER.VertexColor>();
+            ans.Colors.Add(new FLVER.VertexColor(255, 255, 255, 255));
             return ans;
         }
 
@@ -547,12 +521,12 @@ namespace MySFformat
                     b.Meshes[i].BoneIndices = new List<int>();
                     b.Meshes[i].BoneIndices.Add(0);
                     b.Meshes[i].BoneIndices.Add(1);
-                    //TODO ADAPT:b.Meshes[i].DefaultBoneIndex = 1;
+                    b.Meshes[i].NodeIndex = 1;
                     foreach (FLVER.Vertex v in b.Meshes[i].Vertices)
                     {
-                        //TODO ADAPT:for (int j = 0; j < v.Positions.Count; j++)
+                        //for (int j = 0; j < v.Positions.Count; j++)
                         {
-                            //TODO ADAPT:if (v.BoneWeights == null) { continue; }
+                            //if (v.BoneWeights == null) { continue; }
                             v.Position = new System.Numerics.Vector3(0, 0, 0);
                             for (int k = 0; k < v.BoneWeights.Length; k++)
                             {
