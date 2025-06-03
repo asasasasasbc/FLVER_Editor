@@ -3355,7 +3355,10 @@ namespace MySFformat
                 {
                     FLVER.Vertex vit = mn.Vertices[i];
             
-                    mn.Vertices[i] = generateVertex(new Vector3(vit.Position.X, vit.Position.Y, vit.Position.Z), vit.UVs[0], vit.UVs[0], vit.Normal, vit.Tangents[0], 1);
+                    mn.Vertices[i] = generateVertex(new Vector3(vit.Position.X, vit.Position.Y, vit.Position.Z), 
+                        vit.UVs[0], vit.UVs[0], vit.Normal, 
+                        vit.Tangents[0], 
+                        1);
                     mn.Vertices[i].BoneIndices = vit.BoneIndices;
                     mn.Vertices[i].BoneWeights = vit.BoneWeights;
             

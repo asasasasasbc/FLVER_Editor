@@ -178,7 +178,26 @@ namespace MySFformat
             return ans;
 
         }
+        static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector4 tangets, int tangentW = -1)
+        {
+            FLVER.Vertex ans = new FLVER.Vertex();
+            //TODO ADAPT:ans.Positions = new List<Vector3>();
+            //TODO ADAPT:ans.Positions.Add(pos);
+            //TODO ADAPT:ans.BoneIndices = new int[4] { 0, 0, 0, 0 };
+            //TODO ADAPT:ans.BoneWeights = new float[4] { 1, 0, 0, 0 };
+            //TODO ADAPT:ans.UVs = new List<Vector3>();
+            //TODO ADAPT:ans.UVs.Add(uv1);
+            //TODO ADAPT:ans.UVs.Add(uv2);
+            //TODO ADAPT:ans.Normals = new List<Vector4>();
+            //TODO ADAPT:ans.Normals.Add(new Vector4(normal.X, normal.Y, normal.Z, -1f));
+            //TODO ADAPT:ans.Tangents = new List<Vector4>();
+            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
+            //TODO ADAPT:ans.Tangents.Add(new Vector4(tangets.X, tangets.Y, tangets.Z, tangentW));
+            //TODO ADAPT:ans.Colors = new List<FLVER.Vertex.Color>();
+            //TODO ADAPT:ans.Colors.Add(new FLVER.Vertex.Color(255, 255, 255, 255));
 
+            return ans;
+        }
         static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, int tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
