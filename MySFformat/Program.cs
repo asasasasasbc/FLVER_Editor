@@ -1587,7 +1587,7 @@ namespace MySFformat
                 ButtonTips("Quick edit the texture path and basic information of this material." +
                     "\r\n 快速编辑此材质的贴图路径以及基础信息。",buttonCheck);
                 buttonCheck.Size = new System.Drawing.Size(70, 20);
-                buttonCheck.Location = new System.Drawing.Point(350, currentY);
+                buttonCheck.Location = new System.Drawing.Point(580, currentY);
 
                 buttonCheck.Click += (s, e) => {
                     materialQuickEdit(targetFlver.Materials[btnI],btnI);
@@ -1618,7 +1618,7 @@ namespace MySFformat
             button.Text = "Modify";
             ButtonTips("Save materials' names and mtd modification to the flver file.\n" +
                "保存对材质名称和mtd的修改至Flver文件中。", button);
-            button.Location = new System.Drawing.Point(650, btnY);
+            button.Location = new System.Drawing.Point(700, btnY);
             button.Click += (s, e) => {
                 for (int i = 0; i < targetFlver.Materials.Count; i++)
                 { 
@@ -1635,7 +1635,7 @@ namespace MySFformat
             ButtonTips("Save json text's modification to the flver file.\n" +
            "保存对json文本的修改至Flver文件中。", button2);
             button2.Text = "ModifyJson";
-            button2.Location = new System.Drawing.Point(650, btnY);
+            button2.Location = new System.Drawing.Point(700, btnY);
             button2.Click += (s, e) => {
                 targetFlver.Materials = serializer.Deserialize<List<FLVER2.Material>>(tbones.Text);
                 autoBackUp(); targetFlver.Write(flverName);
@@ -1647,7 +1647,7 @@ namespace MySFformat
             ButtonTips("Import external Json text file and save to the flver file.\n" +
           "导入外部的Json文本并保存至Flver文件中。", button3);
             button3.Text = "LoadJson";
-            button3.Location = new System.Drawing.Point(650, btnY);
+            button3.Location = new System.Drawing.Point(700, btnY);
             button3.Click += (s, e) => {
 
                 var openFileDialog1 = new OpenFileDialog();
@@ -1679,7 +1679,7 @@ namespace MySFformat
             button3ex.Text = "ExportJson";
             ButtonTips("Export material json text to a file.\n" +
 "导出当前材质信息到一个json文件内。", button3ex);
-            button3ex.Location = new System.Drawing.Point(650, btnY);
+            button3ex.Location = new System.Drawing.Point(700, btnY);
             button3ex.Click += (s, e) => {
                 exportJson(FormatOutput(serializer.Serialize(targetFlver.Materials)), "Material.json", "Material json text exported!");
             };
@@ -1690,7 +1690,7 @@ namespace MySFformat
             ButtonTips("Convert materials (mtd path) to Sekiro/DS3 standard M[ARSN].mtd\n" +
           "替换所有的材质(mtd)为标准的M[ARSN]材质。", buttonARSN);
             buttonARSN.Text = "M[ARSN]";
-            buttonARSN.Location = new System.Drawing.Point(650, btnY);
+            buttonARSN.Location = new System.Drawing.Point(700, btnY);
             buttonARSN.Click += (s, e) => {
 
                 foreach (FLVER2.Material m in targetFlver.Materials)
@@ -1738,7 +1738,7 @@ namespace MySFformat
             ButtonTips("[Sekiro only]Convert materials (mtd path) to Sekiro standard c9990_dummy.mtd\n" +
           "【仅限只狼】替换材质(mtd)为只狼的c9990_dummy材质。", buttonDMY);
             buttonDMY.Text = "M[DUMMY]";
-            buttonDMY.Location = new System.Drawing.Point(650, btnY);
+            buttonDMY.Location = new System.Drawing.Point(700, btnY);
             buttonDMY.Click += (s, e) => {
 
                 foreach (FLVER2.Material m in targetFlver.Materials)
@@ -1788,7 +1788,7 @@ namespace MySFformat
             ButtonTips("Auto-edit the xml file depacked from the /tpf texture file. So that you don't need to manually modify it to add new textures.\n" +
           "自动编辑.tpf贴图文件用yabber解包出来的xml文件。", tpfXmlEdit);
             tpfXmlEdit.Text = "Xml Edit";
-            tpfXmlEdit.Location = new System.Drawing.Point(650, btnY);
+            tpfXmlEdit.Location = new System.Drawing.Point(700, btnY);
             tpfXmlEdit.Click += (s, e) => {
 
                 XmlEdit();
@@ -1801,7 +1801,7 @@ namespace MySFformat
             ButtonTips("Rename all the materials (mtd path) to the name you want.\n" +
           "自动转换所有材质路径为你输入的值。", mtdConvert);
             mtdConvert.Text = "M. Rename";
-            mtdConvert.Location = new System.Drawing.Point(650, btnY);
+            mtdConvert.Location = new System.Drawing.Point(700, btnY);
             mtdConvert.Click += (s, e) => {
                 string res = "M[ARSN].mtd";
                 DialogResult dr = BasicTools.ShowInputDialog(ref res);
@@ -1818,8 +1818,8 @@ namespace MySFformat
             btnY += 50;
 
 
-            f.Size = new System.Drawing.Size(750, 600);
-            p.Size = new System.Drawing.Size(600, 530);
+            f.Size = new System.Drawing.Size(800, 600);
+            p.Size = new System.Drawing.Size(650, 530);
             f.Resize += (s, e) =>
                 {
                     p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
