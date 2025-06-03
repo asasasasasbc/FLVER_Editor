@@ -271,10 +271,11 @@ namespace MySFformat
 
                     if (loadTexture)
                     {
-                        textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[0].Position), c, new Microsoft.Xna.Framework.Vector2(vl[0].UVs[0].X, vl[0].UVs[0].Y)));
-                        textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[2].Position), c, new Microsoft.Xna.Framework.Vector2(vl[2].UVs[0].X, vl[2].UVs[0].Y)));
-                        textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[1].Position), c, new Microsoft.Xna.Framework.Vector2(vl[1].UVs[0].X, vl[1].UVs[0].Y)));
-
+                        if (vl[0].UVs.Count > 0) { // Avoid UV display error
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[0].Position), c, new Microsoft.Xna.Framework.Vector2(vl[0].UVs[0].X, vl[0].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[2].Position), c, new Microsoft.Xna.Framework.Vector2(vl[2].UVs[0].X, vl[2].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[1].Position), c, new Microsoft.Xna.Framework.Vector2(vl[1].UVs[0].X, vl[1].UVs[0].Y)));
+                        }
                     }
 
 
@@ -998,37 +999,33 @@ namespace MySFformat
                         FLVER.Node bone = targetFlver.Nodes[i];
                         if (bone.Name == "L_Clavicle")
                         {
-                            //TODO ADAPT:bone.Translation.Y += 0.05f;
+                            bone.Translation += new Vector3(0, 0.05f, 0);
 
                         }
                         else if (targetFlver.Nodes[i].Name == "R_Clavicle")
                         {
-                            //TODO ADAPT:bone.Translation.Y -= 0.05f;
+                            bone.Translation -= new Vector3(0, 0.05f, 0);
 
                         }
                         else if (targetFlver.Nodes[i].Name == "L_UpperArm")
                         {
-                            //TODO ADAPT:bone.Translation.Y -= 0.05f;
-                            //TODO ADAPT:bone.Translation.Z -= 0.02f;
-                            //TODO ADAPT:bone.Scale.X = 0.9f;
+                            bone.Translation -= new Vector3(0, 0.05f, 0.02f);
+                            bone.Scale = new Vector3(0.9f, bone.Scale.Y, bone.Scale.Z);
                         }
                         else if (targetFlver.Nodes[i].Name == "R_UpperArm")
                         {
-                            //TODO ADAPT:bone.Translation.Y += 0.05f;
-                            //TODO ADAPT:bone.Translation.Z -= 0.02f;
-                            //TODO ADAPT:bone.Scale.X = 0.9f;
+                            bone.Translation += new Vector3(0, 0.05f, 0);
+                            bone.Translation -= new Vector3(0, 0.05f, 0.02f);
+                            bone.Scale = new Vector3(0.9f, bone.Scale.Y, bone.Scale.Z);
                         }
                         else if (targetFlver.Nodes[i].Name == "L_Forearm")
                         {
-                            //TODO ADAPT:bone.Scale.X = 1.1f;
+                            bone.Scale = new Vector3(1.1f, bone.Scale.Y, bone.Scale.Z);
                         }
                         else if (targetFlver.Nodes[i].Name == "R_Forearm")
                         {
-                            //TODO ADAPT:bone.Scale.X = 1.1f;
+                            bone.Scale = new Vector3(1.1f, bone.Scale.Y, bone.Scale.Z);
                         }
-
-
-
                         //R_Calf
 
                     }
@@ -2719,8 +2716,8 @@ namespace MySFformat
 
 
             Button button3 = new Button();
-            ButtonTips("【Not working in X2】Fix the problem that DS3 model does not show up in Sekiro.(All click yes)\n" +
-"【X2版暂不支持】修复黑魂三模型在只狼内无法显示的问题。(全点是即可)", button3);
+            ButtonTips("【unstable】Fix the problem that DS3 model does not show up in Sekiro.(All click yes)\n" +
+"【不稳定】修复黑魂三模型在只狼内无法显示的问题。(全点是即可)", button3);
             button3.Text = "DS3_Fix";
             button3.Location = new System.Drawing.Point(650, 150);
             button3.Click += (s, e) => {
@@ -2840,17 +2837,25 @@ namespace MySFformat
                     if (hasColorLayout) { continue; }
                     for (int i = 0; i < bl.Count; i++)
                     {
-                        //TODO ADAPT:if (bl[i].Type == FLVER2.BufferLayout.MemberType.Byte4C && bl[i].Semantic == FLVER2.BufferLayout.MemberSemantic.UV)
-                        //TODO ADAPT:{
-                        //TODO ADAPT:    int offset = bl[i].StructOffset;
-                        //TODO ADAPT:
-                        //TODO ADAPT:    for (int j = i; j < bl.Count; j++)
-                        //TODO ADAPT:    {
-                        //TODO ADAPT:        bl[j].StructOffset += 4;
-                        //TODO ADAPT:    }
-                        //TODO ADAPT:    bl.Insert(i, new FLVER2.BufferLayout.Member(0, offset, FLVER2.BufferLayout.MemberType.Byte4C, FLVER2.BufferLayout.MemberSemantic.VertexColor, 1));
-                        //TODO ADAPT:    break;
-                        //TODO ADAPT:}
+                        //old SoulsFormat BufferLayout.MemberType.Byte4C shouldbe ... UByte4Norm 19? I guess?
+                        if (bl[i].Type == FLVER.LayoutType.UByte4Norm && bl[i].Semantic == FLVER.LayoutSemantic.UV)
+                        {
+                            //Struct offset seems no longer needed
+                            bl.Insert(i, new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, 1));
+                            break;
+                        }
+
+                        //OLD:if (bl[i].Type == FLVER.LayoutType.UByte4Norm && bl[i].Semantic == FLVER.LayoutSemantic.UV)
+                        //OLD:{
+                        //OLD:    int offset = bl[i].StructOffset;
+                        //OLD:
+                        //OLD:    for (int j = i; j < bl.Count; j++)
+                        //OLD:    {
+                        //OLD:        bl[j].StructOffset += 4;
+                        //OLD:    }
+                        //OLD:    bl.Insert(i, new FLVER2.BufferLayout.Member(0, offset, FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, 1));
+                        //OLD:    break;
+                        //OLD:}
 
                     }
 
@@ -2972,8 +2977,8 @@ namespace MySFformat
 
 
             Button meshReset = new Button();
-            ButtonTips("【Not working in X2】Reset all mesh's info to DS3/Sekiro default, usually used to port DS2 version flver file.\n" +
-"【X2版尚未支持】部分重置面片信息，主要用于导入DS2flver文件至DS3之中。", meshReset);
+            ButtonTips("【Unstable】Reset all mesh's info to DS3/Sekiro default, usually used to port DS2 version flver file.\n" +
+"【不稳定】部分重置面片信息，主要用于导入DS2flver文件至DS3之中。", meshReset);
             meshReset.Text = "M. Reset";
             meshReset.Location = new System.Drawing.Point(650, 350);
             meshReset.Click += (s, e) => {
@@ -3305,68 +3310,69 @@ namespace MySFformat
         {
 
 
-            //TODO ADAPT:int layoutCount = targetFlver.BufferLayouts.Count;
-            //TODO ADAPT:FLVER2.BufferLayout newBL = new FLVER2.BufferLayout();
-            //TODO ADAPT:
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 0, FLVER2.BufferLayout.MemberType.Float3, FLVER2.BufferLayout.MemberSemantic.Position, 0));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 12, FLVER2.BufferLayout.MemberType.Byte4B, FLVER2.BufferLayout.MemberSemantic.Normal, 0));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 16, FLVER2.BufferLayout.MemberType.Byte4B, FLVER2.BufferLayout.MemberSemantic.Tangent, 0));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 20, FLVER2.BufferLayout.MemberType.Byte4B, FLVER2.BufferLayout.MemberSemantic.Tangent, 1));
-            //TODO ADAPT:
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 24, FLVER2.BufferLayout.MemberType.Byte4B, FLVER2.BufferLayout.MemberSemantic.BoneIndices, 0));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 28, FLVER2.BufferLayout.MemberType.Byte4C, FLVER2.BufferLayout.MemberSemantic.BoneWeights, 0));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 32, FLVER2.BufferLayout.MemberType.Byte4C, FLVER2.BufferLayout.MemberSemantic.VertexColor, 1));
-            //TODO ADAPT:newBL.Add(new FLVER2.BufferLayout.Member(0, 36, FLVER2.BufferLayout.MemberType.UVPair, FLVER2.BufferLayout.MemberSemantic.UV, 0));
-            //TODO ADAPT:
-            //TODO ADAPT:targetFlver.BufferLayouts.Add(newBL);
-            //TODO ADAPT:
-            //TODO ADAPT:foreach (FLVER2.Mesh mn in targetFlver.Meshes)
-            //TODO ADAPT:{
-            //TODO ADAPT:
-            //TODO ADAPT:    //FLVER2.Mesh mn = new FLVER2.Mesh();
-            //TODO ADAPT:   // mn.MaterialIndex = 0;
-            //TODO ADAPT:   // mn.BoneIndices = new List<int>();
-            //TODO ADAPT:   // mn.BoneIndices.Add(0);
-            //TODO ADAPT:   // mn.BoneIndices.Add(1);
-            //TODO ADAPT:    mn.BoundingBoxMax = new Vector3(1, 1, 1);
-            //TODO ADAPT:    mn.BoundingBoxMin = new Vector3(-1, -1, -1);
-            //TODO ADAPT:    mn.BoundingBoxUnk = new Vector3();
-            //TODO ADAPT:    mn.Unk1 = 0;
-            //TODO ADAPT:    
-            //TODO ADAPT:    mn.DefaultBoneIndex = 0;
-            //TODO ADAPT:    mn.Dynamic = true;
-            //TODO ADAPT:     mn.VertexBuffers = new List<FLVER.VertexBuffer>();
-            //TODO ADAPT:     mn.VertexBuffers.Add(new FLVER.VertexBuffer(0, layoutCount, -1));
-            //TODO ADAPT:    //  mn.Vertices = new List<FLVER.Vertex>();
-            //TODO ADAPT:    var varray = mn.FaceSets[0].Vertices;
-            //TODO ADAPT:    
-            //TODO ADAPT:    mn.FaceSets = new List<FLVER.FaceSet>();
-            //TODO ADAPT:    //FLVER.Vertex myv = new FLVER.Vertex();
-            //TODO ADAPT:    //myv.Colors = new List<FLVER.VertexColor>();
-            //TODO ADAPT:
-            //TODO ADAPT:
-            //TODO ADAPT:    //FLVER.Vertex v = generateVertex(new Vector3(vit.X, vit.Y, vit.Z), uv1.toNumV3(), uv2.toNumV3(), normal.toNumV3(), tangent.toNumV3(), 1);
-            //TODO ADAPT:
-            //TODO ADAPT:    for (int i = 0; i < mn.Vertices.Count;i++)
-            //TODO ADAPT:    {
-            //TODO ADAPT:        FLVER.Vertex vit = mn.Vertices[i];
-            //TODO ADAPT:
-            //TODO ADAPT:        mn.Vertices[i] = generateVertex(new Vector3(vit.Position.X, vit.Position.Y, vit.Position.Z), vit.UVs[0], vit.UVs[0], vit.Normal, vit.Tangents[0], 1);
-            //TODO ADAPT:        mn.Vertices[i].BoneIndices = vit.BoneIndices;
-            //TODO ADAPT:        mn.Vertices[i].BoneWeights = vit.BoneWeights;
-            //TODO ADAPT:
-            //TODO ADAPT:    }
-            //TODO ADAPT:
-            //TODO ADAPT:    mn.FaceSets.Add(generateBasicFaceSet());
-            //TODO ADAPT:    mn.FaceSets[0].Vertices = varray;
-            //TODO ADAPT:    mn.FaceSets[0].CullBackfaces = false;
-            //TODO ADAPT:    //mn.FaceSets[0].Unk06 = 17;
-            //TODO ADAPT:    if (mn.FaceSets[0].Vertices.Length > 65534)
-            //TODO ADAPT:    {
-            //TODO ADAPT:        MessageBox.Show("There are more than 65535 vertices in a mesh , switch to 32 bits index size mode.");
-            //TODO ADAPT:        mn.FaceSets[0].IndexSize = 32;
-            //TODO ADAPT:    }
-            //TODO ADAPT:}
+            int layoutCount = targetFlver.BufferLayouts.Count;
+            FLVER2.BufferLayout newBL = new FLVER2.BufferLayout();
+            
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, 0));
+            newBL.Add(new FLVER.LayoutMember( FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, 0));
+            newBL.Add(new FLVER.LayoutMember( FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, 0));
+            newBL.Add(new FLVER.LayoutMember( FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, 1));
+            
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, 1));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, 0));
+            
+            targetFlver.BufferLayouts.Add(newBL);
+            
+            foreach (FLVER2.Mesh mn in targetFlver.Meshes)
+            {
+
+                //FLVER2.Mesh mn = new FLVER2.Mesh();
+                // mn.MaterialIndex = 0;
+                // mn.BoneIndices = new List<int>();
+                // mn.BoneIndices.Add(0);
+                // mn.BoneIndices.Add(1);
+                mn.BoundingBox = new FLVER2.Mesh.BoundingBoxes();
+                mn.BoundingBox.Min = new Vector3(-1, -1, -1);
+                mn.BoundingBox.Max = new Vector3(1, 1, 1);
+                mn.BoundingBox.Unk = new Vector3();
+                //mn.Unk1 = 0;
+                
+                mn.NodeIndex = 0;
+                mn.Dynamic = 1;
+                 mn.VertexBuffers = new List<FLVER2.VertexBuffer>();
+                 mn.VertexBuffers.Add(new FLVER2.VertexBuffer(layoutCount));
+                //  mn.Vertices = new List<FLVER.Vertex>();
+                var varray = mn.FaceSets[0].Indices;
+                
+                mn.FaceSets = new List<FLVER2.FaceSet>();
+                //FLVER.Vertex myv = new FLVER.Vertex();
+                //myv.Colors = new List<FLVER.VertexColor>();
+                //FLVER.Vertex v = generateVertex(new Vector3(vit.X, vit.Y, vit.Z), uv1.toNumV3(), uv2.toNumV3(), normal.toNumV3(), tangent.toNumV3(), 1);
+            
+                for (int i = 0; i < mn.Vertices.Count;i++)
+                {
+                    FLVER.Vertex vit = mn.Vertices[i];
+            
+                    mn.Vertices[i] = generateVertex(new Vector3(vit.Position.X, vit.Position.Y, vit.Position.Z), vit.UVs[0], vit.UVs[0], vit.Normal, vit.Tangents[0], 1);
+                    mn.Vertices[i].BoneIndices = vit.BoneIndices;
+                    mn.Vertices[i].BoneWeights = vit.BoneWeights;
+            
+                }
+            
+                mn.FaceSets.Add(generateBasicFaceSet());
+                mn.FaceSets[0].Indices = varray;
+                mn.FaceSets[0].CullBackfaces = false;
+                //mn.FaceSets[0].Unk06 = 17;
+                if (mn.FaceSets[0].Indices.Count > 65534)
+                {
+              
+                    MessageBox.Show("There are more than 65535 vertices in a mesh , switch to 32 bits index size mode.");
+                    //Now SoulsFormatsNEXT automatically calculates indexSize!
+                    //OLD mn.FaceSets[0].IndexSize = 32;
+                }
+            }
 
 
 
