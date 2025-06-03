@@ -76,15 +76,15 @@ namespace MySFformat
             int layoutCount = targetFlver.BufferLayouts.Count;
             FLVER2.BufferLayout newBL = new FLVER2.BufferLayout();
 
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 0, FLVER.BufferLayout.MemberType.Float3, FLVER.BufferLayout.MemberSemantic.Position, 0));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 12, FLVER.BufferLayout.MemberType.Byte4B, FLVER.BufferLayout.MemberSemantic.Normal, 0));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 16, FLVER.BufferLayout.MemberType.Byte4B, FLVER.BufferLayout.MemberSemantic.Tangent, 0));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 20, FLVER.BufferLayout.MemberType.Byte4B, FLVER.BufferLayout.MemberSemantic.Tangent, 1));
-            //TODO ADAPT:
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 24, FLVER.BufferLayout.MemberType.Byte4B, FLVER.BufferLayout.MemberSemantic.BoneIndices, 0));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 28, FLVER.BufferLayout.MemberType.Byte4C, FLVER.BufferLayout.MemberSemantic.BoneWeights, 0));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 32, FLVER.BufferLayout.MemberType.Byte4C, FLVER.BufferLayout.MemberSemantic.VertexColor, 1));
-            //TODO ADAPT:newBL.Add(new FLVER.BufferLayout.Member(0, 36, FLVER.BufferLayout.MemberType.UVPair, FLVER.BufferLayout.MemberSemantic.UV, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, 1));
+            
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, 0));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, 1));
+            newBL.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, 0));
 
             targetFlver.BufferLayouts.Add(newBL);
 
@@ -190,14 +190,14 @@ namespace MySFformat
                 mn.BoneIndices.Add(0);
                 mn.BoneIndices.Add(1);
                 mn.BoundingBox = new FLVER2.Mesh.BoundingBoxes();
-                //TODO ADAPT:mn.BoundingBoxMax = new Vector3(1, 1, 1);
-                //TODO ADAPT:mn.BoundingBoxMin = new Vector3(-1, -1, -1);
-                //TODO ADAPT:mn.BoundingBoxUnk = new Vector3();
-                //TODO ADAPT:mn.Unk1 = 0;
-                //TODO ADAPT:mn.DefaultBoneIndex = 0;
+                mn.BoundingBox.Max = new Vector3(1, 1, 1);
+                mn.BoundingBox.Min = new Vector3(-1, -1, -1);
+                mn.BoundingBox.Unk = new Vector3();
+                //mn.Unk1 = 0;
+                mn.NodeIndex = 0;
                 mn.Dynamic = 1;
                 mn.VertexBuffers = new List<FLVER2.VertexBuffer>();
-                //TODO ADAPT:mn.VertexBuffers.Add(new FLVER2.VertexBuffer(0, layoutCount, -1));
+                mn.VertexBuffers.Add(new FLVER2.VertexBuffer(layoutCount));
                 mn.Vertices = new List<FLVER.Vertex>();
 
                 List<List<int>> verticesBoneIndices = new List<List<int>>();
@@ -399,7 +399,7 @@ namespace MySFformat
                 if (mn.FaceSets[0].Indices.Count > 65534)
                 {
                     MessageBox.Show("There are more than 65535 vertices in a mesh , switch to 32 bits index size mode.");
-                    //TODO ADAPT:mn.FaceSets[0].IndexSize = 32;
+                    //SoulsFormatNEXT auto calculated:mn.FaceSets[0].IndexSize = 32;
                 }
 
 
@@ -409,7 +409,7 @@ namespace MySFformat
                     {
                         FLVER2.FaceSet fs = generateBasicFaceSet();
                         fs.Flags = SoulsFormats.FLVER2.FaceSet.FSFlags.LodLevel1;
-                        //TODO ADAPT:fs.IndexSize = mn.FaceSets[0].IndexSize;
+                        //SoulsFormatNEXT auto calculated:fs.IndexSize = mn.FaceSets[0].IndexSize;
                         fs.Indices =mn.FaceSets[0].Indices;
                         mn.FaceSets.Add(fs);
                     }
@@ -417,7 +417,7 @@ namespace MySFformat
                     {
                         FLVER2.FaceSet fs = generateBasicFaceSet();
                         fs.Flags = SoulsFormats.FLVER2.FaceSet.FSFlags.LodLevel2;
-                        //TODO ADAPT:fs.IndexSize = mn.FaceSets[0].IndexSize;
+                        //SoulsFormatNEXT auto calculated:fs.IndexSize = mn.FaceSets[0].IndexSize;
                         fs.Indices = mn.FaceSets[0].Indices;
                         mn.FaceSets.Add(fs);
                     }
@@ -426,7 +426,7 @@ namespace MySFformat
                         //fs.Flags = SoulsFormats.FLVER.FaceSet.FSFlags.Unk80000000;
                         FLVER2.FaceSet fs = generateBasicFaceSet();
                         fs.Flags = SoulsFormats.FLVER2.FaceSet.FSFlags.MotionBlur;
-                        //TODO ADAPT:fs.IndexSize = mn.FaceSets[0].IndexSize;
+                        //SoulsFormatNEXT auto calculated:fs.IndexSize = mn.FaceSets[0].IndexSize;
                         fs.Indices = mn.FaceSets[0].Indices;
                         mn.FaceSets.Add(fs);
                     }
@@ -435,7 +435,7 @@ namespace MySFformat
                         //fs.Flags = SoulsFormats.FLVER.FaceSet.FSFlags.Unk80000000;
                         FLVER2.FaceSet fs = generateBasicFaceSet();
                         fs.Flags = SoulsFormats.FLVER2.FaceSet.FSFlags.LodLevel1 | SoulsFormats.FLVER2.FaceSet.FSFlags.MotionBlur;
-                        //TODO ADAPT:fs.IndexSize = mn.FaceSets[0].IndexSize;
+                        //SoulsFormatNEXT auto calculated:fs.IndexSize = mn.FaceSets[0].IndexSize;
                         fs.Indices = mn.FaceSets[0].Indices;
                         mn.FaceSets.Add(fs);
                     }
@@ -444,7 +444,7 @@ namespace MySFformat
                         //fs.Flags = SoulsFormats.FLVER.FaceSet.FSFlags.Unk80000000;
                         FLVER2.FaceSet fs = generateBasicFaceSet();
                         fs.Flags = SoulsFormats.FLVER2.FaceSet.FSFlags.LodLevel2 | SoulsFormats.FLVER2.FaceSet.FSFlags.MotionBlur;
-                        //TODO ADAPT:fs.IndexSize = mn.FaceSets[0].IndexSize;
+                        //SoulsFormatNEXT auto calculated:fs.IndexSize = mn.FaceSets[0].IndexSize;
                         fs.Indices = mn.FaceSets[0].Indices;
                         mn.FaceSets.Add(fs);
                     }

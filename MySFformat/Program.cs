@@ -79,7 +79,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.1NR夜环版";
+        public static string version = "X2.2NR夜环版";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -1051,12 +1051,10 @@ namespace MySFformat
             Button button9 = new Button();
 
             button9.Text = "ImportModel";
-            ButtonTips("[Not working in X2 version yet]Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
+            ButtonTips("[May unstable in X2]Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
                 "UV, normal, tangent can be kept, but you still need to manually modify material information in Material window.\n" +
-                "Also,experimentally support meshes that has more than 65535 vertices.\n" +
-"【X2版暂不可用】导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
-"可以保留UV贴图坐标，切线法线的信息，但你还是得手动修改贴图信息的。\n" +
-"另外，实验性质的加入了导入超过65535个顶点的面片集的功能。", button9);
+"【X2版可能不稳定】导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
+"可以保留UV贴图坐标，切线法线的信息，但你还是得手动修改贴图信息的。\n", button9);
             button9.Font = new System.Drawing.Font(button.Font.FontFamily, 8);
             //button9.AutoSize = true;
             button9.Location = new System.Drawing.Point(435, 550);
@@ -3294,6 +3292,8 @@ namespace MySFformat
             int endIndex = arg.LastIndexOf('.');
             if (startIndex <0) { startIndex = 0; }
             if (endIndex >=0) {
+                //maye "..\\aquatools" endindex = 1 startIndex = 2
+                if (startIndex >= endIndex) { endIndex = arg.Length; }
 
                 string res = arg.Substring(startIndex , endIndex - startIndex );
                 if ((res.ToCharArray())[0] == '\\'  || (res.ToCharArray())[0] == '/')
