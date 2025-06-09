@@ -68,6 +68,27 @@ namespace MySFformat
         Texture2D testTexture;
         Dictionary<string, Texture2D> textureMap = new Dictionary<string, Texture2D>();
         private static GCHandle handle;
+
+        ToolStripMenuItem toggleBonesItem;
+        ToolStripMenuItem toggleDummiesItem;
+
+        public void changeToRenderMode(RenderMode targetMode) { 
+            renderMode = targetMode;
+        }
+        public void changeFlatShading(bool targetMode) {
+            flatShading = targetMode;
+            Program.updateVertices();
+        }
+        public void changeBoneDisplay(bool targetMode) { 
+            Program.boneDisplay = targetMode;
+            toggleBonesItem.Checked = targetMode;
+            Program.updateVertices();
+        }
+        public void changeDummyDisplay(bool targetMode) { 
+            Program.dummyDisplay = targetMode;
+            toggleDummiesItem.Checked = targetMode;
+            Program.updateVertices();
+        }
         public Mono3D()
         {
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
@@ -79,7 +100,98 @@ namespace MySFformat
             //test = Content.Load<Texture2D>(@"data\img\27.png");
             f =  (Form)Form.FromHandle(Window.Handle);
 
-   
+
+
+            // --- 开始添加顶部菜单栏 ---
+
+            // 1. 创建主菜单栏控件
+            MenuStrip mainMenu = new MenuStrip();
+
+            // 2. 创建顶层菜单项: "Rendering" 和 "Overlay"
+            ToolStripMenuItem renderingMenuItem = new ToolStripMenuItem("Rendering");
+            ToolStripMenuItem overlayMenuItem = new ToolStripMenuItem("Overlay");
+
+            // 3. 为 "Rendering" 菜单添加子项
+            //    (我根据你的窗口标题和常见功能做了一些示例，你可以自行修改)
+            ToolStripMenuItem refreshItem = new ToolStripMenuItem("Refresh Model (F)");
+            refreshItem.Click += (sender, e) => {
+                Program.updateVertices();
+            };
+
+            ToolStripMenuItem renderModeHeader = new ToolStripMenuItem("Render Mode");
+
+            ToolStripMenuItem ItemF1 = new ToolStripMenuItem("Line (F1)");
+            ItemF1.Click += (sender, e) => {
+                changeToRenderMode(RenderMode.Line);
+            };
+
+            ToolStripMenuItem ItemF2 = new ToolStripMenuItem("Face (F2)");
+            ItemF2.Click += (sender, e) => {
+                changeToRenderMode(RenderMode.Triangle);
+            };
+
+            ToolStripMenuItem ItemF3 = new ToolStripMenuItem("Line+Face (F3)");
+            ItemF3.Click += (sender, e) => {
+                changeToRenderMode(RenderMode.Both);
+            };
+
+            ToolStripMenuItem ItemF4 = new ToolStripMenuItem("Line+Face+No Texture (F4)");
+            ItemF4.Click += (sender, e) => {
+                changeToRenderMode(RenderMode.BothNoTex);
+            };
+
+            ToolStripMenuItem ItemF5 = new ToolStripMenuItem("Texture Only (F5)");
+            ItemF5.Click += (sender, e) => {
+                changeToRenderMode(RenderMode.TexOnly);
+            };
+
+            ToolStripMenuItem ItemF6 = new ToolStripMenuItem("Flat Shading (F6)");
+            ItemF6.Click += (sender, e) => {
+                changeFlatShading(!flatShading);
+            };
+
+
+            // 将子项添加到 "Render Mode" 下
+            renderModeHeader.DropDownItems.Add(ItemF1);
+            renderModeHeader.DropDownItems.Add(ItemF2);
+            renderModeHeader.DropDownItems.Add(ItemF3);
+            renderModeHeader.DropDownItems.Add(ItemF4);
+            renderModeHeader.DropDownItems.Add(ItemF5);
+            renderModeHeader.DropDownItems.Add(ItemF6);
+
+            // 将所有项添加到 "Rendering" 菜单下
+            renderingMenuItem.DropDownItems.Add(refreshItem);
+            renderingMenuItem.DropDownItems.Add(new ToolStripSeparator()); // 添加一条分割线
+            renderingMenuItem.DropDownItems.Add(renderModeHeader);
+
+            // 4. 为 "Overlay" 菜单添加子项
+            //    对于开关选项，使用 CheckOnClick 非常方便
+            toggleBonesItem = new ToolStripMenuItem("Toggle Bone Display (B)");
+            toggleBonesItem.Checked = false;
+            toggleBonesItem.Click += (sender, e) => {
+                changeBoneDisplay(!Program.boneDisplay);
+            };
+
+            toggleDummiesItem = new ToolStripMenuItem("Toggle Dummy Display (M)");
+            toggleDummiesItem.Checked = true;
+            toggleDummiesItem.Click += (sender, e) => {
+                changeDummyDisplay(!Program.dummyDisplay);
+            };
+
+            // 将子项添加到 "Overlay" 菜单下
+            overlayMenuItem.DropDownItems.Add(toggleBonesItem);
+            overlayMenuItem.DropDownItems.Add(toggleDummiesItem);
+
+
+            // 5. 将顶层菜单项添加到主菜单栏
+            mainMenu.Items.Add(renderingMenuItem);
+            mainMenu.Items.Add(overlayMenuItem);
+
+            // 6. 将主菜单栏应用到窗口
+            f.MainMenuStrip = mainMenu;
+            f.Controls.Add(mainMenu);
+
+
             cm.MenuItems.Add("Cancel");
 
             cm.MenuItems.Add("Check Vertex", new EventHandler(delegate (Object o, EventArgs a)
@@ -762,41 +874,38 @@ namespace MySFformat
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F1))
             {
-                renderMode = RenderMode.Line;
+                changeToRenderMode(RenderMode.Line);
             }
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F2))
             {
-                renderMode = RenderMode.Triangle;
+                changeToRenderMode(RenderMode.Triangle);
             }
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F3))
             {
-                renderMode = RenderMode.Both;
+                changeToRenderMode(RenderMode.Both);
             }
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F4))
             {
-                renderMode = RenderMode.BothNoTex;
+                changeToRenderMode(RenderMode.BothNoTex);
             }
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F5))
             {
-                renderMode = RenderMode.TexOnly;
+                changeToRenderMode(RenderMode.TexOnly);
             }
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F6) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.F6))
             {
-                flatShading = !flatShading;
-                Program.updateVertices();
+                changeFlatShading(!flatShading);
             }
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.B))
             {
-                Program.boneDisplay = !Program.boneDisplay;
-                Program.updateVertices();
+                changeBoneDisplay(!Program.boneDisplay);
             }
 
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M))
             {
-                Program.dummyDisplay = !Program.dummyDisplay;
-                Program.updateVertices();
+                changeDummyDisplay(!Program.dummyDisplay);
             }
 
             //1.73 Added focus detect

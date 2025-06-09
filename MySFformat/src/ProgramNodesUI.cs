@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Numerics;
+using System.Text;
 using System.Web.Script.Serialization; // For JavaScriptSerializer
 using System.Windows.Forms;
 
