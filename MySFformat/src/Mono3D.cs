@@ -46,7 +46,7 @@ namespace MySFformat
         float mouseX, mouseY;
 
         float cameraX = 0;
-        float cameraY = 4;
+        float cameraY = -4;
         float cameraZ = 2;
 
         float offsetX = 0;
@@ -71,6 +71,8 @@ namespace MySFformat
 
         ToolStripMenuItem toggleBonesItem;
         ToolStripMenuItem toggleDummiesItem;
+        ToolStripMenuItem toggleNormalsItem;
+        ToolStripMenuItem toggleTangentsItem;
 
         public void changeToRenderMode(RenderMode targetMode) { 
             renderMode = targetMode;
@@ -87,6 +89,19 @@ namespace MySFformat
         public void changeDummyDisplay(bool targetMode) { 
             Program.dummyDisplay = targetMode;
             toggleDummiesItem.Checked = targetMode;
+            Program.updateVertices();
+        }
+
+        public void changeNormalDisplay(bool targetMode)
+        {
+            Program.normalDisplay = targetMode;
+            toggleNormalsItem.Checked = targetMode;
+            Program.updateVertices();
+        }
+        public void changeTangentDisplay(bool targetMode)
+        {
+            Program.tangentDisplay = targetMode;
+            toggleTangentsItem.Checked = targetMode;
             Program.updateVertices();
         }
         public Mono3D()
@@ -115,6 +130,22 @@ namespace MySFformat
             //    (我根据你的窗口标题和常见功能做了一些示例，你可以自行修改)
             ToolStripMenuItem refreshItem = new ToolStripMenuItem("Refresh Model (F)");
             refreshItem.Click += (sender, e) => {
+                Program.updateVertices();
+            };
+
+            ToolStripMenuItem resetCam = new ToolStripMenuItem("Reset Camera");
+            resetCam.Click += (sender, e) => {
+                cameraX = 0;
+                cameraY = -4;
+                cameraZ = 2;
+
+                offsetX = 0;
+                offsetY = 0;
+                offsetZ = 0;
+
+                centerX = 0;
+                centerY = 0;
+                centerZ = 0;
                 Program.updateVertices();
             };
 
@@ -161,6 +192,7 @@ namespace MySFformat
 
             // 将所有项添加到 "Rendering" 菜单下
             renderingMenuItem.DropDownItems.Add(refreshItem);
+            renderingMenuItem.DropDownItems.Add(resetCam);
             renderingMenuItem.DropDownItems.Add(new ToolStripSeparator()); // 添加一条分割线
             renderingMenuItem.DropDownItems.Add(renderModeHeader);
 
@@ -178,10 +210,24 @@ namespace MySFformat
                 changeDummyDisplay(!Program.dummyDisplay);
             };
 
+
+            toggleNormalsItem = new ToolStripMenuItem("Toggle Normal Display");
+            toggleNormalsItem.Checked = false;
+            toggleNormalsItem.Click += (sender, e) => {
+                changeNormalDisplay(!Program.normalDisplay);
+            };
+
+            toggleTangentsItem = new ToolStripMenuItem("Toggle Tangent Display");
+            toggleTangentsItem.Checked = false;
+            toggleTangentsItem.Click += (sender, e) => {
+                changeTangentDisplay(!Program.tangentDisplay);
+            };
+
             // 将子项添加到 "Overlay" 菜单下
             overlayMenuItem.DropDownItems.Add(toggleBonesItem);
             overlayMenuItem.DropDownItems.Add(toggleDummiesItem);
-
+            overlayMenuItem.DropDownItems.Add(toggleNormalsItem);
+            overlayMenuItem.DropDownItems.Add(toggleTangentsItem);
 
             // 5. 将顶层菜单项添加到主菜单栏
             mainMenu.Items.Add(renderingMenuItem);
@@ -191,7 +237,7 @@ namespace MySFformat
             f.MainMenuStrip = mainMenu;
             f.Controls.Add(mainMenu);
 
-
+            /////////////////////////////////////////
             cm.MenuItems.Add("Cancel");
 
             cm.MenuItems.Add("Check Vertex", new EventHandler(delegate (Object o, EventArgs a)

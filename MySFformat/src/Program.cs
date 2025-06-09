@@ -68,6 +68,8 @@ namespace MySFformat
 
         public static Boolean boneDisplay = false;
         public static Boolean dummyDisplay = true;
+        public static Boolean normalDisplay = false; //TODO
+        public static Boolean tangentDisplay = false; //TODO
 
         public static Boolean setVertexPos = false;
         public static float setVertexX = 0;
@@ -305,6 +307,20 @@ namespace MySFformat
                     vi.meshIndex = i;
                     vi.vertexIndex = j;
                     verticesInfo.Add(vi);
+
+                    //Add Normal Info and Tangent Info
+                    if (normalDisplay) {
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Position.X, v.Position.Z, v.Position.Y), Microsoft.Xna.Framework.Color.Blue));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Position.X + 0.2f * v.Normal.X, v.Position.Z + 0.2f * v.Normal.Z, v.Position.Y + 0.2f * v.Normal.Y), Microsoft.Xna.Framework.Color.Blue));
+                    }
+                    if (tangentDisplay && v.Tangents.Count >= 1)
+                    {
+                        var tanget = v.Tangents[0];
+                        var color = Microsoft.Xna.Framework.Color.OrangeRed;
+                        if (tanget.W < 0) { color = Microsoft.Xna.Framework.Color.DarkRed;}
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Position.X, v.Position.Z, v.Position.Y), color));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.Position.X + 0.2f * tanget.X, v.Position.Z + 0.2f * tanget.Z, v.Position.Y + 0.2f * tanget.Y), color));
+                    }
                 }
 
                 MeshInfos mi = new MeshInfos();
