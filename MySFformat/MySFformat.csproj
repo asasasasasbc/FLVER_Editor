@@ -144,6 +144,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="am_m_1190.partsbnd.dcx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="app.manifest" />
     <None Include="boneConvertion.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -153,6 +156,12 @@
     </None>
     <None Include="boxobj.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="c.flver">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="DS3_am.dcx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="EliteKnight.flver">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
