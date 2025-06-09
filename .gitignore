@@ -1,4 +1,6 @@
 /.vs
-/MySFformat/bin/Debug
-/MySFformat/bin/Debug
-/MySFformat/obj/Debug
+/MySFformat/bin/Debug/
+/MySFformat/obj/Debug/
+/MySFformat/[Bb]in/
+/MySFformat/[Oo]bj/
+/MySFformat/.vs
