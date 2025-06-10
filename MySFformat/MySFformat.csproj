@@ -118,12 +118,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\BasicTools.cs" />
+    <Compile Include="src\FbxImportSettings.cs" />
     <Compile Include="src\IniParser.cs" />
     <Compile Include="src\Matrix3D.cs" />
     <Compile Include="src\Mono3D.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="src\ProgramFbxExport.cs" />
     <Compile Include="src\ProgramFbxImport.cs" />
+    <Compile Include="src\ProgramFbxImportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="src\ProgramNodesUI.cs" />
     <Compile Include="src\ProgramUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
