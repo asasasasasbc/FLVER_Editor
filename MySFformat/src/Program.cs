@@ -52,6 +52,9 @@ namespace MySFformat
 
         public static Vector3 checkingPoint;
         public static Vector3 checkingPointNormal;
+        public static Boolean checkingPointHasTangent = false;
+        public static Vector3 checkingPointTangent;
+        public static float checkingPointTangentW = 0;
         public static Boolean useCheckingPoint = false;
 
         public static int checkingMeshNum = 0;
@@ -433,6 +436,15 @@ namespace MySFformat
                 ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(checkingPoint.X , checkingPoint.Z , checkingPoint.Y), Microsoft.Xna.Framework.Color.Blue));
                 ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(checkingPoint.X +  0.2f * checkingPointNormal.X, checkingPoint.Z + 0.2f * checkingPointNormal.Z, checkingPoint.Y + 0.2f * checkingPointNormal.Y), Microsoft.Xna.Framework.Color.Blue));
 
+                if (checkingPointHasTangent) {
+                    var v = checkingPoint;
+                    var tangent = checkingPointTangent;
+                    var color = Microsoft.Xna.Framework.Color.OrangeRed;
+                    if (checkingPointTangentW < 0) { color = Microsoft.Xna.Framework.Color.DarkRed; }
+                    ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.X, v.Z, v.Y), color));
+                    ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v.X + 0.2f *tangent.X, v.Z + 0.2f * tangent.Z, v.Y + 0.2f * tangent.Y), color));
+                }
+               
 
                 useCheckingPoint = false;
             }
@@ -509,6 +521,7 @@ namespace MySFformat
                 {
 
                     useCheckingPoint = true;
+                    checkingPointHasTangent = false;
                     checkingPoint = new Vector3(targetFlver.Dummies[i].Position.X, targetFlver.Dummies[i].Position.Y, targetFlver.Dummies[i].Position.Z);
                     checkingPointNormal = new Vector3(targetFlver.Dummies[i].Forward.X * 0.2f, targetFlver.Dummies[i].Forward.Y*0.2f, targetFlver.Dummies[i].Forward.Z*0.2f);
 

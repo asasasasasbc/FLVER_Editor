@@ -197,7 +197,7 @@ namespace MySFformat
 
             return ans;
         }
-        static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, int tangentW = -1)
+        static FLVER.Vertex generateVertex(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, float tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
             ans.Position = pos;
@@ -217,7 +217,7 @@ namespace MySFformat
         }
 
 
-        static FLVER.Vertex generateVertex2tan(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, Vector3 tangets2, int tangentW = -1)
+        static FLVER.Vertex generateVertex2tan(Vector3 pos, Vector3 uv1, Vector3 uv2, Vector3 normal, Vector3 tangets, Vector3 tangets2, float tangentW = -1)
         {
             FLVER.Vertex ans = new FLVER.Vertex();
             ans.Position = pos;

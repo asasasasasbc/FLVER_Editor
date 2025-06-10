@@ -727,6 +727,18 @@ namespace MySFformat
             {
                 Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
             }
+            if (targetV.Tangents != null && targetV.Tangents.Count > 0)
+            {
+                var tangent = targetV.Tangents[0];
+                Program.checkingPointTangent = new System.Numerics.Vector3(tangent.X, tangent.Y, tangent.Z);
+                Program.checkingPointTangentW = tangent.W;
+                Program.checkingPointHasTangent = true;
+            }
+            else
+            {
+                Program.checkingPointHasTangent = false;
+            }
+
 
             Program.updateVertices();
 
@@ -832,6 +844,19 @@ namespace MySFformat
             {
                 Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
             }
+
+            if (targetV.Tangents != null && targetV.Tangents.Count > 0)
+            {
+                var tangent = targetV.Tangents[0];
+                Program.checkingPointTangent = new System.Numerics.Vector3(tangent.X, tangent.Y, tangent.Z);
+                Program.checkingPointTangentW = tangent.W;
+                Program.checkingPointHasTangent = true;
+            }
+            else
+            {
+                Program.checkingPointHasTangent = false;
+            }
+
 
             Program.updateVertices();
 
