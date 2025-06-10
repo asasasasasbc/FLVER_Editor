@@ -69,6 +69,7 @@ namespace MySFformat
         Dictionary<string, Texture2D> textureMap = new Dictionary<string, Texture2D>();
         private static GCHandle handle;
 
+        ToolStripMenuItem ItemF6;
         ToolStripMenuItem toggleBonesItem;
         ToolStripMenuItem toggleDummiesItem;
         ToolStripMenuItem toggleNormalsItem;
@@ -79,6 +80,7 @@ namespace MySFformat
         }
         public void changeFlatShading(bool targetMode) {
             flatShading = targetMode;
+            ItemF6.Checked = flatShading;
             Program.updateVertices();
         }
         public void changeBoneDisplay(bool targetMode) { 
@@ -176,7 +178,7 @@ namespace MySFformat
                 changeToRenderMode(RenderMode.TexOnly);
             };
 
-            ToolStripMenuItem ItemF6 = new ToolStripMenuItem("Flat Shading (F6)");
+            ItemF6 = new ToolStripMenuItem("Flat Shading (F6)");
             ItemF6.Click += (sender, e) => {
                 changeFlatShading(!flatShading);
             };
@@ -211,13 +213,13 @@ namespace MySFformat
             };
 
 
-            toggleNormalsItem = new ToolStripMenuItem("Toggle Normal Display");
+            toggleNormalsItem = new ToolStripMenuItem("Toggle Normal Display (N)");
             toggleNormalsItem.Checked = false;
             toggleNormalsItem.Click += (sender, e) => {
                 changeNormalDisplay(!Program.normalDisplay);
             };
 
-            toggleTangentsItem = new ToolStripMenuItem("Toggle Tangent Display");
+            toggleTangentsItem = new ToolStripMenuItem("Toggle Tangent Display (T)");
             toggleTangentsItem.Checked = false;
             toggleTangentsItem.Click += (sender, e) => {
                 changeTangentDisplay(!Program.tangentDisplay);
@@ -954,6 +956,15 @@ namespace MySFformat
                 changeDummyDisplay(!Program.dummyDisplay);
             }
 
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.N) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.N))
+            {
+                changeNormalDisplay(!Program.normalDisplay);
+            }
+
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T))
+            {
+                changeTangentDisplay(!Program.tangentDisplay);
+            }
             //1.73 Added focus detect
             if (mState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && this.IsActive && false)
             {
