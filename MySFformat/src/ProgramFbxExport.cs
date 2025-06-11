@@ -295,10 +295,48 @@ namespace MySFformat
                             foreach (var v in flverMesh.Vertices)
                             {
                                 tangentLayer.Tangents.Add(new XYZ(v.Tangents[0].X, v.Tangents[0].Y, -v.Tangents[0].Z));
-                                // Note: Binormals/Bitangents might also be needed depending on engine/renderer.
-                                // FBX can store them or they can be derived.
                             }
                             mioMesh.Layers.Add(tangentLayer);
+                        }
+
+                        // Bitangents (optional, but good for normal mapping)
+                        if (flverMesh.Vertices.Count > 0 && flverMesh.Vertices[0].Tangents.Count > 0)
+                        {
+                            var bitangentLayer = new LayerElementBinormal { Name = "BitangentLayer" };
+                            bitangentLayer.MappingMode = MappingMode.ByVertex;
+                            bitangentLayer.ReferenceMode = ReferenceMode.Direct;
+                             
+                            foreach (var v in flverMesh.Vertices)
+                            {
+                                // 1. 获取已经转换到目标坐标系下的法线(Normal)和切线(Tangent)
+                                // 注意：这里我们只取XYZ分量，W分量单独处理
+                                XYZ mioNormal = new XYZ(v.Normal.X, v.Normal.Y, -v.Normal.Z);
+                                XYZ mioTangent = new XYZ(v.Tangents[0].X, v.Tangents[0].Y, -v.Tangents[0].Z);
+
+                                // 2. 使用CSMath库（MeshIO依赖的库）来进行叉积计算
+                                // 假设目标FBX消费端（如Blender/Unity）需要一个右手坐标系TBN
+                                // 那么 Bitangent = cross(Normal, Tangent)
+                                // CSMath.XYZ.Cross(A, B) 返回 A和B的叉积
+                                XYZ calculatedBitangent = XYZ.Cross(mioNormal, mioTangent);
+
+                                // 3. 根据原始切线的W分量来决定是否翻转Bitangent
+                                // 这是至关重要的一步，用来修正UV镜像导致的手性翻转问题
+                                float tangentW = v.Tangents[0].W;
+                                if (tangentW < 0.0f)
+                                {
+                                    // 如果W为负，翻转计算出的Bitangent
+                                    calculatedBitangent = new XYZ(
+                                        -calculatedBitangent.X,
+                                        -calculatedBitangent.Y,
+                                        -calculatedBitangent.Z
+                                    );
+                                }
+
+                                // 4. 将最终的Bitangent添加到layer中
+                                // 注意：此时的 bitangent 已经是目标坐标系下的向量，不需要再翻转Z轴了！
+                                bitangentLayer.Binormals.Add(calculatedBitangent);
+                            }
+                            mioMesh.Layers.Add(bitangentLayer);
                         }
 
                         // Faces
