@@ -27,6 +27,8 @@ namespace MySFformat
         public Axis SecondaryAxis { get; set; } = Axis.Y;
         public bool MirrorTertiaryAxis { get; set; } = true;
 
+        public bool blenderTan { get; set; } = false;
+
         // Other Options
         public bool SetTexture { get; set; } = true;
         public bool SetLOD { get; set; } = false;

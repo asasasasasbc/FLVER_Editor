@@ -20,6 +20,7 @@ namespace MySFformat
         private Button btnBoneHelp;
         private Button btnAxisHelp;
         private CheckBox chkMirrorTertiary;
+        private CheckBox chkBlenderTan;
         private CheckBox chkSetTexture;
         private CheckBox chkSetLOD;
         private CheckBox chkImportBones;
@@ -34,8 +35,10 @@ namespace MySFformat
 Primary Axis maps to the output X-axis.
 Secondary Axis maps to the output Y-axis.
 The third axis is calculated automatically.
-Recommended for most FBX from Blender/Maya/Flver Editor default FBX Export: 
+Recommended for FBX exported directly from Flver Editor: 
 Primary: X, Secondary: Y, Mirror Z Axis: Yes
+For FBX exported from Blender：
+Primary: -Z, Secondary: X, Mirror Z Axis: Yes
 If you REALLY want old-FLVER Editor's switch YZ axis values function, try:
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
 ---
@@ -43,7 +46,11 @@ Primary: X, Secondary: Z, Mirror Z Axis: Yes
 主轴（Primary Axis）映射到Flver的X轴。
 次轴（Secondary Axis）映射到Flver的Y轴。
 第三轴将自动计算。
-大多数来自Blender/Maya/Flver编辑器默认FBX导出的情况建议如下：
+Flver编辑器默认FBX导出的情况建议如下：
+Primary: X, Secondary: Y, Mirror Z Axis: Yes
+Blender4.X默认FBX导出的情况建议如下(无Armature骨架的情况)：
+Primary: -Z, Secondary: X, Mirror Z Axis: Yes
+Blender4.X默认FBX导出的情况建议如下(有来自FLVER Editor导出的FBX Armature骨架的情况)：
 Primary: X, Secondary: Y, Mirror Z Axis: Yes
 如果你需要旧版的Flver编辑器导入模型切换YZ轴功能，建议配置如下：
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
@@ -78,7 +85,7 @@ FLVER_Bone_Name_2
             this.Text = "Import FBX Options";
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterParent;
-            this.ClientSize = new Size(500, 510);
+            this.ClientSize = new Size(500, 545);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
@@ -125,6 +132,10 @@ FLVER_Bone_Name_2
             // ** New Tertiary Mirror Checkbox **
             chkMirrorTertiary = new CheckBox { Text = "Mirror Tertiary (Z) Axis", Location = new Point(xMargin + 10, yPos), AutoSize = true };
             this.Controls.Add(chkMirrorTertiary);
+            yPos += 35;
+
+            chkBlenderTan = new CheckBox { Text = "Blender Tangents", Location = new Point(xMargin + 10, yPos), AutoSize = true };
+            this.Controls.Add(chkBlenderTan);
             yPos += 35;
 
             // Other Options
@@ -184,6 +195,7 @@ FLVER_Bone_Name_2
             if (secondaryAxisRadios.ContainsKey(Settings.SecondaryAxis))
                 secondaryAxisRadios[Settings.SecondaryAxis].Checked = true;
             chkMirrorTertiary.Checked = Settings.MirrorTertiaryAxis; // Populate new checkbox
+            chkBlenderTan.Checked = Settings.blenderTan;
 
             chkSetTexture.Checked = Settings.SetTexture;
             chkSetLOD.Checked = Settings.SetLOD;
@@ -209,6 +221,7 @@ FLVER_Bone_Name_2
             Settings.PrimaryAxis = primaryAxisRadios.First(kvp => kvp.Value.Checked).Key;
             Settings.SecondaryAxis = secondaryAxisRadios.First(kvp => kvp.Value.Checked).Key;
             Settings.MirrorTertiaryAxis = chkMirrorTertiary.Checked; // Save new checkbox state
+            Settings.blenderTan = chkBlenderTan.Checked;
 
             Settings.SetTexture = chkSetTexture.Checked;
             Settings.SetLOD = chkSetLOD.Checked;

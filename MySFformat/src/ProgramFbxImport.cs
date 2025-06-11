@@ -302,21 +302,59 @@ namespace MySFformat
                     }
 
                     var tangent = new Vector3D(1, 0, 0);
+
+                    //TODO: Two experimental function, tangent calculation suited for blender
+                    var swapTanBitan = false; // Blender export only
+                    var inverseTan = false; // Blender export only
+                    if (settings.blenderTan) {
+                        swapTanBitan = true;
+                        inverseTan = true;
+                    }
                     if (m.HasTangentBasis && m.Tangents.Count > i)
                     {
                         tangent = getMyV3D(m.Tangents[i]).normalize();
+                        if (swapTanBitan) { tangent = getMyV3D(m.BiTangents[i]).normalize(); }
+
                     }
                     else if (m.HasNormals && m.Normals.Count > i)
                     {
+                        // Actually speaking totally wrong 
                         tangent = new Vector3D(crossPorduct(getMyV3D(m.Normals[i]).normalize().toXnaV3(), normal.toXnaV3())).normalize();
                     }
 
-                    // --- NEW: Remap vectors based on settings, including the mirror option ---
+                    bool hasBitangent = false;
+                    Vector3D bitangent = new Vector3D();
+                    if (m.HasTangentBasis && m.BiTangents.Count > i)
+                    {
+                        hasBitangent = true;
+                        bitangent = getMyV3D(m.BiTangents[i]).normalize();
+                        if (swapTanBitan) { bitangent = getMyV3D(m.Tangents[i]).normalize(); }
+                    }
+                    else {
+                        bitangent = tangent;
+                    }
+
+                        // --- NEW: Remap vectors based on settings, including the mirror option ---
                     Vector3 remappedPosition = RemapVector(getMyV3D(vit), settings.PrimaryAxis, settings.SecondaryAxis, settings.MirrorTertiaryAxis);
                     Vector3 remappedNormal = RemapVector(normal, settings.PrimaryAxis, settings.SecondaryAxis, settings.MirrorTertiaryAxis);
                     Vector3 remappedTangent = RemapVector(tangent, settings.PrimaryAxis, settings.SecondaryAxis, settings.MirrorTertiaryAxis);
+                    Vector3 remappedBitangent = RemapVector(bitangent, settings.PrimaryAxis, settings.SecondaryAxis, settings.MirrorTertiaryAxis);
 
-                    FLVER.Vertex v = generateVertex(remappedPosition, uv1.toNumV3(), uv2.toNumV3(), remappedNormal, remappedTangent, 1);
+                    if (inverseTan) { remappedTangent = new Vector3(-remappedTangent.X, -remappedTangent.Y, -remappedTangent.Z); }
+
+                    float tangentW = 1;
+                    if (hasBitangent) { 
+                        //判断CrossProduct(normal, tangent) 是不是和 Bitangent的夹角小于90°，如果小于则表示w不用翻面，否则W要翻面
+                        // 不能在remapped中比较，要用fbx导出的时候的坐标系
+                        Vector3D n = normal;
+                        Vector3D t = tangent;
+                        Vector3D positiveBitangent = new Vector3D(crossPorduct(n.toXnaV3(), t.toXnaV3()));
+                        if (Vector3D.dotProduct(positiveBitangent, bitangent) < 0) {
+                            tangentW *= -1;
+                        }
+                    }
+
+                    FLVER.Vertex v = generateVertex(remappedPosition, uv1.toNumV3(), uv2.toNumV3(), remappedNormal, remappedTangent, tangentW);
 
                     if (m.HasBones)
                     {
