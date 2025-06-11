@@ -69,7 +69,7 @@ namespace MySFformat
         public static int boneFindParentTimes = 15;//if cannot find bone, find if its parent bone matches flver bone name
 
 
-        public static Boolean boneDisplay = false;
+        public static Boolean boneDisplay = true;
         public static Boolean dummyDisplay = true;
         public static Boolean normalDisplay = false; //TODO
         public static Boolean tangentDisplay = false; //TODO

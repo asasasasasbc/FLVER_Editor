@@ -24,6 +24,10 @@ namespace MySFformat
         public static TextBox tbones;
         public static TextBox tbones2;
 
+        public static Form nodeUIForm;
+
+        public static DataGridView dg;
+
         // Initial positioning
         static int WINDOW_WIDTH = 550;
         static int WINDOW_HEIGHT = 750;
@@ -217,6 +221,7 @@ namespace MySFformat
 
             // Bring to front and run
             f.Load += (s, e) => { f.Activate(); };
+            nodeUIForm = f;
             Application.Run(f);
         }
 
@@ -224,6 +229,7 @@ namespace MySFformat
 
         private static MenuStrip CreateMenuStrip(JavaScriptSerializer serializer)
         {
+            
             var menuStrip = new MenuStrip();
 
             // --- Legacy Menu ---
@@ -304,7 +310,7 @@ namespace MySFformat
 
         private static DataGridView CreateDataGridView(FLVER2 b)
         {
-            var dg = new DataGridView
+            dg = new DataGridView
             {
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
@@ -365,6 +371,42 @@ namespace MySFformat
                 }
             }
             return dg;
+        }
+
+        public static void ForceRefreshNodes() {
+            FLVER2 b = targetFlver;
+            if (!basicMode)
+            {
+                dg.Rows.Clear();
+                foreach (DataGridViewColumn column in dg.Columns) column.SortMode = DataGridViewColumnSortMode.NotSortable;
+
+                for (int i = 0; i < b.Nodes.Count; i++)
+                {
+                    FLVER.Node bn = b.Nodes[i];
+                    int rowIndex = dg.Rows.Add();
+                    DataGridViewRow row = dg.Rows[rowIndex];
+
+                    row.Cells[0].Value = $"[{i}]";
+                    row.Cells[1].Value = bn.Name;
+                    row.Cells[2].Value = bn.ParentIndex.ToString();
+                    row.Cells[3].Value = bn.FirstChildIndex.ToString();
+                    // Translation: 格式化为小数点后3位
+                    row.Cells[4].Value = $"{bn.Translation.X:F6}, {bn.Translation.Y:F6}, {bn.Translation.Z:F6}";
+
+                    // Rotation: 先将弧度转为角度，再格式化为小数点后3位
+                    const double radToDeg = 180.0 / Math.PI;
+                    row.Cells[5].Value = $"{(bn.Rotation.X * radToDeg):F6}, {(bn.Rotation.Y * radToDeg):F6}, {(bn.Rotation.Z * radToDeg):F6}";
+
+                    // Scale: 格式化为小数点后3位
+                    row.Cells[6].Value = $"{bn.Scale.X:F6}, {bn.Scale.Y:F6}, {bn.Scale.Z:F6}";
+
+                    boneNameCellList.Add((DataGridViewTextBoxCell)row.Cells[1]);
+                    boneParentCellList.Add((DataGridViewTextBoxCell)row.Cells[2]);
+                    boneChildCellList.Add((DataGridViewTextBoxCell)row.Cells[3]);
+                }
+            }
+            var serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue };
+            tbones.Text = serializer.Serialize(targetFlver.Nodes);
         }
 
         private static Panel CreateSideButtonPanel(JavaScriptSerializer serializer)

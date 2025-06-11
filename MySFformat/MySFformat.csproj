@@ -118,6 +118,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\BasicTools.cs" />
+    <Compile Include="src\FbxBoneImporter.cs" />
     <Compile Include="src\FbxImportSettings.cs" />
     <Compile Include="src\IniParser.cs" />
     <Compile Include="src\Matrix3D.cs" />

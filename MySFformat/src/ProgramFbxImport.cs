@@ -65,16 +65,7 @@ namespace MySFformat
             return (input.X * newX) + (input.Y * newY) + (input.Z * newZ);
         }
 
-        /// <summary>
-        /// Placeholder function for importing and overriding bones from the source model.
-        /// </summary>
-        private static void ImportAndOverrideBones(Scene sourceScene, FLVER2 targetFlver)
-        {
-            // TODO: Implement the logic to read bones from sourceScene.RootNode,
-            // create new FLVER.Bone instances, clear targetFlver.Bones, and add the new ones.
-            // This is a complex task involving converting transformation matrices and rebuilding the bone hierarchy.
-            MessageBox.Show("Import and Override Bones is not yet implemented.", "Placeholder", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+       
 
         //Current, best version can load FBX, OBJ, DAE etc.
         //Use assimp library
@@ -131,7 +122,8 @@ namespace MySFformat
 
             if (settings.ImportAndOverrideBones)
             {
-                ImportAndOverrideBones(md, targetFlver);
+                FbxBoneImporter.ImportAndOverrideBones(md, targetFlver, settings);
+                Program.ForceRefreshNodes();
             }
 
             boneParentList = new Dictionary<String, String>();
