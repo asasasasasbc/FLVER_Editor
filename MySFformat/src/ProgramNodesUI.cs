@@ -36,7 +36,8 @@ namespace MySFformat
             OpenFileDialog openFileDialog1 = new OpenFileDialog
             {
                 InitialDirectory = Directory.GetCurrentDirectory(),
-                Title = "Choose fromsoftware .flver model file. by Forsaknsilver"
+                Title = "Choose fromsoftware .flver model file. by Forsaknsilver",
+                Filter = "FLVER Related Files (*.flver, *.dcx, *.bak)|*.flver;*.dcx;*.bak|All files (*.*)|*.*"
             };
 
             if (argments.Length > 1) // argments[0] is the executable path
