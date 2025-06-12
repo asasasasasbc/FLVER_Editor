@@ -48,7 +48,7 @@ namespace MySFformat
         /// <summary>
         /// Remaps a vector from Assimp's coordinate system to the game's coordinate system based on user settings.
         /// </summary>
-        private static Vector3 RemapVector(Vector3D input, FbxImportSettings.Axis primary, FbxImportSettings.Axis secondary, bool mirrorTertiary)
+        public static Vector3 RemapVector(Vector3D input, FbxImportSettings.Axis primary, FbxImportSettings.Axis secondary, bool mirrorTertiary)
         {
             // Determine the remapped basis vectors. This defines the transformation.
             Vector3 newX = new Vector3(GetAxisValue(new Vector3D(1, 0, 0), primary), GetAxisValue(new Vector3D(0, 1, 0), primary), GetAxisValue(new Vector3D(0, 0, 1), primary));

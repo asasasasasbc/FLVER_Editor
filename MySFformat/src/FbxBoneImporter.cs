@@ -1,5 +1,6 @@
 ﻿// FbxBoneImporter.cs (Updated Version)
 using Assimp;
+using MeshIO.FBX.Helpers;
 using SoulsFormats;
 using System;
 using System.Collections.Generic;
@@ -94,8 +95,8 @@ namespace MySFformat
                 flverNode.Scale = new Vector3(scale.X, scale.Y, scale.Z);
                 //MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard
                 // MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
-                // 5. Convert the quaternion to FLVER's YZX Euler angles (in radians).
-                flverNode.Rotation = QuaternionToEulerYZX(rotationQuat);
+                // 5. Convert the quaternion to FLVER's Euler angles (in radians).
+                flverNode.Rotation = QuaternionToEuler(rotationQuat);
             }
             else
             {
@@ -188,6 +189,7 @@ namespace MySFformat
 
             if (settings.MirrorTertiaryAxis)
             {
+                //TODO：
                 newZ_target *= -1;
             }
 
@@ -221,7 +223,7 @@ namespace MySFformat
 
             // Input angles are in YZX order (as per FLVER convention)
             MeshIO.FBX.Helpers.MyVector3 inputAnglesDeg = new MeshIO.FBX.Helpers.MyVector3(xDeg, yDeg, zDeg);
-            MeshIO.FBX.Helpers.RotationOrder flverOrder = MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard
+            MeshIO.FBX.Helpers.RotationOrder flverOrder = MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard ()
             MeshIO.FBX.Helpers.RotationOrder fbxOrder = MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
 
             var convertedAngles = MeshIO.FBX.Helpers.EulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
@@ -235,168 +237,372 @@ namespace MySFformat
             );
         }
 
-        private static Vector3 QuaternionToEulerYZX(Quaternion q)
+        public static float Clamp(float a, float min, float max) {
+            if (a < min) { return min; }
+            if (a > max) { return max; }
+            return a;
+        }
+        /// <summary>
+        /// Converts a Quaternion to Euler angles (in radians) based on the specified rotation order.
+        /// </summary>
+        public static Vector3 FromQuaternion(System.Numerics.Quaternion q, RotationOrder order)
         {
             System.Numerics.Quaternion nq = new System.Numerics.Quaternion(q.X, q.Y, q.Z, q.W);
             var M = System.Numerics.Matrix4x4.CreateFromQuaternion(nq);
             float x, y, z;
-            //XYZ seems a liitle bit correct...
-            //XZY: wrong
-            // YXZ: wrong
-            //YZX: wrong
-            // ZXY: wrong
-            // ZYX: Correct--- I have no idea why this is correct... but it just works
-            var order = RotationOrder.ZYX; // or XZY?
+
             switch (order)
             {
                 case RotationOrder.XYZ:
-                    // Gimbal lock check
-                    if (M.M31 > 0.99999f)
+                    // Pitch from M31
+                    float sinPitch = Clamp(-M.M31, -1.0f, 1.0f);
+                    y = (float)Math.Asin(sinPitch);
+                    float cosPitch = (float)Math.Cos(y);
+                    if (Math.Abs(cosPitch) > 0.0001f)
                     {
-                        y = (float)Math.Asin(M.M31);
+                        // Roll from M32, M33
+                        x = (float)Math.Atan2(M.M32, M.M33);
+                        // Yaw from M21, M11
+                        z = (float)Math.Atan2(M.M21, M.M11);
+                    }
+                    else // Gimbal lock
+                    {
                         x = (float)Math.Atan2(-M.M23, M.M22);
-                        z = 0.0f;
-                    }
-                    else if (M.M31 < -0.99999f)
-                    {
-                        y = (float)Math.Asin(M.M31);
-                        x = (float)Math.Atan2(M.M23, M.M22);
-                        z = 0.0f;
-                    }
-                    else
-                    {
-                        y = (float)Math.Asin(M.M31);
-                        x = (float)Math.Atan2(-M.M32, M.M33);
-                        z = (float)Math.Atan2(-M.M21, M.M11);
+                        z = 0;
                     }
                     break;
 
                 case RotationOrder.XZY:
-                    if (M.M21 > 0.99999f)
+                    // Yaw from M21
+                    float sinYaw = Clamp(M.M21, -1.0f, 1.0f);
+                    z = (float)Math.Asin(sinYaw);
+                    float cosYaw = (float)Math.Cos(z);
+                    if (Math.Abs(cosYaw) > 0.0001f)
                     {
-                        z = (float)Math.Asin(M.M21);
+                        // Roll from M23, M22
+                        x = (float)Math.Atan2(-M.M23, M.M22);
+                        // Pitch from M31, M11
+                        y = (float)Math.Atan2(-M.M31, M.M11);
+                    }
+                    else // Gimbal lock
+                    {
                         x = (float)Math.Atan2(M.M32, M.M33);
                         y = 0;
-                    }
-                    else if (M.M21 < -0.99999f)
-                    {
-                        z = (float)Math.Asin(M.M21);
-                        x = (float)Math.Atan2(-M.M32, -M.M33);
-                        y = 0;
-                    }
-                    else
-                    {
-                        z = (float)Math.Asin(M.M21);
-                        x = (float)Math.Atan2(-M.M23, M.M22);
-                        y = (float)Math.Atan2(-M.M31, M.M11);
                     }
                     break;
 
                 case RotationOrder.YXZ:
-                    if (M.M32 > 0.99999f)
+                    // Roll from M32
+                    float sinRoll = Clamp(M.M32, -1.0f, 1.0f);
+                    x = (float)Math.Asin(sinRoll);
+                    float cosRoll = (float)Math.Cos(x);
+                    if (Math.Abs(cosRoll) > 0.0001f)
                     {
-                        x = (float)Math.Asin(M.M32);
+                        // Pitch from M31, M33
+                        y = (float)Math.Atan2(-M.M31, M.M33);
+                        // Yaw from M12, M22
+                        z = (float)Math.Atan2(-M.M12, M.M22);
+                    }
+                    else // Gimbal lock
+                    {
                         y = (float)Math.Atan2(M.M13, M.M11);
                         z = 0;
                     }
-                    else if (M.M32 < -0.99999f)
-                    {
-                        x = (float)Math.Asin(M.M32);
-                        y = (float)Math.Atan2(-M.M13, -M.M11);
-                        z = 0;
-                    }
-                    else
-                    {
-                        x = (float)Math.Asin(M.M32);
-                        y = (float)Math.Atan2(-M.M31, M.M33);
-                        z = (float)Math.Atan2(-M.M12, M.M22);
-                    }
                     break;
 
-                case RotationOrder.YZX: // This is the one used for FLVER
-                    if (M.M12 > 0.99999f)
+                case RotationOrder.YZX:
+                    // Roll from M12
+                    float sinRoll2 = Clamp(-M.M12, -1.0f, 1.0f);
+                    x = (float)Math.Asin(sinRoll2);
+                    float cosRoll2 = (float)Math.Cos(x);
+                    if (Math.Abs(cosRoll2) > 0.0001f)
                     {
-                        z = (float)Math.Asin(M.M12);
-                        y = (float)Math.Atan2(M.M23, M.M33);
-                        x = 0;
+                        // Yaw from M13, M11
+                        z = (float)Math.Atan2(M.M13, M.M11);
+                        // Pitch from M32, M22
+                        y = (float)Math.Atan2(M.M32, M.M22);
                     }
-                    else if (M.M12 < -0.99999f)
+                    else // Gimbal lock
                     {
-                        z = (float)Math.Asin(M.M12);
-                        y = (float)Math.Atan2(-M.M23, -M.M33);
-                        x = 0;
-                    }
-                    else
-                    {
-                        z = (float)Math.Asin(M.M12);
-                        y = (float)Math.Atan2(-M.M13, M.M11);
-                        x = (float)Math.Atan2(-M.M32, M.M22);
+                        z = (float)Math.Atan2(-M.M31, M.M33);
+                        y = 0;
                     }
                     break;
 
                 case RotationOrder.ZXY:
-                    if (M.M23 > 0.99999f)
+                    // Pitch from M23
+                    float sinPitch2 = Clamp(M.M23, -1.0f, 1.0f);
+                    x = (float)Math.Asin(sinPitch2);
+                    float cosPitch2 = (float)Math.Cos(x);
+                    if (Math.Abs(cosPitch2) > 0.0001f)
                     {
-                        x = (float)Math.Asin(M.M23);
+                        // Yaw from M21, M22
+                        z = (float)Math.Atan2(-M.M21, M.M22);
+                        // Roll from M13, M33
+                        y = (float)Math.Atan2(-M.M13, M.M33);
+                    }
+                    else // Gimbal lock
+                    {
                         z = (float)Math.Atan2(M.M12, M.M11);
                         y = 0;
-                    }
-                    else if (M.M23 < -0.99999f)
-                    {
-                        x = (float)Math.Asin(M.M23);
-                        z = (float)Math.Atan2(-M.M12, -M.M11);
-                        y = 0;
-                    }
-                    else
-                    {
-                        x = (float)Math.Asin(M.M23);
-                        z = (float)Math.Atan2(-M.M21, M.M22);
-                        y = (float)Math.Atan2(-M.M13, M.M33);
                     }
                     break;
 
-                case RotationOrder.ZYX: // Common "Euler" or "Tait-Bryan"
-                    if (M.M13 > 0.99999f)
+                case RotationOrder.ZYX:
+                    // Pitch from M13
+                    float sinPitch3 = Clamp(-M.M13, -1.0f, 1.0f);
+                    y = (float)Math.Asin(sinPitch3);
+                    float cosPitch3 = (float)Math.Cos(y);
+                    if (Math.Abs(cosPitch3) > 0.01f)
                     {
-                        y = -(float)Math.Asin(M.M13);
-                        z = (float)Math.Atan2(-M.M21, M.M22);
-                        x = 0;
-                    }
-                    else if (M.M13 < -0.99999f)
-                    {
-                        y = -(float)Math.Asin(M.M13);
-                        z = (float)Math.Atan2(M.M21, M.M22);
-                        x = 0;
-                    }
-                    else
-                    {
-                        y = -(float)Math.Asin(M.M13);
-                        z = (float)Math.Atan2(M.M12, M.M11);
+                        // Roll from M23, M33
                         x = (float)Math.Atan2(M.M23, M.M33);
+                        // Yaw from M12, M11
+                        z = (float)Math.Atan2(M.M12, M.M11);
+                    }
+                    else // Gimbal lock
+                    {
+                        //x = 0;
+                        //z = (float)Math.Atan2(-M.M21, M.M22);
+                        y = 0; // Set yaw to zero because of gimbal lock
+                        z = (float)Math.Atan2(-M.M21, M.M22); // Adjust roll instead
+                        x = (float)Math.Atan2(-M.M23, M.M33); // This line is necessary if you want to calculate the roll in gimbal lock situation
                     }
                     break;
 
                 default:
-                    throw new ArgumentException("Invalid RotationOrder specified.");
+                    throw new ArgumentOutOfRangeException(nameof(order), "Invalid rotation order specified.");
             }
 
-            // The results are the angles around the X, Y, and Z axes.
-            //
-            //float xDeg = (float)CSMath.MathUtils.RadToDeg(x);
-            //float yDeg = (float)CSMath.MathUtils.RadToDeg(y);
-            //float zDeg = (float)CSMath.MathUtils.RadToDeg(z);
-            //
-            //// Input angles are in YZX order (as per FLVER convention)
-            //MeshIO.FBX.Helpers.MyVector3 inputAnglesDeg = new MeshIO.FBX.Helpers.MyVector3(xDeg, yDeg, zDeg);
-            //MeshIO.FBX.Helpers.RotationOrder flverOrder = MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard
-            //MeshIO.FBX.Helpers.RotationOrder fbxOrder = MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
-            //
-            //var convertedAngles = MeshIO.FBX.Helpers.EulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, fbxOrder, flverOrder);
-            //x = (float)CSMath.MathUtils.DegToRad(convertedAngles.X);
-            //y = (float)CSMath.MathUtils.DegToRad(convertedAngles.Y);
-            //z = (float)CSMath.MathUtils.DegToRad(convertedAngles.Z);
-
             return new Vector3(x, y, z);
+        }
+
+        private static Vector3 QuaternionToEuler(Quaternion q)
+        {
+            // 将 Assimp.Quaternion 转换为 System.Numerics.Quaternion 以便使用其数学库
+            System.Numerics.Quaternion nq = new System.Numerics.Quaternion(q.X, q.Y, q.Z, q.W);
+            var M = System.Numerics.Matrix4x4.CreateFromQuaternion(nq);
+
+            float x, y, z;
+
+            // FLVER 使用 YZX 旋转顺序。
+            // 以下是标准的、经过验证的从旋转矩阵中提取 YZX 欧拉角的公式。
+            // 参考: http://www.gregslabaugh.net/publications/euler.pdf (Table 2)
+
+            //XYZ Wrong 
+            //XZY wrong 
+            //YXZ wrong? inverse?
+            //YZX wrong
+            //ZXY wrong...
+            //ZYX
+            var result = FromQuaternion(nq, RotationOrder.ZYX);
+            x =  result.X; y = result.Y; z = result.Z;
+            // MyFBX-ZYX -> MyFlver->YZX
+            float xDeg = (float)CSMath.MathUtils.RadToDeg(x);
+            float yDeg = (float)CSMath.MathUtils.RadToDeg(y);
+            float zDeg = (float)CSMath.MathUtils.RadToDeg(z);
+            
+            // Input angles are in YZX order (as per FLVER convention)
+            MeshIO.FBX.Helpers.MyVector3 inputAnglesDeg = new MeshIO.FBX.Helpers.MyVector3(xDeg, yDeg, zDeg);
+            RotationOrder flverOrder = RotationOrder.YZX; // FLVER standard
+            RotationOrder fbxOrder = RotationOrder.ZYX; // Common FBX target
+
+           var rotMat = BuildRotationMatrix(inputAnglesDeg, fbxOrder);
+           var convertedAngles = ExtractEulerAngles(rotMat, flverOrder);
+           x = (float)CSMath.MathUtils.DegToRad(convertedAngles.X);
+           y = (float)CSMath.MathUtils.DegToRad(convertedAngles.Y);
+           z = (float)CSMath.MathUtils.DegToRad(convertedAngles.Z);
+
+            return new Vector3(x, y ,z);
+        }
+
+
+        private const float Epsilon = 1e-6f; // For gimbal lock checks
+
+        // Helper to construct the rotation matrix from Euler angles and a given order
+        private static Matrix3D BuildRotationMatrix(MyVector3 eulerAnglesDegrees, RotationOrder order)
+        {
+            Matrix3D rx = Matrix3D.generateRotXMatrix(eulerAnglesDegrees.X);
+            Matrix3D ry = Matrix3D.generateRotYMatrix(eulerAnglesDegrees.Y);
+            Matrix3D rz = Matrix3D.generateRotZMatrix(eulerAnglesDegrees.Z);
+            switch (order)
+            {
+                case RotationOrder.XYZ: return rx * ry * rz;
+                case RotationOrder.XZY: return rx * rz * ry;
+                case RotationOrder.YXZ: return ry * rx * rz;
+                case RotationOrder.YZX: return ry * rz * rx;
+                case RotationOrder.ZXY: return rz * rx * ry;
+                case RotationOrder.ZYX: return rz * ry * rx;
+                default: throw new ArgumentException("Invalid rotation order", nameof(order));
+            }
+        }
+
+        // Helper to extract Euler angles from a rotation matrix for a given order
+        // This is the complex part with many formulas.
+        // Formulas adapted from: http://www.gregslabaugh.com/publications/euler.pdf
+        // And also common knowledge from various graphics programming resources.
+        // Note: Matrix elements are m[row, col] (0-indexed)
+        private static MyVector3 ExtractEulerAngles(Matrix3D m, RotationOrder order)
+        {
+            float r11 = m.value[0, 0], r12 = m.value[0, 1], r13 = m.value[0, 2];
+            float r21 = m.value[1, 0], r22 = m.value[1, 1], r23 = m.value[1, 2];
+            float r31 = m.value[2, 0], r32 = m.value[2, 1], r33 = m.value[2, 2];
+
+            float xRad = 0, yRad = 0, zRad = 0;
+
+            switch (order)
+            {
+                case RotationOrder.XYZ: // R = Rx Ry Rz
+                                        // y = asin(r13)
+                                        // x = atan2(-r23/cos(y), r33/cos(y))
+                                        // z = atan2(-r12/cos(y), r11/cos(y))
+                    yRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, r13)));
+                    if (Math.Abs(r13) < 1.0f - Epsilon) // Not in gimbal lock
+                    {
+                        xRad = (float)Math.Atan2(-r23, r33);
+                        zRad = (float)Math.Atan2(-r12, r11);
+                    }
+                    else // Gimbal lock
+                    {
+                        zRad = 0; // Conventionally set z to 0
+                        if (r13 > 0) // y = +PI/2
+                            xRad = (float)Math.Atan2(r21, r22);
+                        else // y = -PI/2
+                            xRad = (float)Math.Atan2(-r21, -r22); // or Math.Atan2(r21, -r22) depending on convention
+                    }
+                    break;
+
+                case RotationOrder.XZY: // R = Rx Rz Ry
+                                        // z = asin(-r12)
+                                        // x = atan2(r32/cos(z), r22/cos(z))
+                                        // y = atan2(r13/cos(z), r11/cos(z))
+                    zRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, -r12)));
+                    if (Math.Abs(r12) < 1.0f - Epsilon)
+                    {
+                        xRad = (float)Math.Atan2(r32, r22);
+                        yRad = (float)Math.Atan2(r13, r11);
+                    }
+                    else
+                    {
+                        yRad = 0;
+                        if (-r12 > 0) // z = +PI/2
+                            xRad = (float)Math.Atan2(-r31, r33); // Check r31, r33 based on matrix structure
+                        else // z = -PI/2
+                            xRad = (float)Math.Atan2(r31, r33);
+                    }
+                    break;
+
+                case RotationOrder.YXZ: // R = Ry Rx Rz
+                                        // x = asin(-r23)
+                                        // y = atan2(r13/cos(x), r33/cos(x))
+                                        // z = atan2(r21/cos(x), r22/cos(x))
+                    xRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, -r23)));
+                    if (Math.Abs(r23) < 1.0f - Epsilon)
+                    {
+                        yRad = (float)Math.Atan2(r13, r33);
+                        zRad = (float)Math.Atan2(r21, r22);
+                    }
+                    else
+                    {
+                        zRad = 0;
+                        if (-r23 > 0) // x = +PI/2
+                            yRad = (float)Math.Atan2(-r12, r11); // or -r12, r11 or similar, depending on exact matrix
+                        else // x = -PI/2
+                            yRad = (float)Math.Atan2(r12, r11);
+                    }
+                    break;
+
+                case RotationOrder.YZX: // R = Ry Rz Rx
+                                        // z = asin(r21)
+                                        // y = atan2(-r31/cos(z), r11/cos(z))
+                                        // x = atan2(-r23/cos(z), r22/cos(z))
+                    zRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, r21)));
+                    if (Math.Abs(r21) < 1.0f - Epsilon)
+                    {
+                        yRad = (float)Math.Atan2(-r31, r11);
+                        xRad = (float)Math.Atan2(-r23, r22);
+                    }
+                    else
+                    {
+                        xRad = 0;
+                        if (r21 > 0) // z = +PI/2
+                            yRad = (float)Math.Atan2(r32, r33); // or r32, r33 etc.
+                        else // z = -PI/2
+                            yRad = (float)Math.Atan2(-r32, -r33);
+                    }
+                    break;
+
+                case RotationOrder.ZXY: // R = Rz Rx Ry
+                                        // x = asin(r32)
+                                        // z = atan2(-r12/cos(x), r22/cos(x))
+                                        // y = atan2(-r31/cos(x), r33/cos(x))
+                    xRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, r32)));
+                    if (Math.Abs(r32) < 1.0f - Epsilon)
+                    {
+                        zRad = (float)Math.Atan2(-r12, r22);
+                        yRad = (float)Math.Atan2(-r31, r33);
+                    }
+                    else
+                    {
+                        yRad = 0;
+                        if (r32 > 0) // x = +PI/2
+                            zRad = (float)Math.Atan2(r13, r11);
+                        else // x = -PI/2
+                            zRad = (float)Math.Atan2(-r13, -r11);
+                    }
+                    break;
+
+                case RotationOrder.ZYX: // R = Rz Ry Rx (Common "yaw, pitch, roll")
+                                        // y = asin(-r31)
+                                        // z = atan2(r21/cos(y), r11/cos(y))
+                                        // x = atan2(r32/cos(y), r33/cos(y))
+                    yRad = (float)Math.Asin(Math.Max(-1.0f, Math.Min(1.0f, -r31)));
+                    if (Math.Abs(r31) < 1.0f - Epsilon)
+                    {
+                        zRad = (float)Math.Atan2(r21, r11);
+                        xRad = (float)Math.Atan2(r32, r33);
+                    }
+                    else
+                    {
+                        xRad = 0;
+                        if (-r31 > 0) // y = +PI/2 (pitch up)
+                            zRad = (float)Math.Atan2(-r12, -r13); // or r12, r22 etc.
+                        else // y = -PI/2 (pitch down)
+                            zRad = (float)Math.Atan2(r12, r13); // or -r12, r22 etc. Gimbal lock formulas need careful derivation.
+                                                                // For ZYX, if y = +/-90: z = atan2(m[0,1], m[0,2]) is common if x=0.
+                                                                // Or (from Diebel "Representing Attitude"):
+                                                                // if y = +PI/2, z = 0, x = atan2(r12, r22)
+                                                                // if y = -PI/2, z = 0, x = -atan2(r12, r22)
+                                                                // Let's use one of these common conventions.
+                                                                // Setting x=0:
+                                                                // if (-r31 > 0.99999) // y = 90
+                                                                //     zRad = (float)Math.Atan2(r12, r22); (No, this is for r12 from matrix Ry(90)RxRz)
+                                                                // else // y = -90
+                                                                //     zRad = (float)Math.Atan2(-r12, r22);
+                                                                // The Slabaugh paper (and many others) for ZYX (his order 12):
+                                                                // if y = PI/2: x=0, z=atan2(r12,r22)
+                                                                // if y = -PI/2: x=0, z=atan2(-r12,-r22)
+                        if (-r31 > 0)  // y = +PI/2
+                        {
+                            xRad = 0; // Convention
+                            zRad = (float)Math.Atan2(r12, r22); // This combination appears in ZYX from matrix multiplication for gimbal lock
+                        }
+                        else // y = -PI/2
+                        {
+                            xRad = 0; // Convention
+                            zRad = (float)Math.Atan2(-r12, -r22);
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new ArgumentException("Invalid rotation order for extraction.", nameof(order));
+            }
+            
+            return new MyVector3((float)CSMath.MathUtils.RadToDeg(xRad), 
+                (float)CSMath.MathUtils.RadToDeg(yRad), 
+                (float)CSMath.MathUtils.RadToDeg(zRad)
+                );
         }
 
         #endregion
