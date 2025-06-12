@@ -50,9 +50,11 @@ namespace MySFformat
             //{
             //    startNode = startNode.Children[0];
             //}
+
             foreach (var child in startNode.Children)
             {
                 remapMatrix = CreateRemapMatrix(settings);
+                Console.WriteLine($"Remap matrix: {remapMatrix.ToString()}");
                 inverseRemapMatrix = new Matrix4x4(remapMatrix);
                 inverseRemapMatrix.Inverse();
                 RecursiveProcessNodes(child, -1, assimpNodes, flverNodes, nodeMapping, remapMatrix, inverseRemapMatrix);
@@ -86,7 +88,7 @@ namespace MySFformat
             // 3. Apply the change-of-basis formula: M_flver = P * M_fbx * P_inverse
             // This correctly converts the transformation from the FBX coordinate system to the FLVER one.
             var flverMatrix = remapMatrix * fbxMatrix * inverseRemapMatrix;
-
+            var numericsFlverMatrix = ToNumerics(flverMatrix);
             // 4. Decompose the final matrix to get FLVER-compatible TRS values.
             flverMatrix.Decompose(out var scale, out var rotationQuat, out var translation);
             if (scale != null)
@@ -96,7 +98,15 @@ namespace MySFformat
                 //MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard
                 // MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
                 // 5. Convert the quaternion to FLVER's Euler angles (in radians).
-                flverNode.Rotation = QuaternionToEuler(rotationQuat);
+                var debug=false;
+                if (assimpNode.Name == "[cloth]BD_M_5030_hair_06") { 
+                    debug = true;
+                    Console.WriteLine($"-Remap matrix: {remapMatrix.ToString()}");
+                    Console.WriteLine($"-fbxMatrix matrix: {fbxMatrix.ToString()}");
+                    Console.WriteLine($"-inverseRemapMatrix matrix: {inverseRemapMatrix.ToString()}");
+                    Console.WriteLine($"-flverMatrix matrix: {flverMatrix.ToString()}");
+                }
+                flverNode.Rotation = MatrixToEulerYZX(numericsFlverMatrix);
             }
             else
             {
@@ -203,9 +213,18 @@ namespace MySFformat
             );
         }
 
+        /// <summary>
+        /// 正确地将 Assimp 的列主序矩阵转换为 System.Numerics 的列主序矩阵。
+        /// System.Numerics.Matrix4x4 的构造函数需要行主序的参数，所以必须正确地重新排列。
+        /// </summary>
         private static System.Numerics.Matrix4x4 ToNumerics(Assimp.Matrix4x4 m)
         {
-            return new System.Numerics.Matrix4x4(m.A1, m.B1, m.C1, m.D1, m.A2, m.B2, m.C2, m.D2, m.A3, m.B3, m.C3, m.D3, m.A4, m.B4, m.C4, m.D4);
+            return new System.Numerics.Matrix4x4(
+                m.A1, m.A2, m.A3, m.A4, // 第一行
+                m.B1, m.B2, m.B3, m.B4, // 第二行
+                m.C1, m.C2, m.C3, m.C4, // 第三行
+                m.D1, m.D2, m.D3, m.D4  // 第四行
+            );
         }
 
 
@@ -377,43 +396,44 @@ namespace MySFformat
             return new Vector3(x, y, z);
         }
 
-        private static Vector3 QuaternionToEuler(Quaternion q)
+        private static Vector3 MatrixToEulerYZX(System.Numerics.Matrix4x4 M)
         {
-            // 将 Assimp.Quaternion 转换为 System.Numerics.Quaternion 以便使用其数学库
-            System.Numerics.Quaternion nq = new System.Numerics.Quaternion(q.X, q.Y, q.Z, q.W);
-            var M = System.Numerics.Matrix4x4.CreateFromQuaternion(nq);
-
             float x, y, z;
 
-            // FLVER 使用 YZX 旋转顺序。
-            // 以下是标准的、经过验证的从旋转矩阵中提取 YZX 欧拉角的公式。
-            // 参考: http://www.gregslabaugh.net/publications/euler.pdf (Table 2)
+            // We extract the Z rotation from M.M21. For a YZX rotation matrix:
+            // R = Ry * Rz * Rx
+            // M.M21 = sin(z)
+            float sinZ = M.M21;
 
-            //XYZ Wrong 
-            //XZY wrong 
-            //YXZ wrong? inverse?
-            //YZX wrong
-            //ZXY wrong...
-            //ZYX
-            var result = FromQuaternion(nq, RotationOrder.ZYX);
-            x =  result.X; y = result.Y; z = result.Z;
-            // MyFBX-ZYX -> MyFlver->YZX
-            float xDeg = (float)CSMath.MathUtils.RadToDeg(x);
-            float yDeg = (float)CSMath.MathUtils.RadToDeg(y);
-            float zDeg = (float)CSMath.MathUtils.RadToDeg(z);
-            
-            // Input angles are in YZX order (as per FLVER convention)
-            MeshIO.FBX.Helpers.MyVector3 inputAnglesDeg = new MeshIO.FBX.Helpers.MyVector3(xDeg, yDeg, zDeg);
-            RotationOrder flverOrder = RotationOrder.YZX; // FLVER standard
-            RotationOrder fbxOrder = RotationOrder.ZYX; // Common FBX target
+            // Clamp the value to handle potential floating point inaccuracies
+            sinZ = Math.Max(-1.0f, Math.Min(1.0f, sinZ));
 
-           var rotMat = BuildRotationMatrix(inputAnglesDeg, fbxOrder);
-           var convertedAngles = ExtractEulerAngles(rotMat, flverOrder);
-           x = (float)CSMath.MathUtils.DegToRad(convertedAngles.X);
-           y = (float)CSMath.MathUtils.DegToRad(convertedAngles.Y);
-           z = (float)CSMath.MathUtils.DegToRad(convertedAngles.Z);
+            // Check for gimbal lock (when Z rotation is +/- 90 degrees)
+            if (Math.Abs(sinZ) > 0.99999f)
+            {
+                // Gimbal lock has occurred. We can't distinguish between Y and X rotations.
+                // By convention, we set the Y rotation to 0 and attribute all remaining rotation to X.
+                y = 0.0f;
+                z = (float)Math.PI / 2.0f * sinZ; // z will be +90 or -90 degrees
 
-            return new Vector3(x, y ,z);
+                // x = atan2(-M.M32, M.M22) would be the formula but since we have YZX order, 
+                // the correct formula is derived from the expanded matrix at sin(z)=+/-1
+                // x = atan2(M.M32, M.M33)
+                x = (float)Math.Atan2(M.M32, M.M33);
+            }
+            else
+            {
+                // No gimbal lock
+                z = (float)Math.Asin(sinZ);
+
+                // y = atan2(-M.M31, M.M11)
+                y = (float)Math.Atan2(-M.M31, M.M11);
+
+                // x = atan2(-M.M23, M.M22)
+                x = (float)Math.Atan2(-M.M23, M.M22);
+            }
+
+            return new Vector3(x, y, z);
         }
 
 
@@ -524,11 +544,17 @@ namespace MySFformat
                     }
                     else
                     {
-                        xRad = 0;
+                        yRad = 0; // Set yaw to zero because of gimbal lock
                         if (r21 > 0) // z = +PI/2
-                            yRad = (float)Math.Atan2(r32, r33); // or r32, r33 etc.
+                        {
+                            // We maintain the sum of zRad and yRad (which is now zero)
+                            xRad = (float)Math.Atan2(r32, r33);
+                        }
                         else // z = -PI/2
-                            yRad = (float)Math.Atan2(-r32, -r33);
+                        {
+                            // We maintain the sum of zRad and yRad (which is now zero)
+                            xRad = (float)Math.Atan2(-r32, -r33);
+                        }
                     }
                     break;
 
