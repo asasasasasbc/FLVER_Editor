@@ -70,6 +70,9 @@ namespace MySFformat
 
 
         public static Boolean boneDisplay = true;
+        public static Boolean boneDirDisplay = true;
+        public static int checkingBoneIndex = -1;// For bone checking function
+        public static float boneLength = 0.1f;
         public static Boolean dummyDisplay = true;
         public static Boolean normalDisplay = false; //TODO
         public static Boolean tangentDisplay = false; //TODO
@@ -378,6 +381,8 @@ namespace MySFformat
                         boneTrans[i].parent = boneTrans[targetFlver.Nodes[i].ParentIndex];
 
                         Vector3D actPos = boneTrans[i].getGlobalOrigin();
+                        
+                        
                         /* ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X - 0.025f, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
                          ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X + 0.025f, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
 
@@ -386,18 +391,39 @@ namespace MySFformat
 
                          ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y - 0.025f), Microsoft.Xna.Framework.Color.Purple));
                          ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y + 0.025f), Microsoft.Xna.Framework.Color.Purple));*/
+                        void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c)
+                        {
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - 0.005f * 2, v1.Z, v1.Y), c));
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
 
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X + 0.005f * 2, v1.Z, v1.Y), c));
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                        }
+                        if (boneDirDisplay || i == checkingBoneIndex) {
+                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneLength, 0, 0);
+                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneLength, 0);
+                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneLength);
+                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed);
+                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow);
+                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue);
+                        }
+                        
 
                         if (boneTrans[targetFlver.Nodes[i].ParentIndex] != null)
                         {
                             Vector3D parentPos = boneTrans[targetFlver.Nodes[i].ParentIndex].getGlobalOrigin();
-
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(parentPos.X - 0.005f, parentPos.Z - 0.005f, parentPos.Y), Microsoft.Xna.Framework.Color.Purple));
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
+                            Microsoft.Xna.Framework.Color c = Microsoft.Xna.Framework.Color.Purple;
+                            if (checkingBoneIndex == i) {
+                                c = Microsoft.Xna.Framework.Color.Yellow;
+                            }
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(parentPos.X - 0.005f, parentPos.Z - 0.005f, parentPos.Y), c));
+                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y), c));
 
                             ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(parentPos.X + 0.005f, parentPos.Z + 0.005f, parentPos.Y), Microsoft.Xna.Framework.Color.Purple));
                             ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
                         }
+
+                        
                        
                     }
 

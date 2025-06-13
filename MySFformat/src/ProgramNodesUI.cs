@@ -441,7 +441,22 @@ namespace MySFformat
             if (!basicMode) AddButton("Modify", "Save the changes you made in the bones part.（Such as changing parents ID, bone names...）\n" +
                 "保存你在Nodes部分做出的修改。(改骨骼名称以及父骨骼ID)", ModifyNodes_Click);
 
-
+            AddButton("Check Bone", "Highlight the bone you selected in grid view.\n" +
+"高亮选择你在表格里选择的骨骼。", (s, e) => {
+    //Program.checkingBoneIndex = XXX;
+    //写出读取DataGridView选择骨骼的代码
+    if (dg.CurrentRow != null && dg.CurrentRow.Index >= 0)
+    {
+        if (Program.checkingBoneIndex == dg.CurrentRow.Index)
+        {
+            Program.checkingBoneIndex = -1;
+        }
+        else {
+            Program.checkingBoneIndex = dg.CurrentRow.Index;
+        }
+        Program.updateVertices();
+    }
+    });
 
             AddButton("Material", "Open the material window.\n" +
                 "打开材质编辑窗口。", (s, e) => ModelMaterial());

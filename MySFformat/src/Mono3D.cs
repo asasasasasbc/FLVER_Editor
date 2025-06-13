@@ -71,6 +71,7 @@ namespace MySFformat
 
         ToolStripMenuItem ItemF6;
         ToolStripMenuItem toggleBonesItem;
+        ToolStripMenuItem toggleBonesDirItem;
         ToolStripMenuItem toggleDummiesItem;
         ToolStripMenuItem toggleNormalsItem;
         ToolStripMenuItem toggleTangentsItem;
@@ -86,6 +87,13 @@ namespace MySFformat
         public void changeBoneDisplay(bool targetMode) { 
             Program.boneDisplay = targetMode;
             toggleBonesItem.Checked = targetMode;
+            Program.updateVertices();
+        }
+
+        public void changeBoneDirDisplay(bool targetMode)
+        {
+            Program.boneDirDisplay = targetMode;
+            toggleBonesDirItem.Checked = targetMode;
             Program.updateVertices();
         }
         public void changeDummyDisplay(bool targetMode) { 
@@ -201,9 +209,15 @@ namespace MySFformat
             // 4. 为 "Overlay" 菜单添加子项
             //    对于开关选项，使用 CheckOnClick 非常方便
             toggleBonesItem = new ToolStripMenuItem("Toggle Bone Display (B)");
-            toggleBonesItem.Checked = false;
+            toggleBonesItem.Checked = Program.boneDisplay;
             toggleBonesItem.Click += (sender, e) => {
                 changeBoneDisplay(!Program.boneDisplay);
+            };
+
+            toggleBonesDirItem = new ToolStripMenuItem("- Toggle Bone Direction Display");
+            toggleBonesDirItem.Checked = Program.boneDirDisplay;
+            toggleBonesDirItem.Click += (sender, e) => {
+                changeBoneDirDisplay(!Program.boneDirDisplay);
             };
 
             toggleDummiesItem = new ToolStripMenuItem("Toggle Dummy Display (M)");
@@ -227,6 +241,7 @@ namespace MySFformat
 
             // 将子项添加到 "Overlay" 菜单下
             overlayMenuItem.DropDownItems.Add(toggleBonesItem);
+            overlayMenuItem.DropDownItems.Add(toggleBonesDirItem);
             overlayMenuItem.DropDownItems.Add(toggleDummiesItem);
             overlayMenuItem.DropDownItems.Add(toggleNormalsItem);
             overlayMenuItem.DropDownItems.Add(toggleTangentsItem);

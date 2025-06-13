@@ -86,11 +86,11 @@ namespace MySFformat
 
             return ans;
         }
-        public Vector3D getGlobalOrigin()
+        public Vector3D getGlobalOrigin(float offsetX=0, float offsetY=0, float offsetZ=0)
         {
 
             Vector3D ans = new Vector3D();
-            Vector3D org = new Vector3D(); 
+            Vector3D org = new Vector3D(offsetX, offsetY, offsetZ); 
             Matrix3D transMatrix = new Matrix3D();
 
 
