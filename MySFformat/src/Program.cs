@@ -70,12 +70,12 @@ namespace MySFformat
 
 
         public static Boolean boneDisplay = true;
-        public static Boolean boneDirDisplay = true;
+        public static Boolean boneDirDisplay = false;
         public static int checkingBoneIndex = -1;// For bone checking function
         public static float boneLength = 0.1f;
         public static Boolean dummyDisplay = true;
-        public static Boolean normalDisplay = false; //TODO
-        public static Boolean tangentDisplay = false; //TODO
+        public static Boolean normalDisplay = false; 
+        public static Boolean tangentDisplay = false;
 
         public static Boolean setVertexPos = false;
         public static float setVertexX = 0;
@@ -84,7 +84,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.5NR夜环先行版";
+        public static string version = "X2.5NR beta";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -104,35 +104,48 @@ namespace MySFformat
         //Added Mesh->TBF, so that you can choose to render the back face or not.
         //Added back face rendering functionality
 
-         //1.83: Added experimental "Export DAE" functionality
-         //More general bone display functionality
-         //Window maxmimum bug fixed
+        //1.83: Added experimental "Export DAE" functionality
+        //More general bone display functionality
+        //Window maxmimum bug fixed
 
         //1.85: Added LOD setting when import models
 
-            //1.86: Added Mesh->TBF ALL button
-            //Fixed minor LOD importing bug 
+        //1.86: Added Mesh->TBF ALL button
+        //Fixed minor LOD importing bug 
 
         //1.87: In "Check vertex" window, added vertex mesh index info and vertex index info.
-            //Added : "delete vertex" and "delete vertex above/below" functionality
-            //Added: Silence vertex deletion functionality: ctrl + right click in 3d model viewing software to enter such mode, then press alt + right click to quick delete vertex.
+        //Added : "delete vertex" and "delete vertex above/below" functionality
+        //Added: Silence vertex deletion functionality: ctrl + right click in 3d model viewing software to enter such mode, then press alt + right click to quick delete vertex.
 
         //1.9: Added texture loading functionality: the tpf file's name must be the same as flver file name.
         //Added MySFormat.ini to help tweaking some special effects.
         //Added mroe shading mod and F: flat shading mod to better suit the need.
 
-            //1.91: Added loading dcx file functionality (need the extension to be .dcx)
+        //1.91: Added loading dcx file functionality (need the extension to be .dcx)
 
-            //1.92+1.93 Fixed some minor fbx import bug.
+        //1.92+1.93 Fixed some minor fbx import bug.
 
-            //1.95: find bones' parent 15 times.
+        //1.95: find bones' parent 15 times.
 
-            //1.96: fix "affect bones" function. Now bones can be scaled properly
+        //1.96: fix "affect bones" function. Now bones can be scaled properly
 
-            //1.97： added experimental Sekiro and Elden Ring .dcx Support
-                //1.971: repair minor flver crash problem
+        //1.97： added experimental Sekiro and Elden Ring .dcx Support
+        //1.971: repair minor flver crash problem
 
-            // X2 : Swaped to SoulsFormatsNEXT library
+        // X2 : Swaped to SoulsFormatsNEXT library
+
+
+        //X2 TODO List:
+        // Core function: make sure tangent calculation is correct and useable
+        // Pipeline check: FLVER editor fbx export -> blender editing -> reimport back to FLVER
+        //   - need to make sure tangent is correct, and bone is also correct.
+        // When export fbx, rename to aquatools format XXX|MaterialXXX|...
+        // add new nodes without affecting existing options
+        // Pipeline check: whole new animation pipeline walktrough (flver skeleton + further custom animation)
+        // exporting dummypolys
+        // exporting with axis convertsion
+        // 3dsmax support
+
         public static string[] argments = { };
         /// <summary>
         /// 应用程序的主入口点。

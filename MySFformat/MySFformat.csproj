@@ -160,6 +160,12 @@
     <None Include="c.flver">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CustomBoneExample\CustomBoneExample.flver">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomBoneExample\MixamoArcherFootChange.blend">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="DS3_am.dcx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -190,6 +196,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="CustomBoneExample\RecommendExportSettings.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="dummyInfo.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
