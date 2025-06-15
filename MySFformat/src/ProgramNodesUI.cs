@@ -377,6 +377,10 @@ namespace MySFformat
             FLVER2 b = targetFlver;
             if (!basicMode)
             {
+                boneNameCellList.Clear();
+                boneParentCellList.Clear();
+                boneChildCellList.Clear();
+
                 dg.Rows.Clear();
                 foreach (DataGridViewColumn column in dg.Columns) column.SortMode = DataGridViewColumnSortMode.NotSortable;
 

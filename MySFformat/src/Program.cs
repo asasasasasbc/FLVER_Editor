@@ -145,6 +145,8 @@ namespace MySFformat
         // exporting dummypolys
         // exporting with axis convertsion
         // 3dsmax support
+        // NR->ER flver files porting
+        // Probably requires some shader to work properly? or just use M.reset
 
         public static string[] argments = { };
         /// <summary>

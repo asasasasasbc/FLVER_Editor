@@ -81,6 +81,9 @@ namespace MySFformat
                 Name = assimpNode.Name,
                 ParentIndex = (short)parentIndex,
             };
+            //Fix some bounding box issue
+            flverNode.BoundingBoxMin = new Vector3(3.4e+10f, 3.4e+10f, 3.4e+10f);
+            flverNode.BoundingBoxMax = new Vector3(-3.4e+10f, -3.4e+10f, -3.4e+10f);
 
             // 2. Convert Assimp's local transform matrix to System.Numerics.Matrix4x4
             var fbxMatrix = assimpNode.Transform;

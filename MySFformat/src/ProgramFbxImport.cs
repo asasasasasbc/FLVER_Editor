@@ -98,7 +98,7 @@ namespace MySFformat
             {
                 if (File.Exists(settings.BoneConversionFilePath))
                 {
-                    string convertStr = File.ReadAllText(settings.BoneConversionFilePath);
+                    string convertStr = File.ReadAllText(settings.BoneConversionFilePath,Encoding.UTF8);
                     string[] convertStrlines = convertStr.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
                     for (int i2 = 0; i2 + 1 < convertStrlines.Length; i2++)
                     {
@@ -123,6 +123,13 @@ namespace MySFformat
             if (settings.ImportAndOverrideBones)
             {
                 FbxBoneImporter.ImportAndOverrideBones(md, targetFlver, settings);
+                foreach (var boneNode in targetFlver.Nodes)
+                {
+                    if (convertionTable.ContainsKey(boneNode.Name))
+                    {
+                        boneNode.Name = convertionTable[boneNode.Name];
+                    }
+                }
                 Program.ForceRefreshNodes();
             }
 

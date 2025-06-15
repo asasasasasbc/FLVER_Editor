@@ -35,9 +35,10 @@ namespace MySFformat
 Primary Axis maps to the output X-axis.
 Secondary Axis maps to the output Y-axis.
 The third axis is calculated automatically.
-Recommended for FBX exported directly from Flver Editor: 
+Recommended for FBX exported directly from Flver Editor or Blender 4 Armature skeleton export: 
 Primary: X, Secondary: Y, Mirror Z Axis: Yes
-For FBX exported from Blender：
+(Check CustomBoneExample/RecommendExportSettings.jpg for custom bone exporting settings)
+For static, no armature FBX exported from Blender：
 Primary: -Z, Secondary: X, Mirror Z Axis: Yes
 If you REALLY want old-FLVER Editor's switch YZ axis values function, try:
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
@@ -46,12 +47,11 @@ Primary: X, Secondary: Z, Mirror Z Axis: Yes
 主轴（Primary Axis）映射到Flver的X轴。
 次轴（Secondary Axis）映射到Flver的Y轴。
 第三轴将自动计算。
-Flver编辑器默认FBX导出的情况建议如下：
+Flver编辑器默认FBX导出，或者是Blender4带骨架导出的情况建议如下：
 Primary: X, Secondary: Y, Mirror Z Axis: Yes
-Blender4.X默认FBX导出的情况建议如下(无Armature骨架的情况)：
+(如需要自定骨架导入，请查看 CustomBoneExample/RecommendExportSettings.jpg 了解建议的导出设置。)
+Blender4.X静态物体，无Armature骨架的情况：
 Primary: -Z, Secondary: X, Mirror Z Axis: Yes
-Blender4.X默认FBX导出的情况建议如下(有来自FLVER Editor导出的FBX Armature骨架的情况)：
-Primary: X, Secondary: Y, Mirror Z Axis: Yes
 如果你需要旧版的Flver编辑器导入模型切换YZ轴功能，建议配置如下：
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
 ";
@@ -134,7 +134,11 @@ FLVER_Bone_Name_2
             this.Controls.Add(chkMirrorTertiary);
             yPos += 35;
 
-            chkBlenderTan = new CheckBox { Text = "Blender Tangents", Location = new Point(xMargin + 10, yPos), AutoSize = true };
+            chkBlenderTan = new CheckBox { 
+                Text = "Blender Tangents (Experimental, may fix blender exported FBX tangents issue)", 
+                Location = new Point(xMargin + 10, yPos), 
+                AutoSize = true
+            };
             this.Controls.Add(chkBlenderTan);
             yPos += 35;
 
