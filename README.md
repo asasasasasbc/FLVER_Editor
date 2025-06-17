@@ -52,6 +52,7 @@ After that, I’ll just be doing basic bug fixes and maintenance until Dustblood
 		- This menu will memorize your previous importing settings to save some time.
 - Updated 3D Viewer window
 	- Added tools menu, allowing users to change display modes not only by key pressing
+		- Updated bone visualization method
 		- Added bone direction display function.
 		- Added tangent direction display function.
 			- When tangent W > 0 orangered, < 0 darkred.
