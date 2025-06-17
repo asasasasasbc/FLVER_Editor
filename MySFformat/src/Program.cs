@@ -137,6 +137,8 @@ namespace MySFformat
         // Tangent manipulation: W inverse
 
         //X2 TODO List:
+        // Make [Import and override bone only] button more clear.
+        //  importing new skeletons without changing exisitng bones hierarchy
         // Core function: make sure tangent calculation is correct and useable
         // Pipeline check: FLVER editor fbx export -> blender editing -> reimport back to FLVER
         //   - need to make sure tangent is correct, and bone is also correct.
