@@ -1,7 +1,7 @@
 # FLVER_Editor
 
-A probably multi-functional editor to edit Fromsoftware game's FLVER model file (Sekiro, Dark Souls, Bloodborne etc.)
-Users can view and edit models, materials, dummy points inside the FLVER file and can also import external models into the FLVER file.
+A probably multi-functional editor to edit Fromsoftware game's FLVER model file (Sekiro, Dark Souls, Bloodborne, Elden Ring, Nightreign etc.)
+Users can view and edit models, materials, dummy points inside the FLVER file and can also import external models with custom skeleton into the FLVER file.
 
 ![Screenshot](Tools2.jpg)
 
@@ -17,12 +17,49 @@ Helpful/related programs:
 
 UXM(Extract games' archive file):https://www.nexusmods.com/sekiro/mods/26
 
+EldenRing Era's UXM: https://github.com/Nordgaren/UXM-Selective-Unpack
+
 Yabber(Further unpack&repack files usch as partsbnd.dcx, .tpf texture file etc.): https://www.nexusmods.com/sekiro/mods/42
+
+EldenRing Era Yabber replacement: https://github.com/ividyon/WitchyBND
 
 BB model extractor(Convert .flver model file to importable XPS file):https://forum.xentax.com/viewtopic.php?f=16&t=17332
 
+Unfortunately, xentax is down, please use aquatools or fbx exporting function that comes with flver editor X2 update.
+
+EldenRing Era:
+
 ## Update log
 
+Flver Editor X2.5 (Original Flver Editor) Update
+
+This is one huge update!
+
+Upon next, I’m planning one last big skinning/poses display update for the NightReign. 
+
+After that, I’ll just be doing basic bug fixes and maintenance until Dustblood comes around.
+
+- Added custom bones/skeleton importing function from blender exported fbx files.
+	- Please check [CustomBoneExample] folder to better understand the whole workflow.
+- Updated Fbx Exporting function
+	- Special thanks to dropoff, now flver editor can export correct bitangent's information.
+	- Reimporting the fbx exported by flver editor now can 100% keep the original models' tangent/bitangent data.
+- Updated Nodes(Bone) editor window
+	- Added tools menu, allowing users to use some legacy/advanced functions, like swap.
+	- Added Advanced NR -> ER Port function.(Porting flver files from NightReign to Elden Ring, so that it is visible in ER.)
+	- Added Import Model submenu
+		- Fixed tangent and bitangent calculation issues. (When exporting fbx from blender make sure check "Geomoetry-tangent space")
+		- This menu will memorize your previous importing settings to save some time.
+- Updated 3D Viewer window
+	- Added tools menu, allowing users to change display modes not only by key pressing
+		- Added bone direction display function.
+		- Added tangent direction display function.
+			- When tangent W > 0 orangered, < 0 darkred.
+		- Added normal direction display function.
+		- Added camera reset function.
+- Added dummy points json exporting function.
+- Reorganized source code.
+- Some other minor fixes.
 
 v1.971X Update:
 -Swaped to SoulsFormatNEXT https://github.com/soulsmods/SoulsFormatsNEXT library to support Elden Ring Nightreign model viewing functionality

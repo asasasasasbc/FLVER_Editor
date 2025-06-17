@@ -506,12 +506,12 @@ That will break NR's clothes physics, but can make mesh visible in common ER mat
 "导出当前骨骼信息到一个json文件内。", (s, e) => ExportJson_Click(s, e, serializer));
             AddButton("Buffer Layout", "Check the flver file's buffer layout, which contains the rules of how to write flver file.\n" +
 "检查Flver文件的buffer layout（一种存储如何写入顶点，骨骼之类方法的数据结构）。", (s, e) => bufferLayout());
-            AddButton("Import Model", "[May unstable in X2]Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
+            AddButton("Import Model", "Import external model file, such as FBX, DAE, OBJ. Caution, only FBX file can keep the bone weight.\n" +
                 "UV, normal, tangent can be kept, but you still need to manually modify material information in Material window.\n" +
-"【X2版可能不稳定】导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
+"导入外部模型文件，比如Fbx,Dae,Obj。但注意只有Fbx文件可以支持导入骨骼权重。\n" +
 "可以保留UV贴图坐标，切线法线的信息，但你还是得手动修改贴图信息的。\n", (s, e) => importFBX());
-            AddButton("Export DAE", "Export current scene to DAE (Collada) 3d model file.\n" +
-"导出场景至DAE模型文件。", (s, e) => ExportDAE());
+            AddButton("Export DAE", "[Deprecated]Export current scene to DAE (Collada) 3d model file.\n" +
+"【已过时】导出场景至DAE模型文件。", (s, e) => ExportDAE());
             AddButton("Export FBX", "Export current bones/bone weights/scene to FBX 3d model file.\n" +
 "导出场景（包含骨骼、权重等信息）至FBX模型文件。", (s, e) => ExportFBX());
 
