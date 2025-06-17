@@ -22,6 +22,7 @@ namespace MySFformat
         public Vector3D scale = new Vector3D(1,1,1);
 
         public Transform3D parent = null;
+        public  List<Transform3D> children = new List<Transform3D>();
 
         public RotationOrder rotOrder = RotationOrder.YZX;
 

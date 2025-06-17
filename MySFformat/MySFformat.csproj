@@ -151,12 +151,8 @@
     <None Include="boneConvertion.ini">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="boxobj.mtl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="boxobj.obj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="boxobj.mtl" />
+    <None Include="boxobj.obj" />
     <None Include="c.flver">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -209,7 +205,6 @@
     <Content Include="MeshIO.FBX.xml" />
     <Content Include="MeshIO.pdb" />
     <Content Include="MeshIO.xml" />
-    <Content Include="Note.txt" />
     <Content Include="oo2core_6_win64.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

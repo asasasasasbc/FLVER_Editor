@@ -72,7 +72,7 @@ namespace MySFformat
         public static Boolean boneDisplay = true;
         public static Boolean boneDirDisplay = false;
         public static int checkingBoneIndex = -1;// For bone checking function
-        public static float boneLength = 0.1f;
+        public static float boneLength = 0.01f;
         public static Boolean dummyDisplay = true;
         public static Boolean normalDisplay = false; 
         public static Boolean tangentDisplay = false;
@@ -388,66 +388,114 @@ namespace MySFformat
             if (boneDisplay)
             {
                 Transform3D[] boneTrans = new Transform3D[targetFlver.Nodes.Count];
-                for (int i=0;i< targetFlver.Nodes.Count;i++)
+                //Reconstruct transform hierarchy
+                for (int i = 0; i < targetFlver.Nodes.Count; i++)
                 {
                     boneTrans[i] = new Transform3D();
                     boneTrans[i].rotOrder = rotOrder;
                     boneTrans[i].position = new Vector3D(targetFlver.Nodes[i].Translation);
                     boneTrans[i].setRotationInRad(new Vector3D(targetFlver.Nodes[i].Rotation));
                     boneTrans[i].scale = new Vector3D(targetFlver.Nodes[i].Scale);
-
                     if (targetFlver.Nodes[i].ParentIndex >= 0)
                     {
                         boneTrans[i].parent = boneTrans[targetFlver.Nodes[i].ParentIndex];
+                        boneTrans[i].parent.children.Add(boneTrans[i]);
+                    }
+                 }
 
-                        Vector3D actPos = boneTrans[i].getGlobalOrigin();
-                        
-                        
-                        /* ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X - 0.025f, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
-                         ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X + 0.025f, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
+                    for (int i=0;i< targetFlver.Nodes.Count;i++)
+                {
 
-                         ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z - 0.025f, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
-                         ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z + 0.025f, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
-
-                         ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y - 0.025f), Microsoft.Xna.Framework.Color.Purple));
-                         ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y + 0.025f), Microsoft.Xna.Framework.Color.Purple));*/
-                        void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c)
+                    void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c, float offsize = 0.005f)
+                    {
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - offsize, v1.Z, v1.Y), c));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                        if (Math.Abs(offsize) < float.Epsilon) { return; }
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X + offsize, v1.Z, v1.Y), c));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                    }
+                    void DrawBone(Transform3D parent, Transform3D child, Microsoft.Xna.Framework.Color c) 
+                    {
+                        // y z
+                        // Parent -> Child
+                        Vector3D P_origin = parent.getGlobalOrigin();
+                        Vector3D C_origin = child.getGlobalOrigin();
+                        Vector3D bone_vec = C_origin - P_origin;
+                        float bone_length = bone_vec.length();
+                        // If the bone is extremely short, don't draw it to avoid visual artifacts or division by zero.
+                        if (bone_length < 0.0001f)
                         {
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - 0.005f * 2, v1.Z, v1.Y), c));
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
-
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X + 0.005f * 2, v1.Z, v1.Y), c));
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                            return;
                         }
-                        if (boneDirDisplay || i == checkingBoneIndex) {
+                        bone_vec = bone_vec.normalize();
+                        var bone_vec_y = parent.getGlobalOrigin(0, 1, 0) - P_origin;
+                        var bone_vec_z = parent.getGlobalOrigin(0, 0, 1) - P_origin;
+                        //Draw P -> 4 points
+                        var p1 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
+                        var p2 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
+                        var p3 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
+                        var p4 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
+                        DrawLine(P_origin, p1 ,c, 0);
+                        DrawLine(P_origin, p2, c, 0);
+                        DrawLine(P_origin, p3, c, 0);
+                        DrawLine(P_origin, p4, c, 0);
+
+                        DrawLine(p4, p1, c, 0);
+                        DrawLine(p1, p2, c, 0);
+                        DrawLine(p2, p3, c, 0);
+                        DrawLine(p3, p4, c, 0);
+
+                        DrawLine(C_origin, p1, c, 0);
+                        DrawLine(C_origin, p2, c, 0);
+                        DrawLine(C_origin, p3, c, 0);
+                        DrawLine(C_origin, p4, c, 0);
+                    }
+
+                    if (targetFlver.Nodes[i].ParentIndex >= 0)
+                    {
+                        Vector3D actPos = boneTrans[i].getGlobalOrigin();
+                        if (boneDirDisplay || i == checkingBoneIndex)
+                        {
                             Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneLength, 0, 0);
                             Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneLength, 0);
                             Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneLength);
-                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed);
-                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow);
-                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue);
+                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
+                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
+                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
                         }
-                        
 
-                        if (boneTrans[targetFlver.Nodes[i].ParentIndex] != null)
+                        if (targetFlver.Nodes[i].FirstChildIndex >= 0)
                         {
-                            Vector3D parentPos = boneTrans[targetFlver.Nodes[i].ParentIndex].getGlobalOrigin();
                             Microsoft.Xna.Framework.Color c = Microsoft.Xna.Framework.Color.Purple;
-                            if (checkingBoneIndex == i) {
+                            if (checkingBoneIndex == i)
+                            {
                                 c = Microsoft.Xna.Framework.Color.Yellow;
                             }
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(parentPos.X - 0.005f, parentPos.Z - 0.005f, parentPos.Y), c));
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y), c));
-
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(parentPos.X + 0.005f, parentPos.Z + 0.005f, parentPos.Y), Microsoft.Xna.Framework.Color.Purple));
-                            ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(actPos.X, actPos.Z, actPos.Y), Microsoft.Xna.Framework.Color.Purple));
+                            var targetBone = boneTrans[i];
+                            for (int j = 0; j < targetBone.children.Count; j++) {
+                                if (j < targetFlver.Nodes.Count) {
+                                    var childTrans = targetBone.children[j];
+                                    //DrawLine(actPos, parentPos, c, 0.005f);
+                                    DrawBone(boneTrans[i], childTrans, c);
+                                }
+                            }
+                            
+                            
                         }
 
-                        
-                       
                     }
-
-                    
+                    else {
+                        Vector3D actPos = boneTrans[i].getGlobalOrigin();
+                        if (boneDirDisplay || i == checkingBoneIndex)
+                        {
+                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneLength, 0, 0);
+                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneLength, 0);
+                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneLength);
+                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
+                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
+                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
+                        }
+                    }
 
                 }
 
