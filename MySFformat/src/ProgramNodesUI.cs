@@ -243,13 +243,18 @@ namespace MySFformat
             bbFixItem.ToolTipText = "Fix some bone problems when importing Bloodborne models to Sekiro.\n" +
 "修复一些血源诅咒转只狼后模型骨骼不对的问题。";
 
+            var bbbFixItem = new ToolStripMenuItem("BoneBoundingBoxFix", null, (s, e) => BBB_BoneFix_Click());
+            bbbFixItem.ToolTipText = "Change all bones' bounding box to +-3.4e+10, fixing some bounding box issues.\n" +
+"修改骨骼的bounding box问题。";
+
             legacyMenu.DropDownItems.Add(swapItem);
             legacyMenu.DropDownItems.Add(bbFixItem);
+            legacyMenu.DropDownItems.Add(bbbFixItem);
 
             // --- About Menu ---
             var aboutMenu = new ToolStripMenuItem("【About】");
             var aboutItem = new ToolStripMenuItem("About this program...", null, (s, e) => {
-                MessageBox.Show($"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks to:\nTKGP\nKatalash\n莫\nSoulsformatsNEXT", "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks to:\nTKGP Katalash Dropoff\n莫 SoulsformatsNEXT", "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
             });
             aboutMenu.DropDownItems.Add(aboutItem);
 
@@ -322,15 +327,15 @@ namespace MySFformat
             };
 
             dg.Columns.Add("Index", "Index");
-            dg.Columns[0].Width = 30;
+            dg.Columns[0].Width = 35;
             dg.Columns[0].ReadOnly = true;
             dg.Columns.Add("Name", "Node Name");
-            dg.Columns[1].Width = 70;
+            dg.Columns[1].Width = 80;
             //dg.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             dg.Columns.Add("ParentID", "ParentID");
-            dg.Columns[2].Width = 30;
+            dg.Columns[2].Width = 35;
             dg.Columns.Add("ChildID", "ChildID");
-            dg.Columns[3].Width = 30;
+            dg.Columns[3].Width = 35;
             dg.Columns.Add("Position", "Position");
             dg.Columns[4].Width = 200;
             dg.Columns.Add("Rotation", "Rotation");
@@ -351,7 +356,7 @@ namespace MySFformat
                     int rowIndex = dg.Rows.Add();
                     DataGridViewRow row = dg.Rows[rowIndex];
 
-                    row.Cells[0].Value = $"[{i}]";
+                    row.Cells[0].Value = $"{i}";
                     row.Cells[1].Value = bn.Name;
                     row.Cells[2].Value = bn.ParentIndex.ToString();
                     row.Cells[3].Value = bn.FirstChildIndex.ToString();
@@ -390,7 +395,7 @@ namespace MySFformat
                     int rowIndex = dg.Rows.Add();
                     DataGridViewRow row = dg.Rows[rowIndex];
 
-                    row.Cells[0].Value = $"[{i}]";
+                    row.Cells[0].Value = $"{i}";
                     row.Cells[1].Value = bn.Name;
                     row.Cells[2].Value = bn.ParentIndex.ToString();
                     row.Cells[3].Value = bn.FirstChildIndex.ToString();
@@ -577,7 +582,18 @@ namespace MySFformat
             exportJson(serializer.Serialize(targetFlver.Nodes), "Nodes.json", "Nodes JSON exported successfully!");
         }
 
-        private static void BB_BoneFix_Click()
+        private static void BBB_BoneFix_Click()
+        {
+            foreach (var flverNode in targetFlver.Nodes) {
+                flverNode.BoundingBoxMin = new Vector3(3.4e+10f, 3.4e+10f, 3.4e+10f);
+                flverNode.BoundingBoxMax = new Vector3(-3.4e+10f, -3.4e+10f, -3.4e+10f);
+            }
+            updateVertices();
+            autoBackUp(); targetFlver.Write(flverName);
+            Program.ForceRefreshNodes();
+            MessageBox.Show("Bounding box fixed!", "Info");
+        }
+            private static void BB_BoneFix_Click()
         {
 
             var confirmResult = MessageBox.Show("Do you want to set pelvis bone from BB to Sekiro style?",

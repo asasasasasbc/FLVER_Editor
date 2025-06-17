@@ -84,7 +84,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.5NR beta";
+        public static string version = "X2.5NR";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -133,7 +133,8 @@ namespace MySFformat
         //1.971: repair minor flver crash problem
 
         // X2 : Swaped to SoulsFormatsNEXT library
-
+        // Added dummy export json button
+        //
 
         //X2 TODO List:
         // Core function: make sure tangent calculation is correct and useable
@@ -147,6 +148,10 @@ namespace MySFformat
         // 3dsmax support
         // NR->ER flver files porting
         // Probably requires some shader to work properly? or just use M.reset
+        // Fixing bone importing function's ipreviousSibling not found issue
+        // Bone's BoundingBox calculation issues
+        // Bone manipulation, etc. mirroring rotation/ +180degree
+        // Tangent manipulation, W inverse, etc.
 
         public static string[] argments = { };
         /// <summary>
@@ -689,11 +694,21 @@ namespace MySFformat
 
             };
 
+            // 
+
+            Button button4 = new Button();
+
+            button4.Text = "ExportJson";
+            button4.Location = new System.Drawing.Point(650, 200);
+            button4.Click += (s, e) => {
+                exportJson(serializer.Serialize(targetFlver.Dummies), "Dummies.json", "Nodes JSON exported successfully!");
+            };
+
             Button buttonFix = new Button();
             ButtonTips("Fix external weapon's weapon trail/lighting reversal problem in Sekiro by adding kusabimaru's dummy information.\n" +
                "写入契丸的辅助点信息以解决武器在只狼内没有剑风以及无法雷闪的问题。", buttonFix);
             buttonFix.Text = "SekiroFix";
-            buttonFix.Location = new System.Drawing.Point(650, 200);
+            buttonFix.Location = new System.Drawing.Point(650, 250);
             buttonFix.Click += (s, e) => {
 
 
@@ -735,12 +750,14 @@ namespace MySFformat
                 button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
                 button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
                 button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
-                buttonFix.Location = new System.Drawing.Point(f.Size.Width - 100, 200);
+                button4.Location = new System.Drawing.Point(f.Size.Width - 100, 200);
+                buttonFix.Location = new System.Drawing.Point(f.Size.Width - 100, 250);
             };
 
             f.Controls.Add(button);
             f.Controls.Add(button2);
             f.Controls.Add(button3);
+            f.Controls.Add(button4);
             f.Controls.Add(buttonFix);
             f.ShowDialog();
         }
@@ -768,10 +785,7 @@ namespace MySFformat
             int currentY2 = 10;
             p.AutoScroll = true;
             string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            string dummyStr = File.ReadAllText(assemblyPath + "\\dummyInfo.dll");
-            // List<FLVER.Dummy> refDummy = new JavaScriptSerializer().Deserialize<List<FLVER.Dummy>>(dummyStr);
 
-            //Console.WriteLine(dummyStr);
 
             f.Controls.Add(p);
             {
@@ -849,6 +863,7 @@ namespace MySFformat
 
             };
 
+            
 
 
             f.Size = new System.Drawing.Size(750, 600);
@@ -859,7 +874,6 @@ namespace MySFformat
                 button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
                 button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
                 button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
-
             };
 
             //f.Controls.Add(button);
