@@ -233,22 +233,47 @@ namespace MySFformat
             var menuStrip = new MenuStrip();
 
             // --- Legacy Menu ---
-            var legacyMenu = new ToolStripMenuItem("【Legacy】");
+            var legacyMenu = new ToolStripMenuItem("【Advanced】");
             var swapItem = new ToolStripMenuItem("Swap", null, (s, e) => ModelSwapModule());
             swapItem.ToolTipText = "[Deprecated]Swap mesh & other info between one flver file with another. A new .flvern file will be generated.\n" +
                 "It is a deprecated method, I recommend you using Mesh->Attach method instead.\n" +
 "【过时】替换第一个Flver文件的模型信息为第二个，会生成一个.flvern文件。\n" +
 "现在这个方法已经过时了请用Mesh->Attach方法！";
+            legacyMenu.DropDownItems.Add(swapItem);
+
+
             var bbFixItem = new ToolStripMenuItem("BB_BoneFix", null, (s, e) => BB_BoneFix_Click());
             bbFixItem.ToolTipText = "Fix some bone problems when importing Bloodborne models to Sekiro.\n" +
 "修复一些血源诅咒转只狼后模型骨骼不对的问题。";
+            legacyMenu.DropDownItems.Add(bbFixItem);
 
             var bbbFixItem = new ToolStripMenuItem("BoneBoundingBoxFix", null, (s, e) => BBB_BoneFix_Click());
             bbbFixItem.ToolTipText = "Change all bones' bounding box to +-3.4e+10, fixing some bounding box issues.\n" +
 "修改骨骼的bounding box问题。";
+            legacyMenu.DropDownItems.Add(bbbFixItem);
 
-            legacyMenu.DropDownItems.Add(swapItem);
-            legacyMenu.DropDownItems.Add(bbFixItem);
+            var erPort = new ToolStripMenuItem("NR -> ER port", null, (s, e) => {
+                targetFlver.Header.Version = 131092;
+                targetFlver.Header.Unk68 = 4;
+                var info = @"Do you want to reset mesh information?
+That will break NR's clothes physics, but can make mesh visible in common ER materials.";
+                var confirmResult = MessageBox.Show(info,
+                                 "Port",
+                                 MessageBoxButtons.YesNo);
+                if (confirmResult == DialogResult.Yes) {
+                    Program.SetMeshInfoToDefault();
+                }
+
+                updateVertices(); 
+                autoBackUp(); targetFlver.Write(flverName);
+                MessageBox.Show($"Port completed.Please close this program!\n Make sure removing #XXX# part in material name if not visible.");
+            });
+            erPort.ToolTipText = @"Porting flver from Nightreign version to Elden Ring version.
+迁移夜环文件格式到法环版本。";
+            legacyMenu.DropDownItems.Add(erPort);
+
+            bbbFixItem.ToolTipText = "Changing header version to ER and .\n" +
+"修改骨骼的bounding box问题。";
             legacyMenu.DropDownItems.Add(bbbFixItem);
 
             // --- About Menu ---

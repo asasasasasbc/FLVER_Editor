@@ -131,6 +131,12 @@ namespace MySFformat
                     }
                 }
                 Program.ForceRefreshNodes();
+                if (settings.ImportBonesOnly) 
+                {
+                    MessageBox.Show("New bones imported(Your existing mesh's bone weight may be messed up!) Please click modify to save it!");
+                    updateVertices();
+                    return;
+                }
             }
 
             boneParentList = new Dictionary<String, String>();
@@ -342,6 +348,9 @@ namespace MySFformat
                     if (inverseTan) { remappedTangent = new Vector3(-remappedTangent.X, -remappedTangent.Y, -remappedTangent.Z); }
 
                     float tangentW = 1;
+                    if(settings.InverseTangentW){
+                        tangentW *= -1;
+                    }
                     if (hasBitangent) { 
                         //判断CrossProduct(normal, tangent) 是不是和 Bitangent的夹角小于90°，如果小于则表示w不用翻面，否则W要翻面
                         // 不能在remapped中比较，要用fbx导出的时候的坐标系

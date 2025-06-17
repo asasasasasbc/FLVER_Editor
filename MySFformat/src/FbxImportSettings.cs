@@ -29,10 +29,14 @@ namespace MySFformat
 
         public bool blenderTan { get; set; } = false;
 
+        public bool InverseTangentW { get; set; } = false;
+
         // Other Options
         public bool SetTexture { get; set; } = true;
         public bool SetLOD { get; set; } = false;
         public bool ImportAndOverrideBones { get; set; } = false;
+
+        public bool ImportBonesOnly { get; set; } = false;
 
         public FbxImportSettings()
         {

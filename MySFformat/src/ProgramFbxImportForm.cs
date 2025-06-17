@@ -21,9 +21,11 @@ namespace MySFformat
         private Button btnAxisHelp;
         private CheckBox chkMirrorTertiary;
         private CheckBox chkBlenderTan;
+        private CheckBox chkInverseTan;
         private CheckBox chkSetTexture;
         private CheckBox chkSetLOD;
         private CheckBox chkImportBones;
+        private CheckBox chkImportBonesOnly;
         private Button btnOk;
         private Button btnCancel;
         private GroupBox grpPrimaryAxis;
@@ -142,15 +144,28 @@ FLVER_Bone_Name_2
             this.Controls.Add(chkBlenderTan);
             yPos += 35;
 
+            chkInverseTan = new CheckBox
+            {
+                Text = "Inverse tangent W",
+                Location = new Point(xMargin + 10, yPos),
+                AutoSize = true
+            };
+            this.Controls.Add(chkInverseTan);
+            yPos += 35;
+
             // Other Options
             chkSetTexture = new CheckBox { Text = "Auto set texture paths", Location = new Point(xMargin, yPos), AutoSize = true };
             yPos += 30;
             chkSetLOD = new CheckBox { Text = "Set LOD levels (for viewing far away)", Location = new Point(xMargin, yPos), AutoSize = true };
             yPos += 30;
             chkImportBones = new CheckBox { Text = "Import and Override Bones (Experimental)", Location = new Point(xMargin, yPos), AutoSize = true };
+            yPos += 30;
+            chkImportBonesOnly = new CheckBox { Text = "Import and Override Bones Only", Location = new Point(xMargin, yPos), AutoSize = true };
+
             this.Controls.Add(chkSetTexture);
             this.Controls.Add(chkSetLOD);
             this.Controls.Add(chkImportBones);
+            this.Controls.Add(chkImportBonesOnly);
             yPos += 45;
 
             // OK / Cancel Buttons
@@ -200,10 +215,12 @@ FLVER_Bone_Name_2
                 secondaryAxisRadios[Settings.SecondaryAxis].Checked = true;
             chkMirrorTertiary.Checked = Settings.MirrorTertiaryAxis; // Populate new checkbox
             chkBlenderTan.Checked = Settings.blenderTan;
+            chkInverseTan.Checked = Settings.InverseTangentW;
 
             chkSetTexture.Checked = Settings.SetTexture;
             chkSetLOD.Checked = Settings.SetLOD;
             chkImportBones.Checked = Settings.ImportAndOverrideBones;
+            chkImportBonesOnly.Checked = Settings.ImportBonesOnly;
 
             // Manually trigger to set initial enabled state
             OnUseBoneConversionChanged(null, null);
@@ -226,10 +243,12 @@ FLVER_Bone_Name_2
             Settings.SecondaryAxis = secondaryAxisRadios.First(kvp => kvp.Value.Checked).Key;
             Settings.MirrorTertiaryAxis = chkMirrorTertiary.Checked; // Save new checkbox state
             Settings.blenderTan = chkBlenderTan.Checked;
+            Settings.InverseTangentW =chkInverseTan.Checked;
 
             Settings.SetTexture = chkSetTexture.Checked;
             Settings.SetLOD = chkSetLOD.Checked;
             Settings.ImportAndOverrideBones = chkImportBones.Checked;
+            Settings.ImportBonesOnly = chkImportBonesOnly.Checked;
 
             this.DialogResult = DialogResult.OK;
         }

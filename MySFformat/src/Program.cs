@@ -134,7 +134,7 @@ namespace MySFformat
 
         // X2 : Swaped to SoulsFormatsNEXT library
         // Added dummy export json button
-        //
+        // Tangent manipulation: W inverse
 
         //X2 TODO List:
         // Core function: make sure tangent calculation is correct and useable
@@ -151,7 +151,7 @@ namespace MySFformat
         // Fixing bone importing function's ipreviousSibling not found issue
         // Bone's BoundingBox calculation issues
         // Bone manipulation, etc. mirroring rotation/ +180degree
-        // Tangent manipulation, W inverse, etc.
+        // Tangent manipulation, etc.
 
         public static string[] argments = { };
         /// <summary>
@@ -2743,7 +2743,7 @@ namespace MySFformat
                 if (mn.FaceSets[0].Indices.Count > 65534)
                 {
               
-                    MessageBox.Show("There are more than 65535 vertices in a mesh , switch to 32 bits index size mode.");
+                    //MessageBox.Show("There are more than 65535 vertices in a mesh , switch to 32 bits index size mode.");
                     //Now SoulsFormatsNEXT automatically calculates indexSize!
                     //OLD mn.FaceSets[0].IndexSize = 32;
                 }
