@@ -253,7 +253,10 @@ namespace MySFformat
             legacyMenu.DropDownItems.Add(bbbFixItem);
 
             var erPort = new ToolStripMenuItem("NR -> ER port", null, (s, e) => {
-                targetFlver.Header.Version = 131092;
+                // 131092 -> 0x20014 -> Dark souls 3
+                // 131098 -> 0x2001A -> original ER flver file version
+                // 131105 -> 0x20021 -》 Neight Reign
+                targetFlver.Header.Version = 131098;
                 targetFlver.Header.Unk68 = 4;
                 var info = @"Do you want to reset mesh information?
 That will break NR's clothes physics, but can make mesh visible in common ER materials.";

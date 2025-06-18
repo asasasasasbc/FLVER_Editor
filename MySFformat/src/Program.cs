@@ -73,6 +73,7 @@ namespace MySFformat
         public static Boolean boneDirDisplay = false;
         public static int checkingBoneIndex = -1;// For bone checking function
         public static float boneLength = 0.01f;
+        public static float boneDirLength = 0.1f;
         public static Boolean dummyDisplay = true;
         public static Boolean normalDisplay = false; 
         public static Boolean tangentDisplay = false;
@@ -135,9 +136,10 @@ namespace MySFformat
         // X2 : Swaped to SoulsFormatsNEXT library
         // Added dummy export json button
         // Tangent manipulation: W inverse
+        // Make [Import and override bone only] button more clear.
 
         //X2 TODO List:
-        // Make [Import and override bone only] button more clear.
+
         //  importing new skeletons without changing exisitng bones hierarchy
         // Core function: make sure tangent calculation is correct and useable
         // Pipeline check: FLVER editor fbx export -> blender editing -> reimport back to FLVER
@@ -148,12 +150,13 @@ namespace MySFformat
         // exporting dummypolys
         // exporting with axis convertsion
         // 3dsmax support
-        // NR->ER flver files porting
+        // NR->ER flver files porting- advanced cloth physics retain feature
         // Probably requires some shader to work properly? or just use M.reset
         // Fixing bone importing function's ipreviousSibling not found issue
         // Bone's BoundingBox calculation issues
         // Bone manipulation, etc. mirroring rotation/ +180degree
         // Tangent manipulation, etc.
+        // ImportingModel -> Supports cloth physics bufferlayout
 
         public static string[] argments = { };
         /// <summary>
@@ -458,9 +461,9 @@ namespace MySFformat
                         Vector3D actPos = boneTrans[i].getGlobalOrigin();
                         if (boneDirDisplay || i == checkingBoneIndex)
                         {
-                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneLength, 0, 0);
-                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneLength, 0);
-                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneLength);
+                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneDirLength, 0, 0);
+                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneDirLength, 0);
+                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneDirLength);
                             DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
                             DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
                             DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
@@ -490,9 +493,9 @@ namespace MySFformat
                         Vector3D actPos = boneTrans[i].getGlobalOrigin();
                         if (boneDirDisplay || i == checkingBoneIndex)
                         {
-                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneLength, 0, 0);
-                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneLength, 0);
-                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneLength);
+                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneDirLength, 0, 0);
+                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneDirLength, 0);
+                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneDirLength);
                             DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
                             DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
                             DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);

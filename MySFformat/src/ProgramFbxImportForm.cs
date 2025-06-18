@@ -160,7 +160,7 @@ FLVER_Bone_Name_2
             yPos += 30;
             chkImportBones = new CheckBox { Text = "Import and Override Bones (Experimental)", Location = new Point(xMargin, yPos), AutoSize = true };
             yPos += 30;
-            chkImportBonesOnly = new CheckBox { Text = "Import and Override Bones Only", Location = new Point(xMargin, yPos), AutoSize = true };
+            chkImportBonesOnly = new CheckBox { Text = "Import and Override Bones Only (Skip mesh&material importing)", Location = new Point(xMargin, yPos), AutoSize = true };
 
             this.Controls.Add(chkSetTexture);
             this.Controls.Add(chkSetLOD);
