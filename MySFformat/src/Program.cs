@@ -18,6 +18,7 @@ using ObjLoader.Loader.Loaders;
 
 using Assimp;
 using System.Data;
+using SoulsFormats.Other.MWC;
 
 
 
@@ -833,106 +834,121 @@ namespace MySFformat
         static void bufferLayout()
         {
             Form f = new Form();
-            f.Text = "Layout";
-            Panel p = new Panel();
-            int currentY2 = 10;
-            p.AutoScroll = true;
-            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            f.Text = "Buffer Layout Viewer";
+            f.Size = new System.Drawing.Size(800, 600); // 稍微增大窗口以便容纳DGV
 
+            Panel mainPanel = new Panel();
+            mainPanel.Dock = DockStyle.Fill; // 让 Panel 填满窗体
+            mainPanel.AutoScroll = true;     // 关键：当内容超出 Panel 大小时出现滚动条
+            f.Controls.Add(mainPanel);
 
-            f.Controls.Add(p);
+            int currentY = 10; // Y坐标用于在Panel中垂直排列控件
+
+            Label titleLabel = new Label();
+            titleLabel.Text = "Buffer Layouts:";
+            titleLabel.AutoSize = true;
+            titleLabel.Location = new System.Drawing.Point(10, currentY);
+            mainPanel.Controls.Add(titleLabel);
+            currentY += titleLabel.Height + 10;
+
+            // var serializer = new JavaScriptSerializer();
+            // string serializedResult = serializer.Serialize(targetFlver.BufferLayouts);
+            // 上面两行现在不需要了，因为我们要直接用对象
+
+            if (targetFlver.BufferLayouts.Count == 0)
             {
-                Label l = new Label();
-                l.Text = "Buffer Layout text:";
-                l.Size = new System.Drawing.Size(150, 15);
-                l.Location = new System.Drawing.Point(10, currentY2 + 5);
-                p.Controls.Add(l);
+                Label emptyLabel = new Label();
+                emptyLabel.Text = "No buffer layouts found.";
+                emptyLabel.AutoSize = true;
+                emptyLabel.Location = new System.Drawing.Point(10, currentY);
+                mainPanel.Controls.Add(emptyLabel);
             }
-            currentY2 += 20;
+            else
+            {
+                for (int i = 0; i < targetFlver.BufferLayouts.Count; i++)
+                {
+                    var layoutList = targetFlver.BufferLayouts[i];
 
+                    // 为每个 Buffer Layout 添加一个标签
+                    Label l = new Label();
+                    l.Text = $"Buffer Layout {i}:";
+                    l.AutoSize = true;
+                    l.Location = new System.Drawing.Point(10, currentY);
+                    mainPanel.Controls.Add(l);
+                    currentY += l.Height + 5;
 
+                    // 创建 DataGridView
+                    DataGridView dgv = new DataGridView();
+                    dgv.Location = new System.Drawing.Point(10, currentY);
+                    dgv.AllowUserToAddRows = false;
+                    dgv.AllowUserToDeleteRows = false;
+                    dgv.ReadOnly = true;
+                    dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells; // 列宽自动适应内容
+                    dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
 
+                    // 设置数据源为当前 Buffer Layout 列表
+                    // DataGridView 会自动使用 BufferLayoutItem 的公共属性作为列
+                    // 为了显示枚举字符串，我们依赖 BufferLayoutItem 中的 TypeString 和 SemanticString 属性
+                    dgv.DataSource = layoutList;
 
+                    // 你可以手动控制列的显示和顺序，以及标题
+                    // 如果不设置 DataSource 直接添加列和行，则需要手动填充数据
+                    // 如果设置了 DataSource，可以调整自动生成的列
+                    // 例如，隐藏原始的 Type 和 Semantic int 列，只显示字符串版本
+                    // 但为了简单，如果 BufferLayoutItem 包含 TypeString/SemanticString，它们会被自动显示。
+                    // 如果列名和属性名不完全一致，或者想自定义列头，可以这样做：
+                    // dgv.AutoGenerateColumns = false; // 关闭自动生成
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Stream", HeaderText = "Stream" });
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SpecialModifier", HeaderText = "Modifier" });
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "TypeString", HeaderText = "Type" }); // 使用字符串版本
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "SemanticString", HeaderText = "Semantic" }); // 使用字符串版本
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Index", HeaderText = "Index" });
+                    // dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Size", HeaderText = "Size" });
+                    // dgv.DataSource = layoutList; // 再设置数据源
+
+                    // 计算DGV的高度：表头高度 + 每行高度 * 行数 + 一点边距
+                    int dgvHeight = dgv.ColumnHeadersHeight;
+                    if (layoutList.Count > 0)
+                    {
+                        dgvHeight += layoutList.Count * dgv.RowTemplate.Height;
+                    }
+                    else
+                    {
+                        dgvHeight += dgv.RowTemplate.Height; // 至少一行的高度，即使是空的
+                    }
+                    dgvHeight = Math.Min(dgvHeight, 300); // 限制最大高度，防止单个DGV过长
+
+                    dgv.Size = new System.Drawing.Size(mainPanel.ClientSize.Width - 30, dgvHeight); // 宽度适应Panel，高度基于内容
+                    dgv.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right; // 随Panel宽度调整
+
+                    mainPanel.Controls.Add(dgv);
+                    currentY += dgv.Height + 10; // 为下一个控件留出空间
+                }
+            }
 
             var serializer = new JavaScriptSerializer();
+            //targetFlver.BufferLayouts[0][0].Type = FLVER.LayoutType.Float1; // 0
+            Label l2 = new Label();
+            l2.Text = "Buffer Layout json:";
+            l2.Size = new System.Drawing.Size(150, 15);
+            l2.Location = new System.Drawing.Point(10, currentY);
+            mainPanel.Controls.Add(l2);
+
+            currentY += l2.Height + 5;
+
             string serializedResult = serializer.Serialize(targetFlver.BufferLayouts);
-
-
             TextBox tbones = new TextBox();
             tbones.Multiline = true;
             tbones.Size = new System.Drawing.Size(670, 600);
-            tbones.Location = new System.Drawing.Point(10, currentY2 + 20);
+            tbones.Location = new System.Drawing.Point(10, currentY);
             tbones.Text = serializedResult;
-
-            p.Controls.Add(tbones);
-
-            Button button = new Button();
-            button.Text = "Modify";
-            button.Location = new System.Drawing.Point(650, 50);
-            button.Click += (s, e) => {
-
-
-            };
-
-
-            Button button2 = new Button();
-
-            button2.Text = "JsonMod";
-            button2.Location = new System.Drawing.Point(650, 100);
-            button2.Click += (s, e) => {
-                targetFlver.BufferLayouts = serializer.Deserialize<List<FLVER2.BufferLayout>>(tbones.Text);
-                autoBackUp(); targetFlver.Write(flverName);
-                updateVertices();
-                MessageBox.Show("Dummy change completed! Please exit the program!", "Info");
-            };
-
-            Button button3 = new Button();
-
-            button3.Text = "LoadJson";
-            button3.Location = new System.Drawing.Point(650, 150);
-            button3.Click += (s, e) => {
-
-                var openFileDialog1 = new OpenFileDialog();
-                string res = "";
-                if (openFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        var sr = new StreamReader(openFileDialog1.FileName);
-                        res = sr.ReadToEnd();
-                        sr.Close();
-                        targetFlver.BufferLayouts = serializer.Deserialize<List<FLVER2.BufferLayout>>(res);
-                        autoBackUp(); targetFlver.Write(flverName);
-                        updateVertices();
-                        MessageBox.Show("Dummy change completed! Please exit the program!", "Info");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
-                        $"Details:\n\n{ex.StackTrace}");
-                    }
-                }
-
-
-            };
-
-            
-
-
-            f.Size = new System.Drawing.Size(750, 600);
-            p.Size = new System.Drawing.Size(600, 530);
+            mainPanel.Controls.Add(tbones);
             f.Resize += (s, e) =>
             {
-                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
-                button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
-                button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
-                button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
+                // 如果DGV宽度是固定的，并且希望它们随窗体变化，可以在这里调整
+                // 但由于DGV的Anchor设置和Panel的Dock=Fill，它们应该能较好地自适应
+                // mainPanel.PerformLayout(); // 可能需要强制重新布局
             };
-
-            //f.Controls.Add(button);
-            //f.Controls.Add(button2);
-            // f.Controls.Add(button3);
-
             f.ShowDialog();
         }
 
