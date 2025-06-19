@@ -253,23 +253,7 @@ namespace MySFformat
             legacyMenu.DropDownItems.Add(bbbFixItem);
 
             var erPort = new ToolStripMenuItem("NR -> ER port", null, (s, e) => {
-                // 131092 -> 0x20014 -> Dark souls 3
-                // 131098 -> 0x2001A -> original ER flver file version
-                // 131105 -> 0x20021 -》 Neight Reign
-                targetFlver.Header.Version = 131098;
-                targetFlver.Header.Unk68 = 4;
-                var info = @"Do you want to reset mesh information?
-That will break NR's clothes physics, but can make mesh visible in common ER materials.";
-                var confirmResult = MessageBox.Show(info,
-                                 "Port",
-                                 MessageBoxButtons.YesNo);
-                if (confirmResult == DialogResult.Yes) {
-                    Program.SetMeshInfoToDefault();
-                }
-
-                updateVertices(); 
-                autoBackUp(); targetFlver.Write(flverName);
-                MessageBox.Show($"Port completed.Please close this program!\n Make sure removing #XXX# part in material name if not visible.");
+                portNrEr();
             });
             erPort.ToolTipText = @"Porting flver from Nightreign version to Elden Ring version.
 迁移夜环文件格式到法环版本。";
@@ -740,6 +724,224 @@ That will break NR's clothes physics, but can make mesh visible in common ER mat
             MessageBox.Show("BB pelvis bone fix completed! Please exit the program!", "Info");
         }
 
+
+        public static void setErClothBufferlayout() 
+        {
+            targetFlver.BufferLayouts.Clear();
+            //string templateString  = @"
+            // 0
+            var layout = new FLVER2.BufferLayout();
+            //[[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index:0, stream:0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":2,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":1,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 0));
+            //
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 1
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 0));
+            //
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 2
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":2,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 2, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":21,""Semantic"":5,""Index"":1,""Size"":4}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short2, FLVER.LayoutSemantic.UV, index: 1, stream: 0));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 3
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 4
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":1,""SpecialModifier"":0,""Type"":17,""Semantic"":7,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Bitangent, index: 0, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 1));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 5
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":2,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":1,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 1, stream: 2));
+            //{""Stream"":2,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 1, stream: 2));
+            //{""Stream"":2,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":1,""Size"":4}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 1, stream: 2));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 6
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":2,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":1,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 0));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 7
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":0,""SpecialModifier"":0,""Type"":2,""Semantic"":0,""Index"":0,""Size"":12},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Float3, FLVER.LayoutSemantic.Position, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":3,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Normal, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":6,""Index"":2,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Tangent, index: 2, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":17,""Semantic"":2,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":1,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 0));
+            //{""Stream"":0,""SpecialModifier"":0,""Type"":21,""Semantic"":5,""Index"":1,""Size"":4}],
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short2, FLVER.LayoutSemantic.UV, index: 1, stream: 0));
+            targetFlver.BufferLayouts.Add(layout);
+
+            // Buffer layout 8
+            layout = new FLVER2.BufferLayout();
+            //[{""Stream"":1,""SpecialModifier"":0,""Type"":17,""Semantic"":7,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.Bitangent, index: 0, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":17,""Semantic"":2,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4, FLVER.LayoutSemantic.BoneIndices, index: 0, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":19,""Semantic"":1,""Index"":0,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.BoneWeights, index: 0, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":19,""Semantic"":10,""Index"":1,""Size"":4},
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.UByte4Norm, FLVER.LayoutSemantic.VertexColor, index: 1, stream: 1));
+            //{""Stream"":1,""SpecialModifier"":0,""Type"":22,""Semantic"":5,""Index"":0,""Size"":8}]]
+            layout.Add(new FLVER.LayoutMember(FLVER.LayoutType.Short4, FLVER.LayoutSemantic.UV, index: 0, stream: 1));
+            targetFlver.BufferLayouts.Add(layout);
+
+
+        }
+
+        private static void portNrEr() {
+            // 131092 -> 0x20014 -> Dark souls 3
+            // 131098 -> 0x2001A -> original ER flver file version
+            // 131105 -> 0x20021 -》 Neight Reign
+            targetFlver.Header.Version = 131098;
+            targetFlver.Header.Unk68 = 4;
+            var info = @"Do you want to convert to ER bufferlayout and vertex buffers format with cloth phsics? 
+This may help porting NR's clothes physics, but may make mesh invisible in common ER materials.
+Function inspired by FloppyDonuts";
+            var confirmResult = MessageBox.Show(info,
+                             "Port",
+                             MessageBoxButtons.YesNo);
+            if (confirmResult == DialogResult.Yes)
+            {
+                
+                // Convert to ER cloth physics bufferlayout
+                setErClothBufferlayout();
+                var tangentWarning = "";
+                // Set mesh vertex information for each meach
+                foreach (var mesh in targetFlver.Meshes) { 
+                    mesh.VertexBuffers = new List<FLVER2.VertexBuffer> { };
+                    mesh.VertexBuffers.Add(new FLVER2.VertexBuffer(3));
+                    mesh.VertexBuffers.Add(new FLVER2.VertexBuffer(8));
+                    mesh.VertexBuffers.Add(new FLVER2.VertexBuffer(5));
+                    foreach (var vertex in mesh.Vertices) {
+                        if (vertex.Colors.Count < 1) {
+                            vertex.Colors.Add(new FLVER.VertexColor(255, 255, 255, 255));
+                        }
+                        if (vertex.UVs.Count < 1)
+                        {
+                            vertex.UVs.Add(new Vector3(0, 0, 0));
+                        }
+                        if (vertex.UVs.Count < 2)
+                        {
+                            var u = vertex.UVs[0];
+                            vertex.UVs.Add(new Vector3(u.X, u.Y, u.Z));
+                        }
+                        if (vertex.Tangents.Count < 1)
+                        {
+                            vertex.Tangents.Add(new Vector4(1,0,0,1));
+                            tangentWarning = "No tangents found in mesh, using placeholder 1,0,0 tangent...";
+                        }
+                        if (vertex.Tangents.Count < 2)
+                        {
+                            var t = vertex.Tangents[0];
+                            vertex.Tangents.Add(new Vector4(t.X, t.Y, t.Z, t.W));
+                        }
+                    }
+                }
+                if (tangentWarning != "") { MessageBox.Show(tangentWarning); }
+            }
+            else {
+                info = @"Do you want to reset mesh information?
+That will break NR's clothes physics, but can make mesh visible in common ER materials.";
+                confirmResult = MessageBox.Show(info,
+                                 "Port",
+                                 MessageBoxButtons.YesNo);
+                if (confirmResult == DialogResult.Yes)
+                {
+                    Program.SetMeshInfoToDefault();
+                }
+
+
+            }
+
+            
+
+            updateVertices();
+            autoBackUp(); targetFlver.Write(flverName);
+            MessageBox.Show($"Port completed.Please close this program!\n Make sure removing #XXX# part in material name if not visible.");
+
+        }
         #endregion
 
 

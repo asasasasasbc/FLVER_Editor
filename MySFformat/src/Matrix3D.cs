@@ -50,7 +50,9 @@ namespace MySFformat
 
         }
 
-
+        /// <summary>
+        /// Computes the rotation tranformation matrix, parameter in degrees.
+        /// </summary>
         public static Matrix3D generateRotXMatrix(float a)
         {
             float rad = (float)(a / 180f * Math.PI);
@@ -63,7 +65,9 @@ namespace MySFformat
             return m;
 
         }
-
+        /// <summary>
+        /// Computes the rotation tranformation matrix, parameter in degrees.
+        /// </summary>
         public static Matrix3D generateRotYMatrix(float a)
         {
             float rad = (float)(a / 180f * Math.PI);
@@ -77,7 +81,9 @@ namespace MySFformat
 
         }
 
-
+        /// <summary>
+        /// Computes the rotation tranformation matrix, parameter in degrees.
+        /// </summary>
         public static Matrix3D generateRotZMatrix(float a)
         {
             float rad = (float)(a / 180f * Math.PI);
@@ -135,6 +141,9 @@ namespace MySFformat
             return m;
         }
 
+        /// <summary>
+        /// Matrix cross product matrix.
+        /// </summary>
         public static Matrix3D matrixTimesMatrix(Matrix3D m1, Matrix3D m2)
         {
             Matrix3D m = new Matrix3D();
@@ -156,7 +165,9 @@ namespace MySFformat
             return m;
 
         }
-
+        /// <summary>
+        /// Returns identity matrix
+        /// </summary>
         public static Matrix3D Identity()
         {
             Matrix3D m = new Matrix3D();
@@ -165,8 +176,65 @@ namespace MySFformat
         {0, 1, 0, 0},
         {0, 0, 1, 0},
         {0, 0, 0, 1}
-    };
+            };
             return m;
+        }
+
+
+        /// <summary>
+        /// Computes the inverse of this matrix.
+        /// </summary>
+        /// <returns>The inverted matrix.</returns>
+        public Matrix3D inverse()
+        {
+            float[,] m = this.value;
+            Matrix3D result = new Matrix3D();
+            float[,] inv = result.value; // Store result here
+
+            // These are the elements of the adjugate matrix (transpose of the cofactor matrix)
+            inv[0, 0] = m[1, 1] * m[2, 2] * m[3, 3] - m[1, 1] * m[2, 3] * m[3, 2] - m[2, 1] * m[1, 2] * m[3, 3] + m[2, 1] * m[1, 3] * m[3, 2] + m[3, 1] * m[1, 2] * m[2, 3] - m[3, 1] * m[1, 3] * m[2, 2];
+            inv[1, 0] = -m[1, 0] * m[2, 2] * m[3, 3] + m[1, 0] * m[2, 3] * m[3, 2] + m[2, 0] * m[1, 2] * m[3, 3] - m[2, 0] * m[1, 3] * m[3, 2] - m[3, 0] * m[1, 2] * m[2, 3] + m[3, 0] * m[1, 3] * m[2, 2];
+            inv[2, 0] = m[1, 0] * m[2, 1] * m[3, 3] - m[1, 0] * m[2, 3] * m[3, 1] - m[2, 0] * m[1, 1] * m[3, 3] + m[2, 0] * m[1, 3] * m[3, 1] + m[3, 0] * m[1, 1] * m[2, 3] - m[3, 0] * m[1, 3] * m[2, 1];
+            inv[3, 0] = -m[1, 0] * m[2, 1] * m[3, 2] + m[1, 0] * m[2, 2] * m[3, 1] + m[2, 0] * m[1, 1] * m[3, 2] - m[2, 0] * m[1, 2] * m[3, 1] - m[3, 0] * m[1, 1] * m[2, 2] + m[3, 0] * m[1, 2] * m[2, 1];
+
+            inv[0, 1] = -m[0, 1] * m[2, 2] * m[3, 3] + m[0, 1] * m[2, 3] * m[3, 2] + m[2, 1] * m[0, 2] * m[3, 3] - m[2, 1] * m[0, 3] * m[3, 2] - m[3, 1] * m[0, 2] * m[2, 3] + m[3, 1] * m[0, 3] * m[2, 2];
+            inv[1, 1] = m[0, 0] * m[2, 2] * m[3, 3] - m[0, 0] * m[2, 3] * m[3, 2] - m[2, 0] * m[0, 2] * m[3, 3] + m[2, 0] * m[0, 3] * m[3, 2] + m[3, 0] * m[0, 2] * m[2, 3] - m[3, 0] * m[0, 3] * m[2, 2];
+            inv[2, 1] = -m[0, 0] * m[2, 1] * m[3, 3] + m[0, 0] * m[2, 3] * m[3, 1] + m[2, 0] * m[0, 1] * m[3, 3] - m[2, 0] * m[0, 3] * m[3, 1] - m[3, 0] * m[0, 1] * m[2, 3] + m[3, 0] * m[0, 3] * m[2, 1];
+            inv[3, 1] = m[0, 0] * m[2, 1] * m[3, 2] - m[0, 0] * m[2, 2] * m[3, 1] - m[2, 0] * m[0, 1] * m[3, 2] + m[2, 0] * m[0, 2] * m[3, 1] + m[3, 0] * m[0, 1] * m[2, 2] - m[3, 0] * m[0, 2] * m[2, 1];
+
+            inv[0, 2] = m[0, 1] * m[1, 2] * m[3, 3] - m[0, 1] * m[1, 3] * m[3, 2] - m[1, 1] * m[0, 2] * m[3, 3] + m[1, 1] * m[0, 3] * m[3, 2] + m[3, 1] * m[0, 2] * m[1, 3] - m[3, 1] * m[0, 3] * m[1, 2];
+            inv[1, 2] = -m[0, 0] * m[1, 2] * m[3, 3] + m[0, 0] * m[1, 3] * m[3, 2] + m[1, 0] * m[0, 2] * m[3, 3] - m[1, 0] * m[0, 3] * m[3, 2] - m[3, 0] * m[0, 2] * m[1, 3] + m[3, 0] * m[0, 3] * m[1, 2];
+            inv[2, 2] = m[0, 0] * m[1, 1] * m[3, 3] - m[0, 0] * m[1, 3] * m[3, 1] - m[1, 0] * m[0, 1] * m[3, 3] + m[1, 0] * m[0, 3] * m[3, 1] + m[3, 0] * m[0, 1] * m[1, 3] - m[3, 0] * m[0, 3] * m[1, 1];
+            inv[3, 2] = -m[0, 0] * m[1, 1] * m[3, 2] + m[0, 0] * m[1, 2] * m[3, 1] + m[1, 0] * m[0, 1] * m[3, 2] - m[1, 0] * m[0, 2] * m[3, 1] - m[3, 0] * m[0, 1] * m[1, 2] + m[3, 0] * m[0, 2] * m[1, 1];
+
+            inv[0, 3] = -m[0, 1] * m[1, 2] * m[2, 3] + m[0, 1] * m[1, 3] * m[2, 2] + m[1, 1] * m[0, 2] * m[2, 3] - m[1, 1] * m[0, 3] * m[2, 2] - m[2, 1] * m[0, 2] * m[1, 3] + m[2, 1] * m[0, 3] * m[1, 2];
+            inv[1, 3] = m[0, 0] * m[1, 2] * m[2, 3] - m[0, 0] * m[1, 3] * m[2, 2] - m[1, 0] * m[0, 2] * m[2, 3] + m[1, 0] * m[0, 3] * m[2, 2] + m[2, 0] * m[0, 2] * m[1, 3] - m[2, 0] * m[0, 3] * m[1, 2];
+            inv[2, 3] = -m[0, 0] * m[1, 1] * m[2, 3] + m[0, 0] * m[1, 3] * m[2, 1] + m[1, 0] * m[0, 1] * m[2, 3] - m[1, 0] * m[0, 3] * m[2, 1] - m[2, 0] * m[0, 1] * m[1, 3] + m[2, 0] * m[0, 3] * m[1, 1];
+            inv[3, 3] = m[0, 0] * m[1, 1] * m[2, 2] - m[0, 0] * m[1, 2] * m[2, 1] - m[1, 0] * m[0, 1] * m[2, 2] + m[1, 0] * m[0, 2] * m[2, 1] + m[2, 0] * m[0, 1] * m[1, 2] - m[2, 0] * m[0, 2] * m[1, 1];
+
+            // Calculate determinant using the first row of original matrix and first column of adjugate matrix
+            float det = m[0, 0] * inv[0, 0] + m[0, 1] * inv[1, 0] + m[0, 2] * inv[2, 0] + m[0, 3] * inv[3, 0];
+
+            // Check for singularity
+            if (Math.Abs(det) < 1e-6f) // Use a small epsilon for floating point comparison
+            {
+                // Matrix is singular, cannot invert.
+                // You can throw an exception, or return identity/null depending on requirements.
+                // For robustness, throwing an exception is often preferred.
+                return Identity();
+            }
+
+            // Divide adjugate matrix by determinant
+            float invDet = 1.0f / det;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    inv[i, j] *= invDet;
+                }
+            }
+
+            return result;
         }
     }
 }
