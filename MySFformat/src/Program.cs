@@ -37,6 +37,8 @@ namespace MySFformat
         public static string flverName;
         public static List<VertexInfo> verticesInfo = new List<VertexInfo>();
 
+        public static List<FLVER.Node> poseNodes = new List<FLVER.Node>();
+
         public static Vector3D[] bonePosList = new Vector3D[1000];
 
 
@@ -70,6 +72,7 @@ namespace MySFformat
         public static int boneFindParentTimes = 15;//if cannot find bone, find if its parent bone matches flver bone name
 
 
+        public static bool poseDisplay = false;
         public static Boolean boneDisplay = true;
         public static Boolean boneDirDisplay = false;
         public static int checkingBoneIndex = -1;// For bone checking function
@@ -233,8 +236,34 @@ namespace MySFformat
             mono.triVertices = triangles.ToArray();
 
         }
-      
 
+
+        public static void LoadPosesJson()
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            using (var openFileDialog = new OpenFileDialog { Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*" })
+            {
+                if (openFileDialog.ShowDialog() != DialogResult.OK) return;
+                try
+                {
+                    string res = File.ReadAllText(openFileDialog.FileName);
+                    var newNodes = serializer.Deserialize<List<FLVER.Node>>(res);
+                    if (newNodes.Count != targetFlver.Nodes.Count) {
+                        MessageBox.Show($"Error loading or parsing JSON file.\n\n Nodes does not match!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    poseNodes = newNodes;
+                    MessageBox.Show("New pose loaded! ", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error loading or parsing JSON file.\n\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+            updateVertices();
+        }
 
         public static void updateVertices()
         {
@@ -374,42 +403,34 @@ namespace MySFformat
                 bonePosList[i] = null;
 
             }
-
-            //Calcaulte bone global space
-
-            //bone space X,Y,Z axis
-            
-            Vector3D[] bsX = new Vector3D[targetFlver.Nodes.Count];
-            Vector3D[] bsY = new Vector3D[targetFlver.Nodes.Count];
-            Vector3D[] bsZ = new Vector3D[targetFlver.Nodes.Count];
-
-            //bone space origin 
-            Vector3D[] bso = new Vector3D[targetFlver.Nodes.Count];
-
-
-            int A = 1;
-            int B = 2;
-            int C = 3;
-
+            // Display bones
             if (boneDisplay)
             {
-                Transform3D[] boneTrans = new Transform3D[targetFlver.Nodes.Count];
+                var targetNodes = targetFlver.Nodes;
+                Microsoft.Xna.Framework.Color boneColor = Microsoft.Xna.Framework.Color.Purple;
+                if (poseDisplay && poseNodes.Count == targetFlver.Nodes.Count) 
+                {
+                    // Slighty lighter for pose mode
+                    targetNodes = poseNodes;
+                    boneColor = new Microsoft.Xna.Framework.Color(155, 0, 155, 255);
+                }
+                Transform3D[] boneTrans = new Transform3D[targetNodes.Count];
                 //Reconstruct transform hierarchy
-                for (int i = 0; i < targetFlver.Nodes.Count; i++)
+                for (int i = 0; i < targetNodes.Count; i++)
                 {
                     boneTrans[i] = new Transform3D();
                     boneTrans[i].rotOrder = rotOrder;
-                    boneTrans[i].position = new Vector3D(targetFlver.Nodes[i].Translation);
-                    boneTrans[i].setRotationInRad(new Vector3D(targetFlver.Nodes[i].Rotation));
-                    boneTrans[i].scale = new Vector3D(targetFlver.Nodes[i].Scale);
-                    if (targetFlver.Nodes[i].ParentIndex >= 0)
+                    boneTrans[i].position = new Vector3D(targetNodes[i].Translation);
+                    boneTrans[i].setRotationInRad(new Vector3D(targetNodes[i].Rotation));
+                    boneTrans[i].scale = new Vector3D(targetNodes[i].Scale);
+                    if (targetNodes[i].ParentIndex >= 0)
                     {
-                        boneTrans[i].parent = boneTrans[targetFlver.Nodes[i].ParentIndex];
+                        boneTrans[i].parent = boneTrans[targetNodes[i].ParentIndex];
                         boneTrans[i].parent.children.Add(boneTrans[i]);
                     }
                  }
-
-                    for (int i=0;i< targetFlver.Nodes.Count;i++)
+                // Draw bones
+                for (int i=0;i< targetNodes.Count;i++)
                 {
 
                     void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c, float offsize = 0.005f)
@@ -457,7 +478,7 @@ namespace MySFformat
                         DrawLine(C_origin, p4, c, 0);
                     }
 
-                    if (targetFlver.Nodes[i].ParentIndex >= 0)
+                    if (targetNodes[i].ParentIndex >= 0)
                     {
                         Vector3D actPos = boneTrans[i].getGlobalOrigin();
                         if (boneDirDisplay || i == checkingBoneIndex)
@@ -470,16 +491,16 @@ namespace MySFformat
                             DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
                         }
 
-                        if (targetFlver.Nodes[i].FirstChildIndex >= 0)
+                        if (targetNodes[i].FirstChildIndex >= 0)
                         {
-                            Microsoft.Xna.Framework.Color c = Microsoft.Xna.Framework.Color.Purple;
+                            Microsoft.Xna.Framework.Color c = boneColor;
                             if (checkingBoneIndex == i)
                             {
                                 c = Microsoft.Xna.Framework.Color.Yellow;
                             }
                             var targetBone = boneTrans[i];
                             for (int j = 0; j < targetBone.children.Count; j++) {
-                                if (j < targetFlver.Nodes.Count) {
+                                if (j < targetNodes.Count) {
                                     var childTrans = targetBone.children[j];
                                     //DrawLine(actPos, parentPos, c, 0.005f);
                                     DrawBone(boneTrans[i], childTrans, c);
@@ -724,7 +745,7 @@ namespace MySFformat
             button3.Location = new System.Drawing.Point(650, 150);
             button3.Click += (s, e) => {
 
-                var openFileDialog1 = new OpenFileDialog();
+                var openFileDialog1 = new OpenFileDialog() { Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*" };
                 string res = "";
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)
                 {
@@ -1094,7 +1115,7 @@ namespace MySFformat
             button3.Location = new System.Drawing.Point(700, btnY);
             button3.Click += (s, e) => {
 
-                var openFileDialog1 = new OpenFileDialog();
+                var openFileDialog1 = new OpenFileDialog() { Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*" };
                 string res = "";
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)
                 {
@@ -1294,7 +1315,7 @@ namespace MySFformat
         private static void XmlEdit()
         {
             System.Windows.Forms.OpenFileDialog openFileDialog1;
-            openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            openFileDialog1 = new System.Windows.Forms.OpenFileDialog() { Filter = "XML files (*.xml)|*.xml|All files (*.*)|*.*" };
             openFileDialog1.InitialDirectory = System.IO.Directory.GetCurrentDirectory();
             openFileDialog1.Title = "Choose .xml file depacked from .tpf file by Yabber";
             //openFileDialog1.ShowDialog();
@@ -2071,7 +2092,7 @@ namespace MySFformat
             button2.Click += (s, e) => {
 
 
-                var openFileDialog1 = new OpenFileDialog();
+                var openFileDialog1 = new OpenFileDialog() { Filter = "FLVER files (*.flver)|*.flver|All files (*.*)|*.*" };
                 string res = "";
                 openFileDialog1.Title = "Choose the flver file you want to attach to the scene";
                 if (openFileDialog1.ShowDialog() == DialogResult.OK)

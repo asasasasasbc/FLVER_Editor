@@ -27,22 +27,20 @@ namespace MySFformat
         public RotationOrder rotOrder = RotationOrder.YZX;
 
         public Vector3D[] vlist;
-        public Vector3D[] getGlobalVlist()
-        {
 
-            Vector3D[] ans = new Vector3D[vlist.Length];
+        /// <summary>
+        /// Computes the tranformation matrix, from bone/local space to world space
+        /// </summary>
+        public Matrix3D getTransMatrix() {
             Matrix3D transMatrix = new Matrix3D();
-
-
             {
-
                 Matrix3D rs = Matrix3D.generateScaleMatrix(scale);
                 Matrix3D rx = Matrix3D.generateRotXMatrix(rotation.X);
                 Matrix3D ry = Matrix3D.generateRotYMatrix(rotation.Y);
                 Matrix3D rz = Matrix3D.generateRotZMatrix(rotation.Z);
                 Matrix3D pos = Matrix3D.generateTranslationMatrix(position.X, position.Y, position.Z);
 
-                if (rotOrder == RotationOrder.XYZ) { transMatrix = pos * (rx * (ry * (rz * rs) )); }
+                if (rotOrder == RotationOrder.XYZ) { transMatrix = pos * (rx * (ry * (rz * rs))); }
                 if (rotOrder == RotationOrder.XZY) { transMatrix = pos * (rx * (rz * (ry * rs))); }
                 if (rotOrder == RotationOrder.YXZ) { transMatrix = pos * (ry * (rx * (rz * rs))); }
                 if (rotOrder == RotationOrder.YZX) { transMatrix = pos * (ry * (rz * (rx * rs))); }
@@ -73,7 +71,19 @@ namespace MySFformat
                 // transMatrix = pos * (rx * (ry * (rz * transMatrix)));
                 parentT = parentT.parent;
             }
+            return transMatrix;
+        }
 
+        public Matrix3D getInverseTransMatrix() {
+            return getTransMatrix().inverse();
+        }
+
+        
+        public Vector3D[] getGlobalVlist()
+        {
+            Vector3D[] ans = new Vector3D[vlist.Length];
+            
+            var transMatrix = getTransMatrix();
 
             for (int i = 0; i < vlist.Length; i++)
             {
@@ -92,59 +102,9 @@ namespace MySFformat
 
             Vector3D ans = new Vector3D();
             Vector3D org = new Vector3D(offsetX, offsetY, offsetZ); 
-            Matrix3D transMatrix = new Matrix3D();
+            Matrix3D transMatrix =  getTransMatrix();
 
-
-            {
-
-                Matrix3D rs = Matrix3D.generateScaleMatrix(scale.X,scale.Y,scale.Z);
-                Matrix3D rx = Matrix3D.generateRotXMatrix(rotation.X);
-                Matrix3D ry = Matrix3D.generateRotYMatrix(rotation.Y);
-                Matrix3D rz = Matrix3D.generateRotZMatrix(rotation.Z);
-                Matrix3D pos = Matrix3D.generateTranslationMatrix(position.X, position.Y, position.Z);
-
-
-                if (rotOrder == RotationOrder.XYZ) { transMatrix = pos * (rx * (ry * (rz * rs))); }
-                if (rotOrder == RotationOrder.XZY) { transMatrix = pos * (rx * (rz * (ry * rs))); }
-                if (rotOrder == RotationOrder.YXZ) { transMatrix = pos * (ry * (rx * (rz * rs))); }
-                if (rotOrder == RotationOrder.YZX) { transMatrix = pos * (ry * (rz * (rx * rs))); }
-                if (rotOrder == RotationOrder.ZXY) { transMatrix = pos * (rz * (rx * (ry * rs))); }
-                if (rotOrder == RotationOrder.ZYX) { transMatrix = pos * (rz * (ry * (rx * rs))); }
-            }
-
-
-            Transform3D parentT = null;
-
-            parentT = this.parent;
-            while (parentT != null)
-            {
-                Matrix3D rx = Matrix3D.generateRotXMatrix(parentT.rotation.X);
-                Matrix3D ry = Matrix3D.generateRotYMatrix(parentT.rotation.Y);
-                Matrix3D rz = Matrix3D.generateRotZMatrix(parentT.rotation.Z);
-                Matrix3D pos = Matrix3D.generateTranslationMatrix(parentT.position.X, parentT.position.Y, parentT.position.Z);
-
-
-                transMatrix = Matrix3D.generateScaleMatrix(parentT.scale.X, parentT.scale.Y, parentT.scale.Z)* transMatrix ;
-
-                if (rotOrder == RotationOrder.XYZ) { transMatrix = pos * (rx * (ry * (rz * transMatrix))); }
-                if (rotOrder == RotationOrder.XZY) { transMatrix = pos * (rx * (rz * (ry * transMatrix))); }
-                if (rotOrder == RotationOrder.YXZ) { transMatrix = pos * (ry * (rx * (rz * transMatrix))); }
-                if (rotOrder == RotationOrder.YZX) { transMatrix = pos * (ry * (rz * (rx * transMatrix))); }
-                if (rotOrder == RotationOrder.ZXY) { transMatrix = pos * (rz * (rx * (ry * transMatrix))); }
-                if (rotOrder == RotationOrder.ZYX) { transMatrix = pos * (rz * (ry * (rx * transMatrix))); }
-
-                if (parent.parent == null) { break; }
-                // transMatrix = pos * (rx * (ry * (rz * transMatrix)));
-                parentT = parentT.parent;
-            }
-
-
-
-                //ans= org.clone();
-                ans = Matrix3D.matrixTimesVector3D(transMatrix, org);
-
-
-
+            ans = Matrix3D.matrixTimesVector3D(transMatrix, org);
             return ans;
         }
 

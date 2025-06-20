@@ -75,6 +75,7 @@ namespace MySFformat
         ToolStripMenuItem toggleDummiesItem;
         ToolStripMenuItem toggleNormalsItem;
         ToolStripMenuItem toggleTangentsItem;
+        ToolStripMenuItem togglePoseItem;
 
         public void changeToRenderMode(RenderMode targetMode) { 
             renderMode = targetMode;
@@ -88,6 +89,17 @@ namespace MySFformat
             Program.boneDisplay = targetMode;
             toggleBonesItem.Checked = targetMode;
             Program.updateVertices();
+        }
+
+        public void changePoseDisplay(bool targetMode) {
+            Program.poseDisplay = targetMode;
+            togglePoseItem.Checked = targetMode;
+            Program.updateVertices();
+        }
+        public void changePoseDisplayNoUpdate(bool targetMode)
+        {
+            Program.poseDisplay = targetMode;
+            togglePoseItem.Checked = targetMode;
         }
 
         public void changeBoneDirDisplay(bool targetMode)
@@ -135,9 +147,9 @@ namespace MySFformat
             // 2. 创建顶层菜单项: "Rendering" 和 "Overlay"
             ToolStripMenuItem renderingMenuItem = new ToolStripMenuItem("Rendering");
             ToolStripMenuItem overlayMenuItem = new ToolStripMenuItem("Overlay");
+            ToolStripMenuItem animMenuItem = new ToolStripMenuItem("Animation");
 
             // 3. 为 "Rendering" 菜单添加子项
-            //    (我根据你的窗口标题和常见功能做了一些示例，你可以自行修改)
             ToolStripMenuItem refreshItem = new ToolStripMenuItem("Refresh Model (F)");
             refreshItem.Click += (sender, e) => {
                 Program.updateVertices();
@@ -214,7 +226,7 @@ namespace MySFformat
                 changeBoneDisplay(!Program.boneDisplay);
             };
 
-            toggleBonesDirItem = new ToolStripMenuItem("- Toggle Bone Direction Display");
+            toggleBonesDirItem = new ToolStripMenuItem("- Toggle Bone Direction Display (I)");
             toggleBonesDirItem.Checked = Program.boneDirDisplay;
             toggleBonesDirItem.Click += (sender, e) => {
                 changeBoneDirDisplay(!Program.boneDirDisplay);
@@ -246,9 +258,29 @@ namespace MySFformat
             overlayMenuItem.DropDownItems.Add(toggleNormalsItem);
             overlayMenuItem.DropDownItems.Add(toggleTangentsItem);
 
+
+            //动画相关的子项
+            var loadPoseItem = new ToolStripMenuItem("Load Pose");
+            loadPoseItem.Click += (sender, e) => {
+                changePoseDisplayNoUpdate(true);
+                // 涉及到打开文件，得用主线程
+                Program.nodeUIForm.Invoke(new Action(() =>
+                {
+                    Program.LoadPosesJson();
+                }));
+            };
+            togglePoseItem = new ToolStripMenuItem("Pose Display (P)");
+            togglePoseItem.Checked = Program.poseDisplay;
+            togglePoseItem.Click += (sender, e) => {
+                changePoseDisplay(!Program.poseDisplay);
+            }; 
+            animMenuItem.DropDownItems.Add(loadPoseItem);
+            animMenuItem.DropDownItems.Add(togglePoseItem);
+
             // 5. 将顶层菜单项添加到主菜单栏
             mainMenu.Items.Add(renderingMenuItem);
             mainMenu.Items.Add(overlayMenuItem);
+            mainMenu.Items.Add(animMenuItem);
 
             // 6. 将主菜单栏应用到窗口
             f.MainMenuStrip = mainMenu;
@@ -991,6 +1023,11 @@ namespace MySFformat
                 changeBoneDisplay(!Program.boneDisplay);
             }
 
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.I) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.I))
+            {
+                changeBoneDirDisplay(!Program.boneDirDisplay);
+            }
+
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.M))
             {
                 changeDummyDisplay(!Program.dummyDisplay);
@@ -1004,6 +1041,11 @@ namespace MySFformat
             if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.T))
             {
                 changeTangentDisplay(!Program.tangentDisplay);
+            }
+
+            if (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.P) && !prevState.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.P))
+            {
+                changePoseDisplay(!Program.poseDisplay);
             }
             //1.73 Added focus detect
             if (mState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && this.IsActive && false)
