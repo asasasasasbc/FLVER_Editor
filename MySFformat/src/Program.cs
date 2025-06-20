@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Web.UI;
-using System.Web.Script.Serialization;
-
-
-using SoulsFormats;
-using System.Xml;
-using System.IO;
-using System.Xml.Serialization;
-using System.Numerics;
+﻿using Assimp;
 using Microsoft.Xna.Framework.Graphics;
-using System.Text;
 using ObjLoader.Loader.Loaders;
-
-using Assimp;
-using System.Data;
+using SoulsFormats;
 using SoulsFormats.Other.MWC;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.IO.Packaging;
+using System.Linq;
+using System.Numerics;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Script.Serialization;
+using System.Web.UI;
+using System.Windows;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 
 
@@ -39,7 +39,7 @@ namespace MySFformat
 
         public static List<FLVER.Node> poseNodes = new List<FLVER.Node>();
 
-        public static Vector3D[] bonePosList = new Vector3D[1000];
+        public static Vector3D[] bonePosList = new Vector3D[2000];
 
 
         public static Dictionary<String, String> boneParentList;
@@ -275,6 +275,177 @@ namespace MySFformat
             vertices.Clear();
             verticesInfo.Clear();
             List<MeshInfos> mis = new List<MeshInfos>();
+            // Bone transformation matrix used for skinning and pose
+            List<Matrix3D> boneTransMats = new List<Matrix3D>(); // Calculated by pose node
+            List<Matrix3D> boneITransMats = new List<Matrix3D>();// Calculated by bone node
+            List<Matrix3D> poseTransMats = new List<Matrix3D>(); // Calculated by pose node
+            bool hasPose = poseDisplay && poseNodes.Count == targetFlver.Nodes.Count;
+            // transform matrix calculation
+            var targetNodes = targetFlver.Nodes;
+            Transform3D[] boneTrans = new Transform3D[targetNodes.Count];
+            var poseTrans = new Transform3D[targetNodes.Count];
+            //Reconstruct transform hierarchy
+            for (int i = 0; i < targetNodes.Count; i++)
+            {
+                boneTrans[i] = new Transform3D();
+                boneTrans[i].rotOrder = rotOrder;
+                boneTrans[i].position = new Vector3D(targetNodes[i].Translation);
+                boneTrans[i].setRotationInRad(new Vector3D(targetNodes[i].Rotation));
+                boneTrans[i].scale = new Vector3D(targetNodes[i].Scale);
+                if (targetNodes[i].ParentIndex >= 0)
+                {
+                    boneTrans[i].parent = boneTrans[targetNodes[i].ParentIndex];
+                    boneTrans[i].parent.children.Add(boneTrans[i]);
+                }
+            }
+            for (int i = 0; i < targetNodes.Count; i++)
+            {
+                var tranMat = boneTrans[i].getTransMatrix();
+                var itranMat = tranMat.inverse();
+                boneTransMats.Add(tranMat);
+                boneITransMats.Add(itranMat);
+            }
+
+            // Pose Calc
+            if (hasPose) { 
+                targetNodes = poseNodes;
+                //Reconstruct transform hierarchy
+                for (int i = 0; i < targetNodes.Count; i++)
+                {
+                    poseTrans[i] = new Transform3D();
+                    poseTrans[i].rotOrder = rotOrder;
+                    poseTrans[i].position = new Vector3D(targetNodes[i].Translation);
+                    poseTrans[i].setRotationInRad(new Vector3D(targetNodes[i].Rotation));
+                    poseTrans[i].scale = new Vector3D(targetNodes[i].Scale);
+                    if (targetNodes[i].ParentIndex >= 0)
+                    {
+                        poseTrans[i].parent = poseTrans[targetNodes[i].ParentIndex];
+                        poseTrans[i].parent.children.Add(poseTrans[i]);
+                    }
+                }
+                for (int i = 0; i < targetNodes.Count; i++)
+                {
+                    var tranMat = poseTrans[i].getTransMatrix();
+                    poseTransMats.Add(tranMat);
+                }
+            }
+
+            ////////////////////////////
+            // Display bones
+            if (boneDisplay)
+            {
+                
+                Microsoft.Xna.Framework.Color boneColor = Microsoft.Xna.Framework.Color.Purple;
+                if (hasPose)
+                {
+                    // Slighty lighter for pose mode
+                    boneColor = new Microsoft.Xna.Framework.Color(155, 0, 155, 255);
+                }
+                
+                
+                // Draw bones
+                for (int i = 0; i < targetNodes.Count; i++)
+                {
+
+                    void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c, float offsize = 0.005f)
+                    {
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - offsize, v1.Z, v1.Y), c));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                        if (Math.Abs(offsize) < float.Epsilon) { return; }
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X + offsize, v1.Z, v1.Y), c));
+                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
+                    }
+                    void DrawBone(Transform3D parent, Transform3D child, Microsoft.Xna.Framework.Color c)
+                    {
+                        // y z
+                        // Parent -> Child
+                        Vector3D P_origin = parent.getGlobalOrigin();
+                        Vector3D C_origin = child.getGlobalOrigin();
+                        Vector3D bone_vec = C_origin - P_origin;
+                        float bone_length = bone_vec.length();
+                        // If the bone is extremely short, don't draw it to avoid visual artifacts or division by zero.
+                        if (bone_length < 0.0001f)
+                        {
+                            return;
+                        }
+                        bone_vec = bone_vec.normalize();
+                        var bone_vec_y = parent.getGlobalOrigin(0, 1, 0) - P_origin;
+                        var bone_vec_z = parent.getGlobalOrigin(0, 0, 1) - P_origin;
+                        //Draw P -> 4 points
+                        var p1 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
+                        var p2 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
+                        var p3 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
+                        var p4 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
+                        DrawLine(P_origin, p1, c, 0);
+                        DrawLine(P_origin, p2, c, 0);
+                        DrawLine(P_origin, p3, c, 0);
+                        DrawLine(P_origin, p4, c, 0);
+
+                        DrawLine(p4, p1, c, 0);
+                        DrawLine(p1, p2, c, 0);
+                        DrawLine(p2, p3, c, 0);
+                        DrawLine(p3, p4, c, 0);
+
+                        DrawLine(C_origin, p1, c, 0);
+                        DrawLine(C_origin, p2, c, 0);
+                        DrawLine(C_origin, p3, c, 0);
+                        DrawLine(C_origin, p4, c, 0);
+                    }
+                    var tranMat = boneTransMats[i];
+                    var targetTranform = boneTrans[i];
+                    if (hasPose) { tranMat = poseTransMats[i]; targetTranform = poseTrans[i]; }
+                    if (targetNodes[i].ParentIndex >= 0)
+                    {
+                        Vector3D actPos = targetTranform.getGlobalOrigin();
+                        if (boneDirDisplay || i == checkingBoneIndex)
+                        {
+                            Vector3D offsetX = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(boneDirLength, 0, 0));
+                            Vector3D offsetY = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, boneDirLength, 0));
+                            Vector3D offsetZ = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, 0, boneDirLength));
+                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
+                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
+                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
+                        }
+
+                        if (targetNodes[i].FirstChildIndex >= 0)
+                        {
+                            Microsoft.Xna.Framework.Color c = boneColor;
+                            if (checkingBoneIndex == i)
+                            {
+                                c = Microsoft.Xna.Framework.Color.Yellow;
+                            }
+                            var targetBone = targetTranform;
+                            for (int j = 0; j < targetBone.children.Count; j++)
+                            {
+                                if (j < targetNodes.Count)
+                                {
+                                    var childTrans = targetBone.children[j];
+                                    //DrawLine(actPos, parentPos, c, 0.005f);
+                                    DrawBone(targetTranform, childTrans, c);
+                                }
+                            }
+
+
+                        }
+
+                    }
+                    else
+                    {
+                        Vector3D actPos = targetTranform.getGlobalOrigin();
+                        if (boneDirDisplay || i == checkingBoneIndex)
+                        {
+                            Vector3D offsetX = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(boneDirLength, 0, 0));
+                            Vector3D offsetY = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, boneDirLength, 0));
+                            Vector3D offsetZ = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, 0, boneDirLength));
+                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
+                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
+                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
+                        }
+                    }
+
+                }
+            }
+            ////////////////////////////
 
             for (int i = 0; i < targetFlver.Meshes.Count; i++)
             {
@@ -290,6 +461,46 @@ namespace MySFformat
                 }
                 foreach (FLVER.Vertex[] vl in targetFlver.Meshes[i].GetFaces())
                 {
+                    var tvl = vl;
+                    //为了优化下PoseTransform
+                    if (boneITransMats.Count == targetFlver.Nodes.Count && poseDisplay) {
+                        var convertedVl = new FLVER.Vertex[3];
+                        for (var j = 0; j < 3; j++)
+                        {
+                            // 计算下顶点的实际位置
+                            var v = vl[j];
+                            convertedVl[j] = new FLVER.Vertex(v);
+
+                            var orgPos = new Vector3D(v.Position.X, v.Position.Y, v.Position.Z);
+                            var finalPos = new Vector3D();
+                            // for each bone
+                            float restBoneWeight = 1.0f;
+                            for (var k = 0; k < 4; k++)
+                            {
+                                var boneIndex = v.BoneIndices[k];
+                                float boneWeight = v.BoneWeights[k];
+                                if (boneWeight < 0) { boneWeight += 1; }
+                                restBoneWeight -= boneWeight;
+                                // Final Pos = MatT*(MatTi * V)
+                                var bonePos = Matrix3D.matrixTimesVector3D(boneITransMats[boneIndex], orgPos);
+                                var transMat = boneTransMats[boneIndex];
+                                if (hasPose) { transMat = poseTransMats[boneIndex]; }
+                                finalPos += boneWeight * Matrix3D.matrixTimesVector3D(transMat, bonePos);
+                            }
+                            if (restBoneWeight > 0f)
+                            {
+                                finalPos += restBoneWeight * orgPos;
+                            }
+                            convertedVl[j].Position = finalPos.toNumV3();
+                        }
+                        tvl = convertedVl; // target vertex list
+
+
+                    }
+                    
+
+
+
                     Microsoft.Xna.Framework.Color cline = Microsoft.Xna.Framework.Color.Black;
                     if (useCheckingMesh && checkingMeshNum == i)
                     {
@@ -297,17 +508,17 @@ namespace MySFformat
                         cline.R = 255;
                     }
                     cline.A = 125;
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), cline));
 
                     Microsoft.Xna.Framework.Color c = new Microsoft.Xna.Framework.Color();
 
-                    Microsoft.Xna.Framework.Vector3 va = toXnaV3(vl[1].Position) - toXnaV3(vl[0].Position);
-                    Microsoft.Xna.Framework.Vector3 vb = toXnaV3(vl[2].Position) - toXnaV3(vl[0].Position);
+                    Microsoft.Xna.Framework.Vector3 va = toXnaV3(tvl[1].Position) - toXnaV3(tvl[0].Position);
+                    Microsoft.Xna.Framework.Vector3 vb = toXnaV3(tvl[2].Position) - toXnaV3(tvl[0].Position);
                     Microsoft.Xna.Framework.Vector3 vnromal = crossPorduct(va, vb);
                     vnromal.Normalize();
                     Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);
@@ -325,16 +536,16 @@ namespace MySFformat
                     {
                         c.B = 0;
                     }
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Position), c));
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Position), c));
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Position), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), c));
 
                     if (loadTexture)
                     {
-                        if (vl[0].UVs.Count > 0) { // Avoid UV display error
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[0].Position), c, new Microsoft.Xna.Framework.Vector2(vl[0].UVs[0].X, vl[0].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[2].Position), c, new Microsoft.Xna.Framework.Vector2(vl[2].UVs[0].X, vl[2].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[1].Position), c, new Microsoft.Xna.Framework.Vector2(vl[1].UVs[0].X, vl[1].UVs[0].Y)));
+                        if (tvl[0].UVs.Count > 0) { // Avoid UV display error
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[0].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[2].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[1].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
                         }
                     }
 
@@ -342,16 +553,16 @@ namespace MySFformat
 
                     if (renderBackFace)
                     {
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[0].Position), c));
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[1].Position), c));
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(vl[2].Position), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), c));
 
 
                         if (loadTexture)
                         {
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[0].Position), c, new Microsoft.Xna.Framework.Vector2(vl[0].UVs[0].X, vl[0].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[1].Position), c, new Microsoft.Xna.Framework.Vector2(vl[1].UVs[0].X, vl[1].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(vl[2].Position), c, new Microsoft.Xna.Framework.Vector2(vl[2].UVs[0].X, vl[2].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[0].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[1].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[2].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
 
                         }
 
@@ -403,132 +614,7 @@ namespace MySFformat
                 bonePosList[i] = null;
 
             }
-            // Display bones
-            if (boneDisplay)
-            {
-                var targetNodes = targetFlver.Nodes;
-                Microsoft.Xna.Framework.Color boneColor = Microsoft.Xna.Framework.Color.Purple;
-                if (poseDisplay && poseNodes.Count == targetFlver.Nodes.Count) 
-                {
-                    // Slighty lighter for pose mode
-                    targetNodes = poseNodes;
-                    boneColor = new Microsoft.Xna.Framework.Color(155, 0, 155, 255);
-                }
-                Transform3D[] boneTrans = new Transform3D[targetNodes.Count];
-                //Reconstruct transform hierarchy
-                for (int i = 0; i < targetNodes.Count; i++)
-                {
-                    boneTrans[i] = new Transform3D();
-                    boneTrans[i].rotOrder = rotOrder;
-                    boneTrans[i].position = new Vector3D(targetNodes[i].Translation);
-                    boneTrans[i].setRotationInRad(new Vector3D(targetNodes[i].Rotation));
-                    boneTrans[i].scale = new Vector3D(targetNodes[i].Scale);
-                    if (targetNodes[i].ParentIndex >= 0)
-                    {
-                        boneTrans[i].parent = boneTrans[targetNodes[i].ParentIndex];
-                        boneTrans[i].parent.children.Add(boneTrans[i]);
-                    }
-                 }
-                // Draw bones
-                for (int i=0;i< targetNodes.Count;i++)
-                {
-
-                    void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c, float offsize = 0.005f)
-                    {
-                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - offsize, v1.Z, v1.Y), c));
-                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
-                        if (Math.Abs(offsize) < float.Epsilon) { return; }
-                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X + offsize, v1.Z, v1.Y), c));
-                        ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v2.X, v2.Z, v2.Y), c));
-                    }
-                    void DrawBone(Transform3D parent, Transform3D child, Microsoft.Xna.Framework.Color c) 
-                    {
-                        // y z
-                        // Parent -> Child
-                        Vector3D P_origin = parent.getGlobalOrigin();
-                        Vector3D C_origin = child.getGlobalOrigin();
-                        Vector3D bone_vec = C_origin - P_origin;
-                        float bone_length = bone_vec.length();
-                        // If the bone is extremely short, don't draw it to avoid visual artifacts or division by zero.
-                        if (bone_length < 0.0001f)
-                        {
-                            return;
-                        }
-                        bone_vec = bone_vec.normalize();
-                        var bone_vec_y = parent.getGlobalOrigin(0, 1, 0) - P_origin;
-                        var bone_vec_z = parent.getGlobalOrigin(0, 0, 1) - P_origin;
-                        //Draw P -> 4 points
-                        var p1 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
-                        var p2 = P_origin + (boneLength * bone_vec) + (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
-                        var p3 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) - (boneLength * bone_vec_z);
-                        var p4 = P_origin + (boneLength * bone_vec) - (boneLength * bone_vec_y) + (boneLength * bone_vec_z);
-                        DrawLine(P_origin, p1 ,c, 0);
-                        DrawLine(P_origin, p2, c, 0);
-                        DrawLine(P_origin, p3, c, 0);
-                        DrawLine(P_origin, p4, c, 0);
-
-                        DrawLine(p4, p1, c, 0);
-                        DrawLine(p1, p2, c, 0);
-                        DrawLine(p2, p3, c, 0);
-                        DrawLine(p3, p4, c, 0);
-
-                        DrawLine(C_origin, p1, c, 0);
-                        DrawLine(C_origin, p2, c, 0);
-                        DrawLine(C_origin, p3, c, 0);
-                        DrawLine(C_origin, p4, c, 0);
-                    }
-
-                    if (targetNodes[i].ParentIndex >= 0)
-                    {
-                        Vector3D actPos = boneTrans[i].getGlobalOrigin();
-                        if (boneDirDisplay || i == checkingBoneIndex)
-                        {
-                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneDirLength, 0, 0);
-                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneDirLength, 0);
-                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneDirLength);
-                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
-                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
-                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
-                        }
-
-                        if (targetNodes[i].FirstChildIndex >= 0)
-                        {
-                            Microsoft.Xna.Framework.Color c = boneColor;
-                            if (checkingBoneIndex == i)
-                            {
-                                c = Microsoft.Xna.Framework.Color.Yellow;
-                            }
-                            var targetBone = boneTrans[i];
-                            for (int j = 0; j < targetBone.children.Count; j++) {
-                                if (j < targetNodes.Count) {
-                                    var childTrans = targetBone.children[j];
-                                    //DrawLine(actPos, parentPos, c, 0.005f);
-                                    DrawBone(boneTrans[i], childTrans, c);
-                                }
-                            }
-                            
-                            
-                        }
-
-                    }
-                    else {
-                        Vector3D actPos = boneTrans[i].getGlobalOrigin();
-                        if (boneDirDisplay || i == checkingBoneIndex)
-                        {
-                            Vector3D offsetX = boneTrans[i].getGlobalOrigin(boneDirLength, 0, 0);
-                            Vector3D offsetY = boneTrans[i].getGlobalOrigin(0, boneDirLength, 0);
-                            Vector3D offsetZ = boneTrans[i].getGlobalOrigin(0, 0, boneDirLength);
-                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
-                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
-                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
-                        }
-                    }
-
-                }
-
-                
-            }
-
+            
 
 
             for (int i = 0; i < targetFlver.Dummies.Count && dummyDisplay; i++)
