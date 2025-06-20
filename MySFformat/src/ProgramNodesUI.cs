@@ -259,10 +259,6 @@ namespace MySFformat
 迁移夜环文件格式到法环版本。";
             legacyMenu.DropDownItems.Add(erPort);
 
-            bbbFixItem.ToolTipText = "Changing header version to ER and .\n" +
-"修改骨骼的bounding box问题。";
-            legacyMenu.DropDownItems.Add(bbbFixItem);
-
             // --- About Menu ---
             var aboutMenu = new ToolStripMenuItem("【About】");
             var aboutItem = new ToolStripMenuItem("About this program...", null, (s, e) => {
