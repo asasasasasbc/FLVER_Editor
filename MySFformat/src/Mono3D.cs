@@ -889,7 +889,6 @@ namespace MySFformat
                 contentTextBox.ScrollBars = ScrollBars.Vertical;
                 contentTextBox.Dock = DockStyle.Fill; // Fill the area above the button
                 contentTextBox.Text = content;
-                contentTextBox.Font = new Font("Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0))); // Monospaced font is good for data
                 contentTextBox.Select(0, 0); // Unselect text and prevent auto-scroll to end
 
                 // Create the Close Button
