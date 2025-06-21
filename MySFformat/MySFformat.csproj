@@ -118,6 +118,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\BasicTools.cs" />
+    <Compile Include="src\BonePoseEditorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="src\FbxBoneImporter.cs" />
     <Compile Include="src\FbxImportSettings.cs" />
     <Compile Include="src\IniParser.cs" />

@@ -45,6 +45,7 @@ namespace MySFformat
         public static Dictionary<String, String> boneParentList;
         public static List<FLVER.Vertex> vertices = new List<FLVER.Vertex>();
         public static Mono3D mono;
+        public static BonePoseEditorForm bonePoseEditorForm;
 
         public static string orgFileName = "";
 
@@ -272,6 +273,12 @@ namespace MySFformat
             }
 
             updateVertices();
+        }
+
+        public static void ExportPosesJson()
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            exportJson(serializer.Serialize(targetFlver.Nodes), "Pose.json", "Pose JSON exported successfully!");
         }
 
         public static void updateVertices()

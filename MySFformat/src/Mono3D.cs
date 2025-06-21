@@ -126,6 +126,46 @@ namespace MySFformat
             toggleTangentsItem.Checked = targetMode;
             Program.updateVertices();
         }
+
+        private void OpenBonePoseEditor()
+        {
+            if (Program.targetFlver == null || Program.targetFlver.Nodes.Count == 0)
+            {
+                System.Windows.Forms.MessageBox.Show("No FLVER loaded or no bones found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Ensure poseNodes is initialized
+            if (Program.poseNodes == null || Program.poseNodes.Count != Program.targetFlver.Nodes.Count)
+            {
+                Program.resetPoses();
+            }
+
+            // Use f.Invoke to ensure UI operations are on the main UI thread
+            Program.nodeUIForm.Invoke(new Action(() => {
+                if (Program.bonePoseEditorForm == null || Program.bonePoseEditorForm.IsDisposed)
+                {
+                    // Pass the original FLVER nodes and the *reference* to Program.poseNodes
+                    Program.bonePoseEditorForm = new BonePoseEditorForm(Program.targetFlver.Nodes, Program.poseNodes);
+                    Program.bonePoseEditorForm.OnPoseNeedsUpdate += () => {
+                        if (Program.poseDisplay) // Only update if pose display is active
+                        {
+                            Program.updateVertices();
+                        }
+                    };
+                    Program.bonePoseEditorForm.FormClosed += (s, ev) => { Program.bonePoseEditorForm = null; }; // Allow re-opening
+                }
+
+                if (!Program.bonePoseEditorForm.Visible)
+                {
+                    Program.bonePoseEditorForm.Show(); // Show as non-modal, owned by main game form
+                }
+                else
+                {
+                    Program.bonePoseEditorForm.BringToFront();
+                }
+            }));
+        }
         public Mono3D()
         {
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
@@ -271,13 +311,35 @@ namespace MySFformat
                     Program.LoadPosesJson();
                 }));
             };
+
+            var exportPoseItem = new ToolStripMenuItem("Export Pose");
+            exportPoseItem.ToolTipText = "Export modified poses to json file.\n" +
+"导出修改后的姿态json文件，以供以后读取。";
+            exportPoseItem.Click += (sender, e) => {
+                // 涉及到打开文件，得用主线程
+                Program.nodeUIForm.Invoke(new Action(() =>
+                {
+                    Program.ExportPosesJson();
+                }));
+            };
             togglePoseItem = new ToolStripMenuItem("Pose Display (P)");
             togglePoseItem.Checked = Program.poseDisplay;
             togglePoseItem.Click += (sender, e) => {
                 changePoseDisplay(!Program.poseDisplay);
-            }; 
+            };
+
+            // Inside the menu setup for 'animMenuItem'
+            ToolStripMenuItem editPoseItem = new ToolStripMenuItem("Edit Current Pose...");
+            editPoseItem.Click += (sender, e) => {
+                changePoseDisplayNoUpdate(true);
+                OpenBonePoseEditor();
+            };
+            
+
             animMenuItem.DropDownItems.Add(loadPoseItem);
+            animMenuItem.DropDownItems.Add(exportPoseItem);
             animMenuItem.DropDownItems.Add(togglePoseItem);
+            animMenuItem.DropDownItems.Add(editPoseItem);
 
             // 5. 将顶层菜单项添加到主菜单栏
             mainMenu.Items.Add(renderingMenuItem);
