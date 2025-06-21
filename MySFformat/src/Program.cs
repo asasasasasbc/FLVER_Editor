@@ -407,22 +407,23 @@ namespace MySFformat
                         DrawLine(C_origin, p3, c, 0);
                         DrawLine(C_origin, p4, c, 0);
                     }
+                    void DrawRing(Vector3D[] vectors, Microsoft.Xna.Framework.Color c)
+                    {
+                        for (var j = 0; j < vectors.Length;j++) {
+                            var start = vectors[j];
+                            var end = vectors[0];
+                            if (j + 1 < vectors.Length) {
+                                end = vectors[j + 1];
+                            }
+                            DrawLine(start, end, c, 0);
+                        }
+                        
+                    }
                     var tranMat = boneTransMats[i];
                     var targetTranform = boneTrans[i];
                     if (hasPose) { tranMat = poseTransMats[i]; targetTranform = poseTrans[i]; }
                     if (targetNodes[i].ParentIndex >= 0)
                     {
-                        Vector3D actPos = targetTranform.getGlobalOrigin();
-                        if (boneDirDisplay || i == checkingBoneIndex)
-                        {
-                            Vector3D offsetX = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(boneDirLength, 0, 0));
-                            Vector3D offsetY = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, boneDirLength, 0));
-                            Vector3D offsetZ = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, 0, boneDirLength));
-                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
-                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
-                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
-                        }
-
                         if (targetNodes[i].FirstChildIndex >= 0)
                         {
                             Microsoft.Xna.Framework.Color c = boneColor;
@@ -445,19 +446,28 @@ namespace MySFformat
                         }
 
                     }
-                    else
+                    //ActualPos
+                    Vector3D actPos = targetTranform.getGlobalOrigin();
+                    if (boneDirDisplay || i == checkingBoneIndex)
                     {
-                        Vector3D actPos = targetTranform.getGlobalOrigin();
-                        if (boneDirDisplay || i == checkingBoneIndex)
-                        {
-                            Vector3D offsetX = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(boneDirLength, 0, 0));
-                            Vector3D offsetY = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, boneDirLength, 0));
-                            Vector3D offsetZ = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, 0, boneDirLength));
-                            DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
-                            DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
-                            DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
-                        }
+                        Vector3D offsetX = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(boneDirLength, 0, 0));
+                        Vector3D offsetY = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, boneDirLength, 0));
+                        Vector3D offsetZ = Matrix3D.matrixTimesVector3D(tranMat, new Vector3D(0, 0, boneDirLength));
+                        DrawLine(actPos, offsetX, Microsoft.Xna.Framework.Color.OrangeRed, 0.01f);
+                        DrawLine(actPos, offsetY, Microsoft.Xna.Framework.Color.Yellow, 0.01f);
+                        DrawLine(actPos, offsetZ, Microsoft.Xna.Framework.Color.Blue, 0.01f);
                     }
+                    //Rotation circle
+                    if (i == checkingBoneIndex)
+                    {
+                        var cirlceZ = targetTranform.getRotCircleZ(boneDirLength);
+                        DrawRing(cirlceZ, Microsoft.Xna.Framework.Color.Blue);
+                        var cirlceY = targetTranform.getRotCircleY(boneDirLength);
+                        DrawRing(cirlceY, Microsoft.Xna.Framework.Color.Yellow);
+                        var cirlceX = targetTranform.getRotCircleX(boneDirLength);
+                        DrawRing(cirlceX, Microsoft.Xna.Framework.Color.Red);
+                    }
+
 
                 }
             }

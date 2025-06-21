@@ -301,7 +301,7 @@ namespace MySFformat
 
             //动画相关的子项
             var loadPoseItem = new ToolStripMenuItem("Load Pose");
-            loadPoseItem.ToolTipText = "Load modified Nodes.json to check bones' pose.\n" +
+            loadPoseItem.ToolTipText = "Load modified Pose/Nodes.json to check bones' pose.\n" +
 "读取修改后的json骨骼文件为动画姿态，以查看是否有骨骼权重等问题。";
             loadPoseItem.Click += (sender, e) => {
                 changePoseDisplayNoUpdate(true);
@@ -313,7 +313,7 @@ namespace MySFformat
             };
 
             var exportPoseItem = new ToolStripMenuItem("Export Pose");
-            exportPoseItem.ToolTipText = "Export modified poses to json file.\n" +
+            exportPoseItem.ToolTipText = "Export the modified pose to json file.\n" +
 "导出修改后的姿态json文件，以供以后读取。";
             exportPoseItem.Click += (sender, e) => {
                 // 涉及到打开文件，得用主线程
@@ -330,6 +330,8 @@ namespace MySFformat
 
             // Inside the menu setup for 'animMenuItem'
             ToolStripMenuItem editPoseItem = new ToolStripMenuItem("Edit Current Pose...");
+            editPoseItem.ToolTipText = "Open pose editor.\n" +
+"打开姿态编辑器。";
             editPoseItem.Click += (sender, e) => {
                 changePoseDisplayNoUpdate(true);
                 OpenBonePoseEditor();

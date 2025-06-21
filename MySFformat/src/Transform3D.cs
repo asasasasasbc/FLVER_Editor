@@ -118,7 +118,7 @@ namespace MySFformat
 
         
 
-        public Vector3D[] getRotCircleX()
+        public Vector3D[] getRotCircleX(float extraFactor=1)
         {
 
             Vector3D[] ans = new Vector3D[8];
@@ -148,7 +148,7 @@ namespace MySFformat
             if (rotOrder == RotationOrder.YZX) { factor = 0.7f; }
             if (rotOrder == RotationOrder.ZXY) { factor = 0.85f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 0.7f; }
-
+            factor *= extraFactor;
             foreach (var v in ans)
             {
                 v.X *= factor;
@@ -179,28 +179,12 @@ namespace MySFformat
 
             }
 
-
-            Transform3D parentT = null;
-
-            parentT = this.parent;
-            while (parentT != null)
-            {
-                Matrix3D rx = Matrix3D.generateRotXMatrix(parentT.rotation.X);
-                Matrix3D ry = Matrix3D.generateRotYMatrix(parentT.rotation.Y);
-                Matrix3D rz = Matrix3D.generateRotZMatrix(parentT.rotation.Z);
-                Matrix3D pos = Matrix3D.generateTranslationMatrix(parentT.position.X, parentT.position.Y, parentT.position.Z);
-
-
-                transMatrix = pos * (rx * (ry * (rz * transMatrix)));
-                parentT = parent.parent;
-            }
-
-
+            if (this.parent != null) { transMatrix = this.parent.getTransMatrix() * transMatrix; }
             for (int i = 0; i < ans.Length; i++) { ans[i] = Matrix3D.matrixTimesVector3D(transMatrix, ans[i]); }
             return ans;
         }
 
-        public Vector3D[] getRotCircleZ()
+        public Vector3D[] getRotCircleZ(float extraFactor = 1)
         {
 
             Vector3D[] ans = new Vector3D[8];
@@ -230,7 +214,7 @@ namespace MySFformat
             if (rotOrder == RotationOrder.YZX) { factor = 0.85f; }
             if (rotOrder == RotationOrder.ZXY) { factor = 1f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 1f; }
-
+            factor *= extraFactor;
             foreach (var v in ans)
             {
                 v.X *= factor;
@@ -259,28 +243,12 @@ namespace MySFformat
 
             }
 
-
-            Transform3D parentT = null;
-
-            parentT = this.parent;
-            while (parentT != null)
-            {
-                Matrix3D rx = Matrix3D.generateRotXMatrix(parentT.rotation.X);
-                Matrix3D ry = Matrix3D.generateRotYMatrix(parentT.rotation.Y);
-                Matrix3D rz = Matrix3D.generateRotZMatrix(parentT.rotation.Z);
-                Matrix3D pos = Matrix3D.generateTranslationMatrix(parentT.position.X, parentT.position.Y, parentT.position.Z);
-
-
-                transMatrix = pos * (rx * (ry * (rz * transMatrix)));
-                parentT = parent.parent;
-            }
-
-
+            if (this.parent != null) { transMatrix = this.parent.getTransMatrix() * transMatrix; }
             for (int i = 0; i < ans.Length; i++) { ans[i] = Matrix3D.matrixTimesVector3D(transMatrix, ans[i]); }
             return ans;
         }
 
-        public Vector3D[] getRotCircleY()
+        public Vector3D[] getRotCircleY(float extraFactor = 1)
         {
 
             Vector3D[] ans = new Vector3D[8];
@@ -311,7 +279,7 @@ namespace MySFformat
             if (rotOrder == RotationOrder.YZX) { factor = 1f; }
             if (rotOrder == RotationOrder.ZXY) { factor = 0.7f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 0.85f; }
-
+            factor *= extraFactor;
             foreach (var v in ans)
             {
                 v.X *= factor;
@@ -342,22 +310,7 @@ namespace MySFformat
             }
 
 
-            Transform3D parentT = null;
-
-            parentT = this.parent;
-            while (parentT != null)
-            {
-                Matrix3D rx = Matrix3D.generateRotXMatrix(parentT.rotation.X);
-                Matrix3D ry = Matrix3D.generateRotYMatrix(parentT.rotation.Y);
-                Matrix3D rz = Matrix3D.generateRotZMatrix(parentT.rotation.Z);
-                Matrix3D pos = Matrix3D.generateTranslationMatrix(parentT.position.X, parentT.position.Y, parentT.position.Z);
-
-
-                transMatrix = pos * (rx * (ry * (rz * transMatrix)));
-                parentT = parent.parent;
-            }
-
-
+            if (this.parent != null) { transMatrix = this.parent.getTransMatrix() * transMatrix; }
             for (int i = 0; i < ans.Length; i++) { ans[i] = Matrix3D.matrixTimesVector3D(transMatrix, ans[i]); }
             return ans;
         }
