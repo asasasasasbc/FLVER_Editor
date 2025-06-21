@@ -16,17 +16,251 @@ using MeshIO.Entities.Geometries.Layers;
 using MeshIO.Entities.Skinning;
 using MeshIO.FBX;
 using System.IO;
+using System.Numerics;
 
 namespace MySFformat
 {
+    public static class FSEulerAngleConverter
+    {
+        private const float Deg2Rad = (float)(Math.PI / 180.0);
+        private const float Rad2Deg = (float)(180.0 / Math.PI);
+        // Threshold for gimbal lock detection (when sin of middle angle is close to +/-1)
+        private const float GimbalLockThreshold = 0.99999f; // Slightly less than 1.0
 
+        public static RotationOrder inverse(RotationOrder r) {
+            if (r == RotationOrder.XYZ) { return RotationOrder.ZYX; }
+            if (r == RotationOrder.XZY) { return RotationOrder.YZX; }
+            if (r == RotationOrder.YXZ) { return RotationOrder.ZXY; }
+            if (r == RotationOrder.YZX) { return RotationOrder.XZY; }
+            if (r == RotationOrder.ZXY) { return RotationOrder.YXZ; }
+            if (r == RotationOrder.ZYX) { return RotationOrder.XYZ; }
+            return RotationOrder.XYZ;
+        }
+
+        /// <summary>
+        /// Converts Euler angles from one rotation order to another, robustly handling gimbal lock.
+        /// </summary>
+        /// <param name="eulerAnglesDegrees">Input Euler angles in degrees.</param>
+        /// <param name="inputOrder">Rotation order of the input Euler angles.</param>
+        /// <param name="outputOrder">Desired rotation order for the output Euler angles.</param>
+        /// <returns>Euler angles in degrees in the specified output order.</returns>
+        public static MyVector3 ConvertRotationOrder(MyVector3 eulerAnglesDegrees, RotationOrder inputOrder, RotationOrder outputOrder)
+        {
+            //Have to inverse RotationOrder because row-major and col-major difference, outside of this function use col-major
+            //Inside uses row-major(Which is FBX's rotation order definition)
+            inputOrder = inverse(inputOrder);
+            outputOrder = inverse(outputOrder);
+            // Convert MyVector3 to System.Numerics.Vector3 for calculations
+            Vector3 eulerDegreesVecNum = new Vector3(eulerAnglesDegrees.X, eulerAnglesDegrees.Y, eulerAnglesDegrees.Z);
+
+            // 1. Convert input Euler angles (specific order) to Quaternion
+            System.Numerics.Quaternion totalRotation = EulerToQuaternion(eulerDegreesVecNum, inputOrder);
+
+            // 2. Convert Quaternion to output Euler angles (specific order)
+            Vector3 outputEulerDegreesVecNum = QuaternionToEuler(totalRotation, outputOrder);
+
+            // Convert System.Numerics.Vector3 back to MyVector3
+            return new MyVector3(outputEulerDegreesVecNum.X, outputEulerDegreesVecNum.Y, outputEulerDegreesVecNum.Z);
+        }
+
+        /// <summary>
+        /// Converts Euler angles (in degrees) of a specific order to a Quaternion.
+        /// Assumes intrinsic rotations (rotations around the object's own axes).
+        /// </summary>
+        private static System.Numerics.Quaternion EulerToQuaternion(Vector3 eulerDegrees, RotationOrder order)
+        {
+            Vector3 eulerRadians = eulerDegrees * Deg2Rad;
+            float x = eulerRadians.X;
+            float y = eulerRadians.Y;
+            float z = eulerRadians.Z;
+
+            System.Numerics.Quaternion qX = System.Numerics.Quaternion.CreateFromAxisAngle(Vector3.UnitX, x);
+            System.Numerics.Quaternion qY = System.Numerics.Quaternion.CreateFromAxisAngle(Vector3.UnitY, y);
+            System.Numerics.Quaternion qZ = System.Numerics.Quaternion.CreateFromAxisAngle(Vector3.UnitZ, z);
+
+            // Intrinsic rotations: apply in order, so quaternion multiplication is in reverse order.
+            // E.g., for XYZ order, it's R = Rz * Ry * Rx (rotate by X, then new Y, then new Z)
+            // System.Numerics.Quaternion multiplication is applied left-to-right (q2 * q1 means q1 then q2)
+            // So for intrinsic R = Rz * Ry * Rx, we need Qfinal = Qz * Qy * Qx
+            switch (order)
+            {
+                case RotationOrder.XYZ: // Rz(R_y(R_x))
+                    return qZ * qY * qX;
+                case RotationOrder.XZY: // Ry(R_z(R_x))
+                    return qY * qZ * qX;
+                case RotationOrder.YXZ: // Rz(R_x(R_y))
+                    return qZ * qX * qY;
+                case RotationOrder.YZX: // Rx(R_z(R_y))  <- Your flverOrder
+                    return qX * qZ * qY;
+                case RotationOrder.ZXY: // Ry(R_x(R_z))
+                    return qY * qX * qZ;
+                case RotationOrder.ZYX: // Rx(R_y(R_z))  <- Your fbxOrder
+                    return qX * qY * qZ;
+                default:
+                    throw new ArgumentException("Unsupported input rotation order.", nameof(order));
+            }
+        }
+
+        /// <summary>
+        /// Converts a Quaternion to Euler angles (in degrees) of a specific order.
+        /// Handles gimbal lock robustly.
+        /// Formulas adapted from various sources, e.g., Ken Shoemake "Euler Angle Conversion",
+        /// and http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+        /// System.Numerics.Quaternion is (X, Y, Z, W).
+        /// </summary>
+        private static Vector3 QuaternionToEuler(System.Numerics.Quaternion q, RotationOrder order)
+        {
+            // Normalize the quaternion to ensure W is positive if possible, for consistency.
+            // While not strictly necessary for math, it can avoid some alternative representations
+            // that are equivalent but might differ by 2*PI or sign flips.
+            // For System.Numerics.Quaternion, this is less of an issue than with manual math.
+            // q = Quaternion.Normalize(q); // Normalization is good if q might not be unit.
+            // If W is negative, q and -q represent the same rotation.
+            // Negating q (if W < 0) can sometimes lead to more "canonical" Euler angles.
+            if (q.W < 0)
+            {
+                q = System.Numerics.Quaternion.Negate(q); // Flips all components
+            }
+
+
+            float xRad = 0, yRad = 0, zRad = 0;
+
+            // Common components from quaternion for direct extraction
+            float qx = q.X;
+            float qy = q.Y;
+            float qz = q.Z;
+            float qw = q.W;
+
+            // Pre-calculate squared terms
+            float qx2 = qx * qx;
+            float qy2 = qy * qy;
+            float qz2 = qz * qz;
+            // float qw2 = qw * qw; // Not always needed directly
+
+            switch (order)
+            {
+                case RotationOrder.XYZ: // Roll (X), Pitch (Y), Yaw (Z)
+                    {
+                        float sinPitch = 2.0f * (qw * qy - qx * qz);
+                        if (Math.Abs(sinPitch) > GimbalLockThreshold) // Gimbal lock
+                        {
+                            yRad = Math.Sign(sinPitch) * (float)(Math.PI / 2.0); // Pitch = +/- 90 deg
+                            xRad = 0; // Conventionally, set Roll to 0
+                            zRad = Math.Sign(sinPitch) * 2.0f * (float)Math.Atan2(qx, qw); // Yaw absorbs
+                        }
+                        else
+                        {
+                            yRad = (float)Math.Asin(sinPitch);
+                            xRad = (float)Math.Atan2(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx2 + qy2));
+                            zRad = (float)Math.Atan2(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qy2 + qz2));
+                        }
+                    }
+                    break;
+
+                case RotationOrder.XZY: // X, then Z, then Y
+                    {
+                        float sinZ = 2.0f * (qw * qz + qx * qy);
+                        if (Math.Abs(sinZ) > GimbalLockThreshold)
+                        {
+                            zRad = Math.Sign(sinZ) * (float)(Math.PI / 2.0);
+                            xRad = 0; // Convention
+                            yRad = Math.Sign(sinZ) * 2.0f * (float)Math.Atan2(qy, qw); // Y absorbs
+                        }
+                        else
+                        {
+                            zRad = (float)Math.Asin(sinZ);
+                            xRad = (float)Math.Atan2(2.0f * (qw * qx - qy * qz), 1.0f - 2.0f * (qx2 + qz2));
+                            yRad = (float)Math.Atan2(2.0f * (qw * qy - qx * qz), 1.0f - 2.0f * (qy2 + qz2));
+                        }
+                    }
+                    break;
+
+                case RotationOrder.YXZ: // Y, then X, then Z
+                    {
+                        float sinX = 2.0f * (qw * qx + qy * qz);
+                        if (Math.Abs(sinX) > GimbalLockThreshold)
+                        {
+                            xRad = Math.Sign(sinX) * (float)(Math.PI / 2.0);
+                            yRad = 0; // Convention
+                            zRad = Math.Sign(sinX) * 2.0f * (float)Math.Atan2(qz, qw); // Z absorbs
+                        }
+                        else
+                        {
+                            xRad = (float)Math.Asin(sinX);
+                            yRad = (float)Math.Atan2(2.0f * (qw * qy - qx * qz), 1.0f - 2.0f * (qy2 + qx2));
+                            zRad = (float)Math.Atan2(2.0f * (qw * qz - qx * qy), 1.0f - 2.0f * (qz2 + qx2));
+                        }
+                    }
+                    break;
+
+                case RotationOrder.YZX: // Y, then Z, then X  <- Your flverOrder
+                    {
+                        float sinZ = 2.0f * (qw * qz - qx * qy); // Note sign change vs XZY due to order
+                        if (Math.Abs(sinZ) > GimbalLockThreshold)
+                        {
+                            zRad = Math.Sign(sinZ) * (float)(Math.PI / 2.0);
+                            yRad = 0; // Convention
+                            xRad = Math.Sign(sinZ) * 2.0f * (float)Math.Atan2(qx, qw); // X absorbs
+                        }
+                        else
+                        {
+                            zRad = (float)Math.Asin(sinZ);
+                            yRad = (float)Math.Atan2(2.0f * (qw * qy + qx * qz), 1.0f - 2.0f * (qy2 + qz2));
+                            xRad = (float)Math.Atan2(2.0f * (qw * qx + qy * qz), 1.0f - 2.0f * (qx2 + qz2));
+                        }
+                    }
+                    break;
+
+                case RotationOrder.ZXY: // Z, then X, then Y
+                    {
+                        float sinX = 2.0f * (qw * qx - qy * qz); // Note sign change
+                        if (Math.Abs(sinX) > GimbalLockThreshold)
+                        {
+                            xRad = Math.Sign(sinX) * (float)(Math.PI / 2.0);
+                            zRad = 0; // Convention
+                            yRad = Math.Sign(sinX) * 2.0f * (float)Math.Atan2(qy, qw); // Y absorbs
+                        }
+                        else
+                        {
+                            xRad = (float)Math.Asin(sinX);
+                            zRad = (float)Math.Atan2(2.0f * (qw * qz + qx * qy), 1.0f - 2.0f * (qz2 + qx2));
+                            yRad = (float)Math.Atan2(2.0f * (qw * qy + qx * qz), 1.0f - 2.0f * (qy2 + qx2));
+                        }
+                    }
+                    break;
+
+                case RotationOrder.ZYX: // Z, then Y, then X  <- Your fbxOrder
+                    {
+                        float sinY = 2.0f * (qw * qy + qx * qz); // Note sign change vs XYZ
+                        if (Math.Abs(sinY) > GimbalLockThreshold)
+                        {
+                            yRad = Math.Sign(sinY) * (float)(Math.PI / 2.0);
+                            zRad = 0; // Convention
+                            xRad = Math.Sign(sinY) * 2.0f * (float)Math.Atan2(qx, qw); // X absorbs
+                        }
+                        else
+                        {
+                            yRad = (float)Math.Asin(sinY);
+                            zRad = (float)Math.Atan2(2.0f * (qw * qz - qx * qy), 1.0f - 2.0f * (qy2 + qz2));
+                            xRad = (float)Math.Atan2(2.0f * (qw * qx - qy * qz), 1.0f - 2.0f * (qx2 + qy2));
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new ArgumentException("Unsupported output rotation order.", nameof(order));
+            }
+
+            return new Vector3(xRad * Rad2Deg, yRad * Rad2Deg, zRad * Rad2Deg);
+        }
+    }
     public static class FlverFbxRotationHelper
     {
         // FLVER typically uses YZX Euler order, radians.
         // FBX typically uses XYZ Euler order, degrees.
         // This helper converts from FLVER's YZX radians to FBX's XYZ degrees
         // AND applies the Z-axis mirror for rotations.
-        public static XYZ FlverRotationToFbxEulerDegrees(System.Numerics.Vector3 flverRotationRadians)
+        public static XYZ FlverRotationToFbxEulerDegrees(System.Numerics.Vector3 flverRotationRadians, bool debug=false)
         {
             // Convert radians to degrees first
             float xRad = flverRotationRadians.X;
@@ -39,11 +273,16 @@ namespace MySFformat
 
             // Input angles are in YZX order (as per FLVER convention)
             MyVector3 inputAnglesDeg = new MyVector3(xDeg, yDeg, zDeg);
-            MeshIO.FBX.Helpers.RotationOrder flverOrder = MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard
-            MeshIO.FBX.Helpers.RotationOrder fbxOrder = MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
-
-            var convertedAngles = EulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
-
+            RotationOrder flverOrder = RotationOrder.YZX; // FLVER standard [YZX]
+            RotationOrder fbxOrder = RotationOrder.ZYX;   // Common FBX target [ZYX]
+            if (debug) {
+                Console.WriteLine($"Raw degree {xRad} {yRad} {zRad}");
+            }
+            var convertedAngles = FSEulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
+            if (debug)
+            {
+                Console.WriteLine($"Converted Raw degree {convertedAngles}");
+            }
             // Apply mirroring for coordinate system difference (Z-axis flip for positions implies this for rotations)
             // If positions are (X, Y, -Z), rotations around X and Y effectively flip, Z stays.
             return new XYZ(
@@ -172,12 +411,15 @@ namespace MySFformat
             {
                 try
                 {
+                    int fbxRotOrder = 1;
                     MeshIO.Scene mioScene = new MeshIO.Scene { Name = Path.GetFileNameWithoutExtension(saveFileDialog.FileName) + "_Scene" };
                     mioScene.RootNode.GetIdOrDefault(); // Ensure scene root has an ID
-
+                    
+                    //mioScene.Properties.Add(new Property<int>("RotationOrder", 1)); // Not working for blender
                     // 1. Create Armature Root
                     MeshIO.Entities.Bone armatureRootNode = new MeshIO.Entities.Bone("Armature") { IsSkeletonRoot = true };
                     armatureRootNode.GetIdOrDefault();
+                    //armatureRootNode.Properties.Add(new Property<int>("RotationOrder", 1)); // Not working for blender
                     mioScene.RootNode.AddChildNode(armatureRootNode);
 
                     // 2. Process FLVER Nodes (Bones)
@@ -194,10 +436,12 @@ namespace MySFformat
 
                         // FLVER Rotation: System.Numerics.Vector3, Euler angles in radians, YZX order
                         // MeshIO.Entities.Bone.Transform.EulerRotation expects degrees.
-                        mioBone.Transform.EulerRotation = FlverFbxRotationHelper.FlverRotationToFbxEulerDegrees(flverNode.Rotation);
-
+                        
+                        mioBone.Transform.EulerRotation = FlverFbxRotationHelper.FlverRotationToFbxEulerDegrees(flverNode.Rotation, false);
+                        Console.WriteLine($"{flverNode.Name}:{flverNode.Rotation}>{mioBone.Transform.EulerRotation}");
                         mioBone.Transform.Scale = new XYZ(flverNode.Scale.X, flverNode.Scale.Y, flverNode.Scale.Z);
-                        mioBone.Properties.Add(new Property<int>("RotationOrder", 0));
+                        //mioBone.Properties.Add(new Property<int>("RotationOrder", 1)); // Not working for blender
+
                         // Set FBX SDK specific rotation order property if needed by importer (MeshIO might handle this via EulerRotation setter)
                         // FbxWriter for Bone might automatically use the order from EulerRotation if it's smart,
                         // or you might need to set a custom property if MeshIO supports reading it for FBX export.

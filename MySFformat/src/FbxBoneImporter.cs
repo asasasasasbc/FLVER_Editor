@@ -54,7 +54,7 @@ namespace MySFformat
             foreach (var child in startNode.Children)
             {
                 remapMatrix = CreateRemapMatrix(settings);
-                Console.WriteLine($"Remap matrix: {remapMatrix.ToString()}");
+                //Console.WriteLine($"Remap matrix: {remapMatrix.ToString()}");
                 inverseRemapMatrix = new Matrix4x4(remapMatrix);
                 inverseRemapMatrix.Inverse();
                 RecursiveProcessNodes(child, -1, assimpNodes, flverNodes, nodeMapping, remapMatrix, inverseRemapMatrix);
@@ -245,10 +245,10 @@ namespace MySFformat
 
             // Input angles are in YZX order (as per FLVER convention)
             MeshIO.FBX.Helpers.MyVector3 inputAnglesDeg = new MeshIO.FBX.Helpers.MyVector3(xDeg, yDeg, zDeg);
-            MeshIO.FBX.Helpers.RotationOrder flverOrder = MeshIO.FBX.Helpers.RotationOrder.YZX; // FLVER standard ()
-            MeshIO.FBX.Helpers.RotationOrder fbxOrder = MeshIO.FBX.Helpers.RotationOrder.ZYX;   // Common FBX target
+            RotationOrder flverOrder = RotationOrder.YZX; // FLVER standard ()
+            RotationOrder fbxOrder = RotationOrder.ZYX;   // Common FBX target
 
-            var convertedAngles = MeshIO.FBX.Helpers.EulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
+            var convertedAngles = FSEulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
 
             // Apply mirroring for coordinate system difference (Z-axis flip for positions implies this for rotations)
             // If positions are (X, Y, -Z), rotations around X and Y effectively flip, Z stays.
