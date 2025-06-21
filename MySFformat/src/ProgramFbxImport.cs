@@ -131,6 +131,7 @@ namespace MySFformat
                     }
                 }
                 Program.ForceRefreshNodes();
+                resetPoses();
                 if (settings.ImportBonesOnly) 
                 {
                     MessageBox.Show("New bones imported(Your existing mesh's bone weight may be messed up!) Please click modify to save it!");

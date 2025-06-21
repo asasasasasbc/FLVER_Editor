@@ -83,6 +83,7 @@ namespace MySFformat
             }
 
             targetFlver = b;
+            resetPoses();
 
             // --- Launch 3D Viewer Thread ---
             new System.Threading.Thread(() =>
@@ -535,6 +536,7 @@ namespace MySFformat
                 targetFlver.Nodes[i].FirstChildIndex = short.Parse(boneChildCellList[i].Value.ToString());
             }
             autoBackUp();
+            resetPoses();
             targetFlver.Write(flverName);
             MessageBox.Show("Node modification finished.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -548,6 +550,7 @@ namespace MySFformat
                 targetFlver.Nodes = serializer.Deserialize<List<FLVER.Node>>(tbones.Text);
                 targetFlver.Header = serializer.Deserialize<FLVER2.FLVERHeader>(tbones2.Text);
                 autoBackUp();
+                resetPoses();
                 targetFlver.Write(flverName);
                 MessageBox.Show("JSON modifications saved! Please restart the program to see all changes.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -574,6 +577,7 @@ namespace MySFformat
                     }
 
                     targetFlver.Nodes = newNodes;
+                    resetPoses();
                     autoBackUp();
                     targetFlver.Write(flverName);
                     MessageBox.Show("New bones loaded! Please restart the program to see all changes.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -714,7 +718,7 @@ namespace MySFformat
                 }
             }
 
-
+            resetPoses();
             autoBackUp(); targetFlver.Write(flverName);
 
             MessageBox.Show("BB pelvis bone fix completed! Please exit the program!", "Info");

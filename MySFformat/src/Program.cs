@@ -141,9 +141,10 @@ namespace MySFformat
         // Added dummy export json button
         // Tangent manipulation: W inverse
         // Make [Import and override bone only] button more clear.
+        // NR->ER flver files porting- advanced cloth physics retain feature
+        // Probably requires some shader to work properly? or just use M.reset
 
         //X2 TODO List:
-
         //  importing new skeletons without changing exisitng bones hierarchy
         // Core function: make sure tangent calculation is correct and useable
         // Pipeline check: FLVER editor fbx export -> blender editing -> reimport back to FLVER
@@ -154,8 +155,8 @@ namespace MySFformat
         // exporting dummypolys
         // exporting with axis convertsion
         // 3dsmax support
-        // NR->ER flver files porting- advanced cloth physics retain feature
-        // Probably requires some shader to work properly? or just use M.reset
+
+
         // Fixing bone importing function's ipreviousSibling not found issue
         // Bone's BoundingBox calculation issues
         // Bone manipulation, etc. mirroring rotation/ +180degree
@@ -237,6 +238,14 @@ namespace MySFformat
 
         }
 
+        //Reset poses data to default
+        public static void resetPoses() {
+            poseNodes.Clear();
+            foreach (var node in targetFlver.Nodes) {
+                FLVER.Node new_node = new FLVER.Node(node);
+                poseNodes.Add(new_node);
+            }
+        }
 
         public static void LoadPosesJson()
         {
