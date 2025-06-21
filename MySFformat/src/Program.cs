@@ -482,52 +482,70 @@ namespace MySFformat
 
 
                 bool renderBackFace = false;
+                Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);
+                light.Normalize();
                 if (targetFlver.Meshes[i].FaceSets.Count > 0)
                 {
                     if (targetFlver.Meshes[i].FaceSets[0].CullBackfaces == false) { renderBackFace = true; }
                 }
-                foreach (FLVER.Vertex[] vl in targetFlver.Meshes[i].GetFaces())
+                var faces = targetFlver.Meshes[i].GetFaces();
+                for (var fi = 0; fi < faces.Count;fi++)
                 {
+                    var vl = faces[fi];
                     var tvl = vl;
+                    Vector3[] ps = new Vector3[3];
+                    ps[0] = vl[0].Position;
+                    ps[1] = vl[1].Position;
+                    ps[2] = vl[2].Position;
                     //为了优化下PoseTransform
                     if (boneITransMats.Count == targetFlver.Nodes.Count && poseDisplay) {
-                        var convertedVl = new FLVER.Vertex[3];
-                        for (var j = 0; j < 3; j++)
+                        for (var j =0; j < 3;j++)
                         {
-                            // 计算下顶点的实际位置
-                            var v = vl[j];
-                            convertedVl[j] = new FLVER.Vertex(v);
-
+                            var v = vl[j]; 
                             var orgPos = new Vector3D(v.Position.X, v.Position.Y, v.Position.Z);
-                            var finalPos = new Vector3D();
-                            // for each bone
+                            var finalPos = new Vector3D(); 
                             float restBoneWeight = 1.0f;
-                            for (var k = 0; k < 4; k++)
+                            // 内层骨骼权重循环
+                            for (var k = 0; k < 4; k++) 
                             {
-                                var boneIndex = v.BoneIndices[k];
+                                Int32 boneIndex = v.BoneIndices[k];
                                 float boneWeight = v.BoneWeights[k];
+                                // 安全检查 boneIndex
+                                if (boneIndex < 0 || boneIndex >= boneITransMats.Count)
+                                {
+                                    if (boneWeight == 0f) continue;
+                                    if (boneWeight != 0)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"Warning: Invalid boneIndex {boneIndex} for vertex. Skipping.");
+                                        continue;
+                                    }
+                                }
+                                if (boneWeight == 0f) continue; // Optimzie Skip zero bone weight
+
                                 if (boneWeight < 0) { boneWeight += 1; }
                                 restBoneWeight -= boneWeight;
-                                // Final Pos = MatT*(MatTi * V)
-                                var bonePos = Matrix3D.matrixTimesVector3D(boneITransMats[boneIndex], orgPos);
-                                var transMat = boneTransMats[boneIndex];
-                                if (hasPose) { transMat = poseTransMats[boneIndex]; }
-                                finalPos += boneWeight * Matrix3D.matrixTimesVector3D(transMat, bonePos);
+
+                                var boneITransMat = boneITransMats[boneIndex]; // Inverse bind pose matrix
+                                var transMat = hasPose ? poseTransMats[boneIndex] : boneTransMats[boneIndex]; // Current pose matrix
+
+                                var vertInBoneSpace = Matrix3D.matrixTimesVector3D(boneITransMat, orgPos);
+                                var posedVertContribution = Matrix3D.matrixTimesVector3D(transMat, vertInBoneSpace);
+
+                                finalPos.X += boneWeight * posedVertContribution.X;
+                                finalPos.Y += boneWeight * posedVertContribution.Y;
+                                finalPos.Z += boneWeight * posedVertContribution.Z;
                             }
-                            if (restBoneWeight > 0f)
+
+                            if (restBoneWeight > 0.0001f)
                             {
-                                finalPos += restBoneWeight * orgPos;
+                                finalPos.X += restBoneWeight * orgPos.X;
+                                finalPos.Y += restBoneWeight * orgPos.Y;
+                                finalPos.Z += restBoneWeight * orgPos.Z;
                             }
-                            convertedVl[j].Position = finalPos.toNumV3();
+                            ps[j] = finalPos.toNumV3();
                         }
-                        tvl = convertedVl; // target vertex list
-
-
                     }
                     
-
-
-
                     Microsoft.Xna.Framework.Color cline = Microsoft.Xna.Framework.Color.Black;
                     if (useCheckingMesh && checkingMeshNum == i)
                     {
@@ -535,21 +553,20 @@ namespace MySFformat
                         cline.R = 255;
                     }
                     cline.A = 125;
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), cline));
-                    ans.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[1]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[0]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[2]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[1]), cline));
+                    ans.Add(new VertexPositionColor(toXnaV3XZY(ps[2]), cline));
 
                     Microsoft.Xna.Framework.Color c = new Microsoft.Xna.Framework.Color();
 
-                    Microsoft.Xna.Framework.Vector3 va = toXnaV3(tvl[1].Position) - toXnaV3(tvl[0].Position);
-                    Microsoft.Xna.Framework.Vector3 vb = toXnaV3(tvl[2].Position) - toXnaV3(tvl[0].Position);
+                    Microsoft.Xna.Framework.Vector3 va = toXnaV3(ps[1]) - toXnaV3(ps[0]);
+                    Microsoft.Xna.Framework.Vector3 vb = toXnaV3(ps[2]) - toXnaV3(ps[0]);
                     Microsoft.Xna.Framework.Vector3 vnromal = crossPorduct(va, vb);
                     vnromal.Normalize();
-                    Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);
-                    light.Normalize();
+                    
                     float theta = dotProduct(vnromal, light);
                     int value = 125 + (int)(125 * theta);
                     if (value > 255) { value = 255; }
@@ -563,16 +580,16 @@ namespace MySFformat
                     {
                         c.B = 0;
                     }
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), c));
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), c));
-                    triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[0]), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[2]), c));
+                    triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[1]), c));
 
                     if (loadTexture)
                     {
                         if (tvl[0].UVs.Count > 0) { // Avoid UV display error
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[0].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[2].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[1].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[0]), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[2]), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[1]), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
                         }
                     }
 
@@ -580,16 +597,16 @@ namespace MySFformat
 
                     if (renderBackFace)
                     {
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[0].Position), c));
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[1].Position), c));
-                        triangles.Add(new VertexPositionColor(toXnaV3XZY(tvl[2].Position), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[0]), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[1]), c));
+                        triangles.Add(new VertexPositionColor(toXnaV3XZY(ps[2]), c));
 
 
                         if (loadTexture)
                         {
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[0].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[1].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
-                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(tvl[2].Position), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[0]), c, new Microsoft.Xna.Framework.Vector2(tvl[0].UVs[0].X, tvl[0].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[1]), c, new Microsoft.Xna.Framework.Vector2(tvl[1].UVs[0].X, tvl[1].UVs[0].Y)));
+                            textureTriangles.Add(new VertexPositionColorTexture(toXnaV3XZY(ps[2]), c, new Microsoft.Xna.Framework.Vector2(tvl[2].UVs[0].X, tvl[2].UVs[0].Y)));
 
                         }
 
@@ -638,8 +655,7 @@ namespace MySFformat
 
             for (int i = 0;i < bonePosList.Length;i++)
             {
-                bonePosList[i] = null;
-
+                bonePosList[i] = new Vector3D();
             }
             
 
@@ -705,250 +721,7 @@ namespace MySFformat
             throw new NotImplementedException();
         }
 
-        static void dummies()
-        {
-            Form f = new Form();
-            f.Text = "Dummies";
-            Panel p = new Panel();
-            int currentY2 = 10;
-            p.AutoScroll = true;
-            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            string dummyStr = File.ReadAllText(assemblyPath + "\\dummyInfo.dll");
-            List<FLVER.Dummy> refDummy = new JavaScriptSerializer().Deserialize<List<FLVER.Dummy>>(dummyStr);
-
-            //Console.WriteLine(dummyStr);
-
-            f.Controls.Add(p);
-            {
-                Label l = new Label();
-                l.Text = "Choose # to translate:";
-                l.Size = new System.Drawing.Size(150, 15);
-                l.Location = new System.Drawing.Point(10, currentY2 + 5);
-                p.Controls.Add(l);
-            }
-            currentY2 += 20;
-
-            TextBox t = new TextBox();
-            t.Size = new System.Drawing.Size(60, 15);
-            t.Location = new System.Drawing.Point(10, currentY2 + 5);
-            t.Text = "-1";
-            p.Controls.Add(t);
-
-
-            TextBox tref = new TextBox();
-            ;
-            tref.Size = new System.Drawing.Size(100, 15);
-            tref.Location = new System.Drawing.Point(150, currentY2 + 5);
-            tref.Text = "";
-            tref.ReadOnly = true;
-            p.Controls.Add(tref);
-
-
-            Button buttonCheck = new Button();
-           ButtonTips("Check the dummy point by the index you typed, the chosen point will be displayed with a white X.\n" +
-                "按照你输入的序列数找到对应的辅助点，辅助点会以白色的X显示。", buttonCheck);
-            buttonCheck.Text = "Check";
-            buttonCheck.Location = new System.Drawing.Point(70, currentY2 + 5);
-            buttonCheck.Click += (s, e) => {
-                int i = int.Parse(t.Text);
-                if (i >= 0 && i < targetFlver.Dummies.Count)
-                {
-
-                    useCheckingPoint = true;
-                    checkingPointHasTangent = false;
-                    checkingPoint = new Vector3(targetFlver.Dummies[i].Position.X, targetFlver.Dummies[i].Position.Y, targetFlver.Dummies[i].Position.Z);
-                    checkingPointNormal = new Vector3(targetFlver.Dummies[i].Forward.X * 0.2f, targetFlver.Dummies[i].Forward.Y*0.2f, targetFlver.Dummies[i].Forward.Z*0.2f);
-
-                    tref.Text = "RefID:" + targetFlver.Dummies[i].ReferenceID;
-                    updateVertices();
-                }
-                else
-                {
-
-                    MessageBox.Show("Invalid modification value!");
-                }
-
-            };
-            p.Controls.Add(buttonCheck);
-
-
-            currentY2 += 25;
-
-            Label ltip = new Label();
-
-            ltip.Location = new System.Drawing.Point(10, currentY2 + 5);
-            ltip.Size = new System.Drawing.Size(200, 15);
-            ltip.Text = "Translate value (x,y,z):";
-            p.Controls.Add(ltip);
-
-            currentY2 += 20;
-
-            TextBox tX = new TextBox();
-            tX.Size = new System.Drawing.Size(60, 15);
-            tX.Location = new System.Drawing.Point(10, currentY2 + 5);
-            tX.Text = "0";
-            p.Controls.Add(tX);
-
-
-            TextBox tY = new TextBox();
-            tY.Size = new System.Drawing.Size(60, 15);
-            tY.Location = new System.Drawing.Point(70, currentY2 + 5);
-            tY.Text = "0";
-            p.Controls.Add(tY);
-
-            TextBox tZ = new TextBox();
-            tZ.Size = new System.Drawing.Size(60, 15);
-            tZ.Location = new System.Drawing.Point(130, currentY2 + 5);
-            tZ.Text = "0";
-            p.Controls.Add(tZ);
-
-
-            currentY2 += 20;
-
-
-            var serializer = new JavaScriptSerializer();
-            string serializedResult = serializer.Serialize(targetFlver.Dummies);
-
-
-            TextBox tbones = new TextBox();
-            tbones.Multiline = true;
-            tbones.Size = new System.Drawing.Size(670, 600);
-            tbones.Location = new System.Drawing.Point(10, currentY2 + 20);
-            tbones.Text = serializedResult;
-
-            p.Controls.Add(tbones);
-
-            Button button = new Button();
-           ButtonTips("Translate the point you chosen and save to flver file.\n" +
-                "移动你所选择的辅助点，然后保存移动后的信息至Flver文件内。", button);
-            button.Text = "Modify";
-            button.Location = new System.Drawing.Point(650, 50);
-            button.Click += (s, e) => {
-                int i = int.Parse(t.Text);
-                if (i >= 0 && i < targetFlver.Dummies.Count)
-                {
-                    targetFlver.Dummies[i].Position += new Vector3(float.Parse(tX.Text), float.Parse(tY.Text), float.Parse(tZ.Text));
-                    autoBackUp(); targetFlver.Write(flverName);
-                    updateVertices();
-                }
-                else {
-
-                    MessageBox.Show("Invalid modification value!");
-                }
-
-            };
-
-
-            Button button2 = new Button();
-            ButtonTips("Save the json text you modified to the flver file.\n" +
-                "存储你修改的json文本至Flver文件中。", button2);
-            button2.Text = "JsonMod";
-            button2.Location = new System.Drawing.Point(650, 100);
-            button2.Click += (s, e) => {
-                targetFlver.Dummies = serializer.Deserialize<List<FLVER.Dummy>>(tbones.Text);
-                autoBackUp(); targetFlver.Write(flverName);
-                updateVertices();
-                MessageBox.Show("Dummy change completed! Please exit the program!", "Info");
-            };
-
-            Button button3 = new Button();
-          ButtonTips("Import external json file's dummy information and save to the flver file.\n" +
-               "读取外部json文本并存储至Flver文件中。", button3);
-            button3.Text = "LoadJson";
-            button3.Location = new System.Drawing.Point(650, 150);
-            button3.Click += (s, e) => {
-
-                var openFileDialog1 = new OpenFileDialog() { Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*" };
-                string res = "";
-                if (openFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        var sr = new StreamReader(openFileDialog1.FileName);
-                        res = sr.ReadToEnd();
-                        sr.Close();
-                        targetFlver.Dummies = serializer.Deserialize<List<FLVER.Dummy>>(res);
-                        autoBackUp(); targetFlver.Write(flverName);
-                        updateVertices();
-                        MessageBox.Show("Dummy change completed! Please exit the program!", "Info");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Security error.\n\nError message: {ex.Message}\n\n" +
-                        $"Details:\n\n{ex.StackTrace}");
-                    }
-                }
-
-
-            };
-
-            // 
-
-            Button button4 = new Button();
-
-            button4.Text = "ExportJson";
-            button4.Location = new System.Drawing.Point(650, 200);
-            button4.Click += (s, e) => {
-                exportJson(serializer.Serialize(targetFlver.Dummies), "Dummies.json", "Nodes JSON exported successfully!");
-            };
-
-            Button buttonFix = new Button();
-            ButtonTips("Fix external weapon's weapon trail/lighting reversal problem in Sekiro by adding kusabimaru's dummy information.\n" +
-               "写入契丸的辅助点信息以解决武器在只狼内没有剑风以及无法雷闪的问题。", buttonFix);
-            buttonFix.Text = "SekiroFix";
-            buttonFix.Location = new System.Drawing.Point(650, 250);
-            buttonFix.Click += (s, e) => {
-
-
-                // targetFlver.Dummies = serializer.Deserialize<List<FLVER.Dummy>>(res);
-                //autoBackUp();targetFlver.Write(flverName);
-                for (int i = 0; i < refDummy.Count; i++)
-                {
-                    for (int j = 0; j < targetFlver.Dummies.Count; j++)
-                    {
-                        if (targetFlver.Dummies[j].ReferenceID == refDummy[i].ReferenceID)
-                        {
-                            break;
-                        }
-                        else if (j == targetFlver.Dummies.Count - 1)
-                        {
-
-                            targetFlver.Dummies.Add(refDummy[i]);
-                            break;
-                        }
-                    }
-
-                }
-                autoBackUp(); targetFlver.Write(flverName);
-
-                updateVertices();
-                MessageBox.Show("Dummy change fixed! Please exit the program!", "Info");
-
-
-
-
-
-            };
-
-            f.Size = new System.Drawing.Size(750, 600);
-            p.Size = new System.Drawing.Size(600, 530);
-            f.Resize += (s, e) =>
-            {
-                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
-                button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
-                button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
-                button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
-                button4.Location = new System.Drawing.Point(f.Size.Width - 100, 200);
-                buttonFix.Location = new System.Drawing.Point(f.Size.Width - 100, 250);
-            };
-
-            f.Controls.Add(button);
-            f.Controls.Add(button2);
-            f.Controls.Add(button3);
-            f.Controls.Add(button4);
-            f.Controls.Add(buttonFix);
-            f.ShowDialog();
-        }
+        
 
         static int findFLVER_Bone(FLVER2 f, string name)
         {
@@ -2778,7 +2551,7 @@ namespace MySFformat
         
         //1.73 New
         /// <summary>
-        /// Dummy Text
+        /// Shift bone weights
         /// </summary>
         /// <param name="newNodes">The new bones list</param>
         public static void BoneWeightShift(List<FLVER.Node> newNodes)

@@ -1,36 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics; // Aliased as Vector3 for RotateLine/RotatePoint
+using Microsoft.Xna.Framework; // For XNA Vector3 conversion
 
 namespace MySFformat
 {
-    public class Vector3D
+    public struct Vector3D : IEquatable<Vector3D>
     {
-        public float X = 0;
-        public float Y = 0;
-        public float Z = 0;
+        public float X; // Mutable
+        public float Y; // Mutable
+        public float Z; // Mutable
 
-        public Vector3D()
-        {
-            X = 0;
-            Y = 0;
-            Z = 0;
-        }
+        // Constructor for explicit initialization
         public Vector3D(float x, float y, float z)
         {
             X = x;
             Y = y;
             Z = z;
         }
+
+        // Constructor from Microsoft.Xna.Framework.Vector3
         public Vector3D(Microsoft.Xna.Framework.Vector3 a)
         {
             X = a.X;
             Y = a.Y;
             Z = a.Z;
         }
+
+        // Constructor from System.Numerics.Vector3
         public Vector3D(System.Numerics.Vector3 a)
         {
             X = a.X;
@@ -38,6 +34,24 @@ namespace MySFformat
             Z = a.Z;
         }
 
+        // Methods that modify the instance (if you want them)
+        // For example, if you want normalize to modify in-place:
+        public void NormalizeInPlace() // Note: void return type, modifies 'this'
+        {
+            float l = length();
+            if (l > float.Epsilon) // Use an epsilon for robust comparison
+            {
+                X /= l;
+                Y /= l;
+                Z /= l;
+            }
+            else
+            {
+                X = Y = Z = 0; // Or handle as an error, or leave as is
+            }
+        }
+
+        // Methods that return new instances (as you originally had)
         public Microsoft.Xna.Framework.Vector3 toXnaV3()
         {
             return new Microsoft.Xna.Framework.Vector3(X, Y, Z);
@@ -48,91 +62,91 @@ namespace MySFformat
             return new System.Numerics.Vector3(X, Y, Z);
         }
 
-
         public static float dotProduct(Vector3D a, Vector3D b)
         {
-            float x1 = a.X;
-            float y1 = a.Y;
-            float z1 = a.Z;
-            float x2 = b.X;
-            float y2 = b.Y;
-            float z2 = b.Z;
-            return x1 * x2 + y1 * y2 + z1 * z2;
+            return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         }
-
 
         public static Vector3D crossPorduct(Vector3D a, Vector3D b)
         {
-            float x1 = a.X;
-            float y1 = a.Y;
-            float z1 = a.Z;
-            float x2 = b.X;
-            float y2 = b.Y;
-            float z2 = b.Z;
-            return new Vector3D(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2);
+            return new Vector3D(
+                a.Y * b.Z - a.Z * b.Y,
+                a.Z * b.X - a.X * b.Z,
+                a.X * b.Y - a.Y * b.X);
         }
 
         public float length()
         {
             return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
-
         }
-        public Vector3D normalize()
+
+        public float LengthSquared()
+        {
+            return X * X + Y * Y + Z * Z;
+        }
+
+        public Vector3D normalize() // Returns a new normalized vector
         {
             float l = length();
-            if (l == 0) { return new Vector3D(); }
-            return new Vector3D(X / l, Y / l, Z / l);
+            if (l > float.Epsilon)
+            {
+                return new Vector3D(X / l, Y / l, Z / l);
+            }
+            return Vector3D.Zero; // Return a zero vector if length is zero
         }
-
-
 
         public Vector3D clone()
         {
-
-            return new Vector3D(X, Y, Z);
+            return new Vector3D(X, Y, Z); // or just `return this;`
         }
 
-        public static Vector3D operator +(Vector3D a,
-                                          Vector3D b)
+        // Operators
+        public static Vector3D operator +(Vector3D a, Vector3D b)
         {
-
-            return new Vector3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z); ;
+            return new Vector3D(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
         }
 
-
-        public static Vector3D operator -(Vector3D a,
-                                  Vector3D b)
+        public static Vector3D operator -(Vector3D a, Vector3D b)
         {
-
-            return new Vector3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z); ;
+            return new Vector3D(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         }
 
-
-        public static Vector3D operator *(Vector3D a,
-                               float b)
+        public static Vector3D operator *(Vector3D a, float b)
         {
-
-            return new Vector3D(a.X * b, a.Y * b, a.Z * b); ;
+            return new Vector3D(a.X * b, a.Y * b, a.Z * b);
         }
 
-        public static Vector3D operator *(
-                               float b, Vector3D a)
+        public static Vector3D operator *(float b, Vector3D a)
         {
-
-            return new Vector3D(a.X * b, a.Y * b, a.Z * b); ;
+            return new Vector3D(a.X * b, a.Y * b, a.Z * b);
         }
 
-
-        public static float calculateDistanceFromLine(Vector3D point, Vector3D x1, Vector3D x2)
+        public static Vector3D operator /(Vector3D a, float b)
         {
-            return crossPorduct(point - x1, point - x2).length() /
-                (x2 - x1).length();
-
-
+            if (Math.Abs(b) < float.Epsilon) throw new DivideByZeroException("Cannot divide Vector3D by zero or near-zero.");
+            return new Vector3D(a.X / b, a.Y / b, a.Z / b);
         }
 
+        public static Vector3D operator -(Vector3D a)
+        {
+            return new Vector3D(-a.X, -a.Y, -a.Z);
+        }
 
-        public static Vector3 RotateLine(Vector3 p, Vector3 org, Vector3 direction, double theta)
+        // Static utility methods
+        public static float calculateDistanceFromLine(Vector3D point, Vector3D lineStart, Vector3D lineEnd)
+        {
+            Vector3D lineDir = lineEnd - lineStart;
+            float lineLengthSqr = lineDir.LengthSquared(); // Use squared length to avoid sqrt if possible
+            if (lineLengthSqr < float.Epsilon * float.Epsilon) // Check if lineStart and lineEnd are the same
+            {
+                return (point - lineStart).length();
+            }
+            // Using the formula: |(point - lineStart) x (lineEnd - lineStart)| / |lineEnd - lineStart|
+            // which simplifies to |(point - lineStart) x lineDir| / |lineDir|
+            return crossPorduct(point - lineStart, lineDir).length() / (float)Math.Sqrt(lineLengthSqr);
+        }
+
+        public static System.Numerics.Vector3 RotateLine(System.Numerics.Vector3 p, System.Numerics.Vector3 org, System.Numerics.Vector3 direction, double theta)
         {
             double x = p.X;
             double y = p.Y;
@@ -142,65 +156,104 @@ namespace MySFformat
             double b = org.Y;
             double c = org.Z;
 
+            double dirLength = direction.Length();
+            if (dirLength == 0) return p;
 
+            double nu = direction.X / dirLength;
+            double nv = direction.Y / dirLength;
+            double nw = direction.Z / dirLength;
 
-            double nu = direction.X / direction.Length();
-            double nv = direction.Y / direction.Length();
-            double nw = direction.Z / direction.Length();
+            double cosTheta = Math.Cos(theta);
+            double sinTheta = Math.Sin(theta);
+            double oneMinusCosTheta = 1 - cosTheta;
 
-            double[] rP = new double[3];
+            double rX = (a * (nv * nv + nw * nw) - nu * (b * nv + c * nw - nu * x - nv * y - nw * z)) * oneMinusCosTheta + x * cosTheta + (-c * nv + b * nw - nw * y + nv * z) * sinTheta;
+            double rY = (b * (nu * nu + nw * nw) - nv * (a * nu + c * nw - nu * x - nv * y - nw * z)) * oneMinusCosTheta + y * cosTheta + (c * nu - a * nw + nw * x - nu * z) * sinTheta;
+            double rZ = (c * (nu * nu + nv * nv) - nw * (a * nu + b * nv - nu * x - nv * y - nw * z)) * oneMinusCosTheta + z * cosTheta + (-b * nu + a * nv - nv * x + nu * y) * sinTheta;
 
-            rP[0] = (a * (nv * nv + nw * nw) - nu * (b * nv + c * nw - nu * x - nv * y - nw * z)) * (1 - Math.Cos(theta)) + x * Math.Cos(theta) + (-c * nv + b * nw - nw * y + nv * z) * Math.Sin(theta);
-            rP[1] = (b * (nu * nu + nw * nw) - nv * (a * nu + c * nw - nu * x - nv * y - nw * z)) * (1 - Math.Cos(theta)) + y * Math.Cos(theta) + (c * nu - a * nw + nw * x - nu * z) * Math.Sin(theta);
-            rP[2] = (c * (nu * nu + nv * nv) - nw * (a * nu + b * nv - nu * x - nv * y - nw * z)) * (1 - Math.Cos(theta)) + z * Math.Cos(theta) + (-b * nu + a * nv - nv * x + nu * y) * Math.Sin(theta);
-
-
-            Vector3 ans = new Vector3((float)rP[0], (float)rP[1], (float)rP[2]);
-            return ans;
-
-
+            return new System.Numerics.Vector3((float)rX, (float)rY, (float)rZ);
         }
 
-
-
-        public static Vector3 RotatePoint(Vector3 p, float pitch, float roll, float yaw)
+        public static System.Numerics.Vector3 RotatePoint(System.Numerics.Vector3 p, float pitch, float roll, float yaw)
         {
+            // ... (implementation remains the same as previous)
+            double cosa = Math.Cos(yaw);
+            double sina = Math.Sin(yaw);
 
-            Vector3 ans = new Vector3(0, 0, 0);
+            double cosb = Math.Cos(pitch);
+            double sinb = Math.Sin(pitch);
 
+            double cosc = Math.Cos(roll);
+            double sinc = Math.Sin(roll);
 
-            var cosa = Math.Cos(yaw);
-            var sina = Math.Sin(yaw);
+            double Axx = cosa * cosb;
+            double Axy = cosa * sinb * sinc - sina * cosc;
+            double Axz = cosa * sinb * cosc + sina * sinc;
 
-            var cosb = Math.Cos(pitch);
-            var sinb = Math.Sin(pitch);
+            double Ayx = sina * cosb;
+            double Ayy = sina * sinb * sinc + cosa * cosc;
+            double Ayz = sina * sinb * cosc - cosa * sinc;
 
-            var cosc = Math.Cos(roll);
-            var sinc = Math.Sin(roll);
+            double Azx = -sinb;
+            double Azy = cosb * sinc;
+            double Azz = cosb * cosc;
 
-            var Axx = cosa * cosb;
-            var Axy = cosa * sinb * sinc - sina * cosc;
-            var Axz = cosa * sinb * cosc + sina * sinc;
+            float px = p.X;
+            float py = p.Y;
+            float pz = p.Z;
 
-            var Ayx = sina * cosb;
-            var Ayy = sina * sinb * sinc + cosa * cosc;
-            var Ayz = sina * sinb * cosc - cosa * sinc;
+            float newX = (float)(Axx * px + Axy * py + Axz * pz);
+            float newY = (float)(Ayx * px + Ayy * py + Ayz * pz);
+            float newZ = (float)(Azx * px + Azy * py + Azz * pz);
 
-            var Azx = -sinb;
-            var Azy = cosb * sinc;
-            var Azz = cosb * cosc;
-
-            var px = p.X;
-            var py = p.Y;
-            var pz = p.Z;
-
-            ans.X = (float)(Axx * px + Axy * py + Axz * pz);
-            ans.Y = (float)(Ayx * px + Ayy * py + Ayz * pz);
-            ans.Z = (float)(Azx * px + Azy * py + Azz * pz);
-
-
-            return ans;
+            return new System.Numerics.Vector3(newX, newY, newZ);
         }
 
+        // IEquatable implementation
+        public bool Equals(Vector3D other)
+        {
+            // For mutable structs, consider if exact bitwise equality is always desired
+            // or if an epsilon comparison is more appropriate for floating point values.
+            return X == other.X && Y == other.Y && Z == other.Z;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Vector3D other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + X.GetHashCode();
+                hash = hash * 23 + Y.GetHashCode();
+                hash = hash * 23 + Z.GetHashCode();
+                return hash;
+            }
+        }
+
+        public static bool operator ==(Vector3D left, Vector3D right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Vector3D left, Vector3D right)
+        {
+            return !(left == right);
+        }
+
+        public override string ToString()
+        {
+            return $"({X}, {Y}, {Z})";
+        }
+
+        // Common static instances (these will be copies when accessed)
+        public static Vector3D Zero => new Vector3D(0, 0, 0);
+        public static Vector3D One => new Vector3D(1, 1, 1);
+        public static Vector3D UnitX => new Vector3D(1, 0, 0);
+        public static Vector3D UnitY => new Vector3D(0, 1, 0);
+        public static Vector3D UnitZ => new Vector3D(0, 0, 1);
     }
 }

@@ -127,6 +127,7 @@
     <Compile Include="src\Matrix3D.cs" />
     <Compile Include="src\Mono3D.cs" />
     <Compile Include="src\Program.cs" />
+    <Compile Include="src\ProgramDummiesUI.cs" />
     <Compile Include="src\ProgramFbxExport.cs" />
     <Compile Include="src\ProgramFbxImport.cs" />
     <Compile Include="src\ProgramFbxImportForm.cs">

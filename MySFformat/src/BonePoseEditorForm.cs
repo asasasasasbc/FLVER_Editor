@@ -40,7 +40,7 @@ namespace MySFformat
             PopulateBoneList();
 
             _updateTimer = new System.Windows.Forms.Timer();
-            _updateTimer.Interval = 100; // 100 ms = 0.1 seconds
+            _updateTimer.Interval = 50; // 20FPS
             _updateTimer.Tick += UpdateTimer_Tick;
             _updateTimer.Start();
         }

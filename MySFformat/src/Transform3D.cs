@@ -149,13 +149,9 @@ namespace MySFformat
             if (rotOrder == RotationOrder.ZXY) { factor = 0.85f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 0.7f; }
             factor *= extraFactor;
-            foreach (var v in ans)
-            {
-                v.X *= factor;
-                v.Y *= factor;
-                v.Z *= factor;
+            for (var j = 0; j < ans.Length;j++) {
+                ans[j] *= factor;
             }
-
 
             Matrix3D transMatrix = new Matrix3D();
             {
@@ -215,11 +211,8 @@ namespace MySFformat
             if (rotOrder == RotationOrder.ZXY) { factor = 1f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 1f; }
             factor *= extraFactor;
-            foreach (var v in ans)
-            {
-                v.X *= factor;
-                v.Y *= factor;
-                v.Z *= factor;
+            for (var j = 0; j < ans.Length;j++) {
+                ans[j] *= factor;
             }
 
             Matrix3D transMatrix = new Matrix3D();
@@ -280,11 +273,9 @@ namespace MySFformat
             if (rotOrder == RotationOrder.ZXY) { factor = 0.7f; }
             if (rotOrder == RotationOrder.ZYX) { factor = 0.85f; }
             factor *= extraFactor;
-            foreach (var v in ans)
+            for (var j = 0; j < ans.Length; j++)
             {
-                v.X *= factor;
-                v.Y *= factor;
-                v.Z *= factor;
+                ans[j] *= factor;
             }
 
 
