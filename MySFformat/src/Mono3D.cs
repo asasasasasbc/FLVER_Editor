@@ -305,9 +305,13 @@ namespace MySFformat
 "读取修改后的json骨骼文件为动画姿态，以查看是否有骨骼权重等问题。";
             loadPoseItem.Click += (sender, e) => {
                 changePoseDisplayNoUpdate(true);
+                
                 // 涉及到打开文件，得用主线程
                 Program.nodeUIForm.Invoke(new Action(() =>
                 {
+                    if (Program.bonePoseEditorForm != null) {
+                        Program.bonePoseEditorForm.Close();
+                    }
                     Program.LoadPosesJson();
                 }));
             };

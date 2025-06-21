@@ -278,7 +278,7 @@ namespace MySFformat
         public static void ExportPosesJson()
         {
             JavaScriptSerializer serializer = new JavaScriptSerializer();
-            exportJson(serializer.Serialize(targetFlver.Nodes), "Pose.json", "Pose JSON exported successfully!");
+            exportJson(serializer.Serialize(poseNodes), "Pose.json", "Pose JSON exported successfully!");
         }
 
         public static void updateVertices()
