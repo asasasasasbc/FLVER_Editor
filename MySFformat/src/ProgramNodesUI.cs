@@ -267,8 +267,25 @@ namespace MySFformat
             });
             aboutMenu.DropDownItems.Add(aboutItem);
 
+            // --- About Menu ---
+            var supportMenu = new ToolStripMenuItem("【Support Author】");
+            var supportItem = new ToolStripMenuItem("Patreon", null, (s, e) => {
+                System.Diagnostics.Process.Start("https://patreon.com/Forsakensilver");
+            });
+            supportMenu.DropDownItems.Add(supportItem);
+            supportItem = new ToolStripMenuItem("Paypal", null, (s, e) => {
+                System.Diagnostics.Process.Start("https://www.paypal.me/forsakensilver");
+            });
+            supportMenu.DropDownItems.Add(supportItem);
+            supportItem = new ToolStripMenuItem("Bilibili", null, (s, e) => {
+                System.Diagnostics.Process.Start("https://space.bilibili.com/7252176");
+            });
+            supportMenu.DropDownItems.Add(supportItem);
+            
+
             menuStrip.Items.Add(legacyMenu);
             menuStrip.Items.Add(aboutMenu);
+            menuStrip.Items.Add(supportMenu);
             return menuStrip;
         }
 

@@ -155,6 +155,7 @@ namespace MySFformat
         // Pipeline check: whole new animation pipeline walktrough (flver skeleton + further custom animation)
         // exporting dummypolys
         // exporting with axis convertsion
+        // Exporting Multi-UVs
         // 3dsmax support
 
 

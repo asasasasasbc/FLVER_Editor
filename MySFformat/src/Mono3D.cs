@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Color = Microsoft.Xna.Framework.Color;
 
 
 namespace MySFformat
@@ -863,6 +865,63 @@ namespace MySFformat
 
 
         }
+        protected void ShowScrollableInfoDialog(string title, string content, Form owner = null)
+        {
+            // Create the form
+            using (Form dialogForm = new Form())
+            {
+                dialogForm.Text = title;
+                dialogForm.StartPosition = FormStartPosition.CenterParent; // Or CenterScreen
+                dialogForm.ClientSize = new Size(500, 400); // Initial size, adjust as needed
+                dialogForm.FormBorderStyle = FormBorderStyle.Sizable; // Or FixedDialog
+                dialogForm.MinimizeBox = false;
+                dialogForm.MaximizeBox = false;
+                if (owner != null)
+                {
+                    dialogForm.ShowInTaskbar = false; // Common for dialogs owned by another form
+                }
+
+
+                // Create the TextBox
+                TextBox contentTextBox = new TextBox();
+                contentTextBox.Multiline = true;
+                contentTextBox.ReadOnly = true;
+                contentTextBox.ScrollBars = ScrollBars.Vertical;
+                contentTextBox.Dock = DockStyle.Fill; // Fill the area above the button
+                contentTextBox.Text = content;
+                contentTextBox.Font = new Font("Consolas", 9.75F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0))); // Monospaced font is good for data
+                contentTextBox.Select(0, 0); // Unselect text and prevent auto-scroll to end
+
+                // Create the Close Button
+                Button closeButton = new Button();
+                closeButton.Text = "OK";
+                closeButton.DialogResult = DialogResult.OK; // This allows the form to close when button is clicked if shown with ShowDialog()
+                closeButton.Dock = DockStyle.Bottom; // Place button at the bottom
+                closeButton.Height = 30; // Set a reasonable height for the button
+
+                // Add controls to the form
+                // Order matters for docking if not using panels: controls docked to Fill should be added before Bottom/Top/Left/Right
+                // or ensure the Fill control is aware of the space taken by others.
+                // A simpler way:
+                dialogForm.Controls.Add(contentTextBox); // TextBox will fill remaining space
+                dialogForm.Controls.Add(closeButton);    // Button takes its space at the bottom
+
+                // Set the AcceptButton to the closeButton, so pressing Enter closes the dialog
+                dialogForm.AcceptButton = closeButton;
+                dialogForm.CancelButton = closeButton; // Pressing Esc also closes
+
+                // Show the form as a dialog
+                if (owner != null)
+                {
+                    dialogForm.ShowDialog(owner);
+                }
+                else
+                {
+                    dialogForm.ShowDialog();
+                }
+            } // dialogForm will be disposed here due to 'using'
+        }
+
         protected void displayVerticesInfo()
         {
 
@@ -872,9 +931,11 @@ namespace MySFformat
                 int l = text.Length / 2;
                 string boneweights = targetV.BoneWeights.ToString();
                 string boneindices = targetV.BoneIndices.ToString();
-                System.Windows.Forms.MessageBox.Show("Parent mesh index:" + targetVinfo.meshIndex + "\nVertex index:" + targetVinfo.vertexIndex  + "\nVertex weights" + boneweights + "\nVertex indices:" + boneindices+ text.Substring(0, l), "Vertex info1:");
-                System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
-
+                string finalStr = "Parent mesh index:" + targetVinfo.meshIndex + 
+                    "\r\nVertex index:" +  targetVinfo.vertexIndex + 
+                    "\r\nVertex weights" + boneweights + 
+                    "\r\nVertex indices:" + boneindices + "\r\n"+ text;
+                ShowScrollableInfoDialog("Vertex info",finalStr);
             }
         }
 
