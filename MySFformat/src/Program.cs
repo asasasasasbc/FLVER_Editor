@@ -63,7 +63,7 @@ namespace MySFformat
         public static float checkingPointTangentW = 0;
         public static Boolean useCheckingPoint = false;
 
-        public static int checkingMeshNum = 0;
+        public static int checkingMeshNum = -1;
         public static Boolean useCheckingMesh = false;
 
         /***settings***/
@@ -92,7 +92,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.55NR";
+        public static string version = "X2.55NR-dev";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -1354,7 +1354,46 @@ namespace MySFformat
             MessageBox.Show("Xml auto edited!");
         }
         #endregion Material_Window
-        static void ModelMesh()
+
+        public class MyVertexBuffer
+        {
+            public MyVertexBuffer() { }
+            public bool EdgeCompressed { get; set; }
+            public int BufferIndex { get; set; }
+            public int LayoutIndex { get; set; }
+        }
+            public class MyMesh 
+        {
+            public MyMesh() { }
+            //
+            // 摘要:
+            //     An optional bounding box for meshes added in DS2.
+            public class BoundingBoxes
+            {
+                public Vector3 Min { get; set; }
+                public Vector3 Max { get; set; }
+                public Vector3 Unk { get; set; }
+                public BoundingBoxes()
+                {
+                    Min = new Vector3(float.MinValue);
+                    Max = new Vector3(float.MaxValue);
+                }
+            }
+
+            private int[] faceSetIndices;
+
+            private int[] vertexBufferIndices;
+
+            public bool UseBoneWeights { get; set; }
+
+            public int MaterialIndex { get; set; }
+            public int NodeIndex { get; set; }
+            public List<int> BoneIndices { get; set; }
+
+            public List<MyVertexBuffer> VertexBuffers { get; set; }
+            public BoundingBoxes BoundingBox { get; set; }
+        }
+            static void ModelMesh()
         {
 
             int[] tests = { 0,0,0};
@@ -1364,6 +1403,7 @@ namespace MySFformat
             Panel p = new Panel();
             int sizeY = 50;
             int currentY = 10;
+            checkingMeshNum = -1;
             //p.AutoSize = true;
             p.AutoScroll = true;
             f.Controls.Add(p);
@@ -1374,9 +1414,51 @@ namespace MySFformat
 
 
             TextBox meshInfo = new TextBox();
-            meshInfo.ReadOnly = true;
+            meshInfo.ReadOnly = false;
             meshInfo.Multiline = true;
 
+            Button applyJsonMod = new Button();
+            applyJsonMod.Text = "[DANGEROUS] Modify JSON";
+            ButtonTips("[DANGEROUS]Apply changes in json except Facesets, Vertices part. May break the whole file." + 
+                "\n【危险】应用Json文本的修改，但是不会应用Facesets和Vertices部分。可能会导致文件损坏。", applyJsonMod);
+            applyJsonMod.Click += (s, e) => {
+                if (checkingMeshNum < 0 || checkingMeshNum >= targetFlver.Meshes.Count) { return; }
+                try {
+                    //useCheckingMesh = true;
+                    //checkingMeshNum = btnI
+                    FLVER2.Mesh mes = targetFlver.Meshes[checkingMeshNum];
+                    JavaScriptSerializer jse = new JavaScriptSerializer();
+
+                    MyMesh newMesh = jse.Deserialize<MyMesh>(meshInfo.Text);
+                    jse.MaxJsonLength = Int32.MaxValue; // Fix too large mesh crash issue
+                    mes.VertexBuffers.Clear();
+                    foreach (var vb in newMesh.VertexBuffers)
+                    {
+                        var tmpVb = new FLVER2.VertexBuffer(vb.LayoutIndex);
+                        tmpVb.BufferIndex = vb.BufferIndex;
+                        tmpVb.EdgeCompressed = vb.EdgeCompressed;
+                        mes.VertexBuffers.Add(tmpVb);
+                    }
+                    //TODO ADAPT:m2.Unk1 = mes.Unk1;
+                    mes.MaterialIndex = newMesh.MaterialIndex;
+                    //mes.Dynamic = newMesh.Dynamic; //Controlled by use bone weights
+                    mes.UseBoneWeights = newMesh.UseBoneWeights;
+                    mes.NodeIndex = newMesh.NodeIndex;
+                    mes.BoundingBox.Min = newMesh.BoundingBox.Min;
+                    mes.BoundingBox.Max = newMesh.BoundingBox.Max;
+                    mes.BoundingBox.Unk = newMesh.BoundingBox.Unk;
+                    mes.BoneIndices = newMesh.BoneIndices;
+                    //mes = jse.Deserialize<FLVER2.Mesh>(jse.Serialize(mes));
+                    // mes.Vertices = null;
+                    updateVertices();
+                    MessageBox.Show($"Json modification for mesh {checkingMeshNum} completed. Click Modify to save changes!");
+
+                } catch (Exception ex) {
+                    MessageBox.Show($"Exception occuried:\n{ex.Message}.");
+
+                }
+            };
+            #region LeftPanel
             {
                 Label l = new Label();
                 l.Text = "index";
@@ -1423,8 +1505,8 @@ namespace MySFformat
 
 
             }
-           
 
+            
 
             {
                 Label l = new Label();
@@ -1506,7 +1588,6 @@ namespace MySFformat
  
 
             for (int i = 0; i < targetFlver.Meshes.Count; i++)
-
             {
                 // foreach (FLVER.Bone bn in b.Nodes)
                 FLVER2.Mesh bn = targetFlver.Meshes[i];
@@ -1809,6 +1890,11 @@ namespace MySFformat
             meshInfo.Location = new System.Drawing.Point(10, currentY);
             p.Controls.Add(meshInfo);
 
+            currentY += 300 + 5;
+            applyJsonMod.Size = new System.Drawing.Size(200, 20);
+            applyJsonMod.Location = new System.Drawing.Point(10, currentY);
+            p.Controls.Add(applyJsonMod);
+            #endregion LeftPanel
 
             Button button = new Button();
             button.Text = "Modify";
@@ -2413,11 +2499,11 @@ namespace MySFformat
             };
 
 
-            f.Size = new System.Drawing.Size(750, 600);
-            p.Size = new System.Drawing.Size(600, 530);
+            f.Size = new System.Drawing.Size(800, 650);
+            p.Size = new System.Drawing.Size(650, 600);
             f.Resize += (s, e) =>
             {
-                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 70);
+                p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 50);
                 button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
                 button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
                 button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
@@ -2426,6 +2512,14 @@ namespace MySFformat
                 reverseNormal.Location = new System.Drawing.Point(f.Size.Width - 100, 300);
                 meshReset.Location = new System.Drawing.Point(f.Size.Width - 100, 350);
             };
+            p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 50);
+            button.Location = new System.Drawing.Point(f.Size.Width - 100, 50);
+            button2.Location = new System.Drawing.Point(f.Size.Width - 100, 100);
+            button3.Location = new System.Drawing.Point(f.Size.Width - 100, 150);
+            buttonFlip.Location = new System.Drawing.Point(f.Size.Width - 100, 200);
+            reverseFaceset.Location = new System.Drawing.Point(f.Size.Width - 100, 250);
+            reverseNormal.Location = new System.Drawing.Point(f.Size.Width - 100, 300);
+            meshReset.Location = new System.Drawing.Point(f.Size.Width - 100, 350);
 
 
             f.Controls.Add(button);
