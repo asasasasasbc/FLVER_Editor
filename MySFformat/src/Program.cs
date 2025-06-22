@@ -19,6 +19,7 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using System.Xml;
 using System.Xml.Serialization;
+using static SoulsFormats.FLVER;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 
@@ -857,15 +858,82 @@ namespace MySFformat
             tbones.Location = new System.Drawing.Point(10, currentY);
             tbones.Text = serializedResult;
             mainPanel.Controls.Add(tbones);
+            currentY += tbones.Height + 5;
+            
+            Button modifyJson = new Button();
+            modifyJson.Text = "[DANGEROUS] Modify JSON";
+            ButtonTips("DANGEROUS! Apply bufferlayout json modification, may break whole file!\n" +
+                "【非常危险！】修改Json代码以修改bufferlayout。", modifyJson);
+            modifyJson.Size = new System.Drawing.Size(200, 20);
+            modifyJson.Location = new System.Drawing.Point(10, currentY);
+            mainPanel.Controls.Add(modifyJson);
+            modifyJson.Click += (s, e) => {
+                var confirmResult = MessageBox.Show("This is a DANGEROUS action, may completely break your FLVER file, continue?"+
+                    "\n这是一个极度危险的操作，可能会完全损坏你的FLVER文件，是否继续？",
+                                   "WARNING",
+                                   MessageBoxButtons.YesNo);
+                if (confirmResult == DialogResult.No)
+                {
+                    return;
+                }
+                try
+                {
+                    var layoutMembers = serializer.Deserialize<List<List<LayoutMemberDto>>>(tbones.Text);
+                    List<FLVER2.BufferLayout> targetBufferLayouts = new List<FLVER2.BufferLayout>();
+
+                    foreach (var dtoList in layoutMembers)
+                    {
+                        var bufferLayout = new FLVER2.BufferLayout(); // FLVER2.BufferLayout
+                        foreach (var dto in dtoList)
+                        {
+                            // Use the constructor of LayoutMember that takes parameters
+                            var layoutMember = new LayoutMember(
+                                dto.Type,
+                                dto.Semantic,
+                                dto.Index,
+                                (short)dto.Stream, // Cast if necessary, though int to short is explicit
+                                dto.SpecialModifier
+                            );
+                            bufferLayout.Add(layoutMember);
+                        }
+                        targetBufferLayouts.Add(bufferLayout);
+                    }
+
+                    targetFlver.BufferLayouts = targetBufferLayouts;
+                    autoBackUp();
+                    targetFlver.Write(flverName);
+                    MessageBox.Show("JSON modifications saved! Please restart the window to see all changes.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    MessageBox.Show($"Error parsing/writing JSON or applying bufferlayouts.\n\n{ex.Message}\nYour FLVER file may be broken.", "JSON/Bufferlayout Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+
             f.Resize += (s, e) =>
             {
                 // 如果DGV宽度是固定的，并且希望它们随窗体变化，可以在这里调整
                 // 但由于DGV的Anchor设置和Panel的Dock=Fill，它们应该能较好地自适应
                 // mainPanel.PerformLayout(); // 可能需要强制重新布局
             };
+
             f.ShowDialog();
         }
 
+
+        // 1. Define a DTO that matches your JSON structure and is deserializer-friendly
+        public class LayoutMemberDto
+        {
+            public int Stream { get; set; }
+            public short SpecialModifier { get; set; }
+            public LayoutType Type { get; set; } // Assuming LayoutType can be deserialized from int
+            public LayoutSemantic Semantic { get; set; } // Assuming LayoutSemantic can be deserialized from int
+            public int Index { get; set; }
+            // The "Size" from JSON will be deserialized here but we'll ignore it
+            // when creating the actual LayoutMember, as its Size is calculated.
+            public int Size { get; set; }
+        }
 
         #region Material_Window
         static void ModelMaterial() {
