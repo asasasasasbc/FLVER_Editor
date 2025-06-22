@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics; // 确保引用 System.Numerics
+using System.Windows.Media.Animation;
 using Matrix4x4 = Assimp.Matrix4x4;
 using Quaternion = Assimp.Quaternion; // For ArgumentOutOfRangeException
 
@@ -43,13 +44,37 @@ namespace MySFformat
 
             // --- Pass 1: Traverse, Convert, and Create Nodes ---
             var startNode = sourceScene.RootNode;
-            if (startNode.Name == "RootNode" && startNode.HasChildren) {
-                startNode = startNode.Children[0];
+
+            // 1. Check if RootNode-Armature-Armature.001 Exists
+            bool foundFlverArmature = false;
+            Node armatureNode = null;
+            if (startNode.Name == "RootNode" && startNode.HasChildren)
+            {
+                foreach (var c in startNode.Children)
+                {
+                    if (c.Name == "Armature") { armatureNode = c; }
+                    if (!c.HasChildren) { continue; }
+                    foreach (var c2 in c.Children)
+                    {
+                        if (c.Name == "Armature" && c2.Name == "Armature.001") 
+                        {
+                            startNode = c2;
+                            foundFlverArmature = true;
+                            break; 
+                        }
+                    }
+                    if (foundFlverArmature) { break; }
+                }
             }
-            //if (startNode.Name == "Armature" && startNode.HasChildren)
-            //{
-            //    startNode = startNode.Children[0];
-            //}
+
+            //1.1 If Armature.001 does not exist, find Armature
+            if (!foundFlverArmature && armatureNode != null) { startNode = armatureNode; }
+
+           //1.1 if Even Armature node not exist, use fist child
+           if (!foundFlverArmature && startNode.Name == "RootNode" && startNode.HasChildren) 
+           {    
+                startNode = startNode.Children[0]; 
+           }
 
             foreach (var child in startNode.Children)
             {
