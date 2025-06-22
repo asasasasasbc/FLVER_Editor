@@ -255,7 +255,30 @@ namespace MySFformat
         }
     }
     public static class FlverFbxRotationHelper
-    {
+    {   /// <summary>
+        /// Calculates the tranform matrix and check if they are same
+        /// </summary>
+        public static bool verifyRotation(MyVector3 flverRot, MyVector3 fbxRot) {
+            Transform3D flver = new Transform3D();
+            flver.rotation = new Vector3D(flverRot.X, flverRot.Y, flverRot.Z);
+            Transform3D fbx = new Transform3D();
+            fbx.rotation = new Vector3D(fbxRot.X, fbxRot.Y, fbxRot.Z);
+            fbx.rotOrder = RotationOrder.ZYX;
+            
+            Vector3D testVec = Vector3D.UnitX;
+            Vector3D a = Matrix3D.matrixTimesVector3D(flver.getTransMatrix(), testVec);
+            Vector3D b = Matrix3D.matrixTimesVector3D(fbx.getTransMatrix(), testVec);
+            if ((a - b).LengthSquared() > 0.1f) { return false; }
+            testVec = Vector3D.UnitY;
+            a = Matrix3D.matrixTimesVector3D(flver.getTransMatrix(), testVec);
+            b = Matrix3D.matrixTimesVector3D(fbx.getTransMatrix(), testVec);
+            if ((a - b).LengthSquared() > 0.1f) { return false; }
+            testVec = Vector3D.UnitZ;
+            a = Matrix3D.matrixTimesVector3D(flver.getTransMatrix(), testVec);
+            b = Matrix3D.matrixTimesVector3D(fbx.getTransMatrix(), testVec);
+            if ((a - b).LengthSquared() > 0.1f) { return false; }
+            return true;
+        }
         // FLVER typically uses YZX Euler order, radians.
         // FBX typically uses XYZ Euler order, degrees.
         // This helper converts from FLVER's YZX radians to FBX's XYZ degrees
@@ -279,13 +302,37 @@ namespace MySFformat
                 Console.WriteLine($"Raw degree {xRad} {yRad} {zRad}");
             }
             var convertedAngles = FSEulerAngleConverter.ConvertRotationOrder(inputAnglesDeg, flverOrder, fbxOrder);
+
+            var rotationCheck = verifyRotation(inputAnglesDeg, convertedAngles);
             if (debug)
             {
-                Console.WriteLine($"Converted Raw degree {convertedAngles}");
+                Console.WriteLine($"Converted check: {rotationCheck}, Raw degree {convertedAngles}");
             }
-            // Apply mirroring for coordinate system difference (Z-axis flip for positions implies this for rotations)
-            // If positions are (X, Y, -Z), rotations around X and Y effectively flip, Z stays.
-            return new XYZ(
+            if (!rotationCheck) {
+                var altOutput = new MyVector3(convertedAngles.X + 180, convertedAngles.Y, convertedAngles.Z);
+                if (altOutput.X > 180) { altOutput.X -= 360; }
+                rotationCheck = verifyRotation(inputAnglesDeg, altOutput);
+                if (rotationCheck) { Console.WriteLine($"MANUALLY FIXED by X +180 degrees"); convertedAngles = altOutput; }
+            }
+            if (!rotationCheck)
+            {
+                var altOutput = new MyVector3(convertedAngles.X, convertedAngles.Y + 180, convertedAngles.Z);
+                if (altOutput.Y > 180) { altOutput.Y -= 360; }
+                rotationCheck = verifyRotation(inputAnglesDeg, altOutput);
+                if (rotationCheck) { Console.WriteLine($"MANUALLY FIXED by Y +180 degrees"); convertedAngles = altOutput; }
+            }
+            if (!rotationCheck)
+            {
+                var altOutput = new MyVector3(convertedAngles.X, convertedAngles.Y, convertedAngles.Z + 180);
+                if (altOutput.Z > 180) { altOutput.Z -= 360; }
+                rotationCheck = verifyRotation(inputAnglesDeg, altOutput);
+                if (rotationCheck) { Console.WriteLine($"MANUALLY FIXED by Z +180 degrees"); convertedAngles = altOutput; }
+            }
+            if (!rotationCheck)
+            { Console.WriteLine("ERROR! Cannot find suitable fbx rotation!"); }
+                // Apply mirroring for coordinate system difference (Z-axis flip for positions implies this for rotations)
+                // If positions are (X, Y, -Z), rotations around X and Y effectively flip, Z stays.
+                return new XYZ(
                 -1 * convertedAngles.X,
                 -1 * convertedAngles.Y,
                 convertedAngles.Z
@@ -437,7 +484,7 @@ namespace MySFformat
                         // FLVER Rotation: System.Numerics.Vector3, Euler angles in radians, YZX order
                         // MeshIO.Entities.Bone.Transform.EulerRotation expects degrees.
                         
-                        mioBone.Transform.EulerRotation = FlverFbxRotationHelper.FlverRotationToFbxEulerDegrees(flverNode.Rotation, false);
+                        mioBone.Transform.EulerRotation = FlverFbxRotationHelper.FlverRotationToFbxEulerDegrees(flverNode.Rotation, true);
                         Console.WriteLine($"{flverNode.Name}:{flverNode.Rotation}>{mioBone.Transform.EulerRotation}");
                         mioBone.Transform.Scale = new XYZ(flverNode.Scale.X, flverNode.Scale.Y, flverNode.Scale.Z);
                         //mioBone.Properties.Add(new Property<int>("RotationOrder", 1)); // Not working for blender

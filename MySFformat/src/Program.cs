@@ -158,6 +158,8 @@ namespace MySFformat
         // exporting with axis convertsion
         // Exporting Multi-UVs
         // 3dsmax support
+        // o assign the mesh to use “base buffer layout” and “cloth buffer layouts”
+        // sorta like two templates to use one for every other mesh (buffer 0) or cloth mesh (3, 8, 5)
 
 
         // Fixing bone importing function's ipreviousSibling not found issue
