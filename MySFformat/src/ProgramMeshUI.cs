@@ -25,6 +25,61 @@ namespace MySFformat
 {
     static partial class Program
     {
+        public static void ShowScrollableInfoDialog(string title, string content, Form owner = null)
+        {
+            // Create the form
+            using (Form dialogForm = new Form())
+            {
+                dialogForm.Text = title;
+                dialogForm.StartPosition = FormStartPosition.CenterParent; // Or CenterScreen
+                dialogForm.ClientSize = new System.Drawing.Size(500, 400); // Initial size, adjust as needed
+                dialogForm.FormBorderStyle = FormBorderStyle.Sizable; // Or FixedDialog
+                dialogForm.MinimizeBox = false;
+                dialogForm.MaximizeBox = false;
+                if (owner != null)
+                {
+                    dialogForm.ShowInTaskbar = false; // Common for dialogs owned by another form
+                }
+
+
+                // Create the TextBox
+                TextBox contentTextBox = new TextBox();
+                contentTextBox.Multiline = true;
+                contentTextBox.ReadOnly = true;
+                contentTextBox.ScrollBars = ScrollBars.Vertical;
+                contentTextBox.Dock = DockStyle.Fill; // Fill the area above the button
+                contentTextBox.Text = content;
+                contentTextBox.Select(0, 0); // Unselect text and prevent auto-scroll to end
+
+                // Create the Close Button
+                Button closeButton = new Button();
+                closeButton.Text = "OK";
+                closeButton.DialogResult = DialogResult.OK; // This allows the form to close when button is clicked if shown with ShowDialog()
+                closeButton.Dock = DockStyle.Bottom; // Place button at the bottom
+                closeButton.Height = 30; // Set a reasonable height for the button
+
+                // Add controls to the form
+                // Order matters for docking if not using panels: controls docked to Fill should be added before Bottom/Top/Left/Right
+                // or ensure the Fill control is aware of the space taken by others.
+                // A simpler way:
+                dialogForm.Controls.Add(contentTextBox); // TextBox will fill remaining space
+                dialogForm.Controls.Add(closeButton);    // Button takes its space at the bottom
+
+                // Set the AcceptButton to the closeButton, so pressing Enter closes the dialog
+                dialogForm.AcceptButton = closeButton;
+                dialogForm.CancelButton = closeButton; // Pressing Esc also closes
+
+                // Show the form as a dialog
+                if (owner != null)
+                {
+                    dialogForm.ShowDialog(owner);
+                }
+                else
+                {
+                    dialogForm.ShowDialog();
+                }
+            } // dialogForm will be disposed here due to 'using'
+        }
         public class MyVertexBuffer
         {
             public MyVertexBuffer() { }
@@ -63,6 +118,360 @@ namespace MySFformat
             public List<MyVertexBuffer> VertexBuffers { get; set; }
             public BoundingBoxes BoundingBox { get; set; }
         }
+
+        #region VertexBufferEditor
+        // Helper class for the JSON editor
+        public class EditableVertexBuffer
+        {
+            public bool EdgeCompressed { get; set; }
+            public int BufferIndex { get; set; }
+            public List<LayoutMemberDto> ReferredBufferLayout { get; set; } // This is List<FLVER.LayoutMember>
+
+            public EditableVertexBuffer()
+            {
+                ReferredBufferLayout = new List<LayoutMemberDto>();
+            }
+        }
+
+        public static FLVER2.BufferLayout cloneBufferLayout(FLVER2.BufferLayout target) {
+            var ans = new FLVER2.BufferLayout();
+            foreach (var member in target) {
+                ans.Add(new LayoutMember(member));
+            }
+            return ans;
+        }
+
+        public static List<LayoutMemberDto> bufferLayoutToDto(FLVER2.BufferLayout target)
+        {
+            var ans = new List<LayoutMemberDto>();
+            foreach (var member in target)
+            {
+                ans.Add(new LayoutMemberDto(member));
+            }
+            return ans;
+        }
+
+        public static FLVER2.BufferLayout dtoToBufferLayout(List<LayoutMemberDto> target)
+        {
+            var ans = new FLVER2.BufferLayout();
+            foreach (var member in target)
+            {
+                ans.Add(new LayoutMember(member.Type, member.Semantic, member.Index, (short)member.Stream, member.SpecialModifier));
+            }
+            return ans;
+        }
+
+        // Form for editing Vertex Buffers
+        public class EditVertexBuffersForm : Form
+        {
+            private TextBox jsonTextBox;
+            private Button okButton;
+            private Button cancelButton;
+            private JavaScriptSerializer jse;
+
+            public List<EditableVertexBuffer> EditedVertexBuffers { get; private set; }
+
+            public EditVertexBuffersForm(List<EditableVertexBuffer> initialVertexBuffers)
+            {
+                this.Text = "Edit Vertex Buffers & Layouts";
+                this.Size = new System.Drawing.Size(700, 500);
+                this.StartPosition = FormStartPosition.CenterParent;
+
+                jse = new JavaScriptSerializer();
+                jse.MaxJsonLength = Int32.MaxValue;
+
+                EditedVertexBuffers = initialVertexBuffers; // Start with a copy
+
+                jsonTextBox = new TextBox
+                {
+                    Multiline = true,
+                    ScrollBars = ScrollBars.Both,
+                    Dock = DockStyle.Fill,
+                    Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)))
+                };
+                try
+                {
+                    jsonTextBox.Text = jse.Serialize(EditedVertexBuffers);
+                }
+                catch (Exception ex)
+                {
+                    jsonTextBox.Text = $"Error serializing initial data: {ex.Message}";
+                }
+
+
+                okButton = new Button
+                {
+                    Text = "OK",
+                    DialogResult = DialogResult.OK,
+                    Dock = DockStyle.Bottom
+                };
+
+                cancelButton = new Button
+                {
+                    Text = "Cancel",
+                    DialogResult = DialogResult.Cancel,
+                    Dock = DockStyle.Bottom
+                };
+
+                Panel buttonPanel = new Panel { Dock = DockStyle.Bottom, Height = 30 };
+                buttonPanel.Controls.Add(okButton); // OK will be on the right
+                buttonPanel.Controls.Add(cancelButton); // Cancel on the left
+                okButton.Dock = DockStyle.Right; // Dock OK to the right of the panel
+                cancelButton.Dock = DockStyle.Right; // Dock Cancel to the right (it will appear left of OK)
+
+
+                this.Controls.Add(jsonTextBox);
+                this.Controls.Add(buttonPanel);
+
+                this.AcceptButton = okButton;
+                this.CancelButton = cancelButton;
+
+                okButton.Click += OkButton_Click;
+            }
+
+            private void OkButton_Click(object sender, EventArgs e)
+            {
+                try
+                {
+                    var deserialized = jse.Deserialize<List<EditableVertexBuffer>>(jsonTextBox.Text);
+                    if (deserialized != null)
+                    {
+                        EditedVertexBuffers = deserialized;
+                        // Further processing (finding/adding layouts) will happen outside,
+                        // once this form returns DialogResult.OK
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to deserialize JSON. Input might be invalid.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        this.DialogResult = DialogResult.None; // Prevent closing if error
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error deserializing JSON: {ex.Message}\n\n{ex.StackTrace}", "JSON Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.DialogResult = DialogResult.None; // Prevent closing if error
+                }
+            }
+        }
+
+        // Helper to compare two BufferLayouts (List<FLVER.LayoutMember>)
+        public static bool BufferLayoutsAreEqual(FLVER2.BufferLayout layout1, FLVER2.BufferLayout layout2)
+        {
+            if (layout1 == null && layout2 == null) return true;
+            if (layout1 == null || layout2 == null) return false;
+            if (layout1.Count != layout2.Count) return false;
+
+            for (int i = 0; i < layout1.Count; i++)
+            {
+                FLVER.LayoutMember m1 = layout1[i];
+                FLVER.LayoutMember m2 = layout2[i];
+
+                // Compare all relevant properties. Size is derived, so Type is most important.
+                if (m1.Stream != m2.Stream ||
+                    m1.SpecialModifier != m2.SpecialModifier ||
+                    m1.Type != m2.Type ||
+                    m1.Semantic != m2.Semantic ||
+                    m1.Index != m2.Index)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Helper to print semantic summary for a mesh
+        public static string ProcessMeshSemanticsAndAdjustVertexData(FLVER2.Mesh mesh, List<FLVER2.BufferLayout> globalBufferLayouts)
+        {
+            // ArgumentNullException.ThrowIfNull(mesh); // C# 6+ way
+            if (mesh == null) throw new ArgumentNullException(nameof(mesh));
+            if (globalBufferLayouts == null) throw new ArgumentNullException(nameof(globalBufferLayouts));
+
+
+            StringBuilder ansBuilder = new StringBuilder();
+            ansBuilder.AppendLine(); // Start with a newline for cleaner console output
+
+            // --- Part 1: Semantic Summary and Max Index Calculation ---
+            string materialName = "INVALID_MATERIAL_INDEX";
+            if (targetFlver != null && targetFlver.Materials != null && mesh.MaterialIndex >= 0 && mesh.MaterialIndex < targetFlver.Materials.Count)
+            {
+                materialName = targetFlver.Materials[mesh.MaterialIndex].Name;
+            }
+            else if (targetFlver == null || targetFlver.Materials == null)
+            {
+                materialName = $"INDEX {mesh.MaterialIndex} (Materials list not available)";
+            }
+            ansBuilder.AppendLine($"--- Semantic Summary & Vertex Data Adjustment for Mesh [{materialName}] ---");
+
+            var requiredSemantics = new Dictionary<FLVER.LayoutSemantic, HashSet<int>>();
+            int maxTangentIndex = 0; // Max count for Tangents/Bitangents
+            int maxUVIndex = 0;      // Max count for UVs
+            int maxColorIndex = 0;   // Max count for VertexColors
+
+            if (mesh.VertexBuffers == null)
+            {
+                ansBuilder.AppendLine("Warning: Mesh.VertexBuffers is null. Cannot determine semantic requirements or adjust vertex data based on layouts.");
+            }
+            else
+            {
+                foreach (var vbRef in mesh.VertexBuffers)
+                {
+                    if (vbRef.LayoutIndex < 0 || vbRef.LayoutIndex >= globalBufferLayouts.Count)
+                    {
+                        ansBuilder.AppendLine($"Warning: VertexBuffer references invalid LayoutIndex {vbRef.LayoutIndex}. Skipping this VertexBuffer for semantic analysis.");
+                        continue;
+                    }
+                    FLVER2.BufferLayout layout = globalBufferLayouts[vbRef.LayoutIndex];
+                    if (layout == null)
+                    {
+                        ansBuilder.AppendLine($"Warning: BufferLayout at index {vbRef.LayoutIndex} is null. Skipping this layout for semantic analysis.");
+                        continue;
+                    }
+
+                    foreach (FLVER.LayoutMember member in layout)
+                    {
+                        if (!requiredSemantics.ContainsKey(member.Semantic))
+                        {
+                            requiredSemantics[member.Semantic] = new HashSet<int>();
+                        }
+                        requiredSemantics[member.Semantic].Add(member.Index);
+
+                        switch (member.Semantic)
+                        {
+                            // Assuming Tangents and Bitangents both use indices into the Vertex.Tangents list
+                            case FLVER.LayoutSemantic.Tangent:
+                            case FLVER.LayoutSemantic.Bitangent: // SoulsFormats FLVER.Vertex has one Tangents list for both
+                                maxTangentIndex +=1;
+                                break;
+                            case FLVER.LayoutSemantic.UV:
+                                maxUVIndex += 1;
+                                break;
+                            case FLVER.LayoutSemantic.VertexColor:
+                                maxColorIndex += 1;
+                                break;
+                        }
+                    }
+                }
+            }
+
+
+            if (requiredSemantics.Count == 0 && (mesh.VertexBuffers != null && mesh.VertexBuffers.Any()))
+            {
+                ansBuilder.AppendLine("No semantics defined across this mesh's vertex buffers (or layouts are empty/invalid).");
+            }
+            else if (mesh.VertexBuffers == null || !mesh.VertexBuffers.Any())
+            {
+                ansBuilder.AppendLine("No vertex buffers defined for this mesh to analyze semantics from.");
+            }
+            else
+            {
+                ansBuilder.AppendLine("Semantic types and their highest indices found in layouts:");
+                foreach (var kvp in requiredSemantics.OrderBy(k => k.Key.ToString()))
+                {
+                    string indices = string.Join(", ", kvp.Value.OrderBy(i => i));
+                    ansBuilder.AppendLine($"  {kvp.Key}: Indices present ({indices}), Max Index used: {kvp.Value.Max()}");
+                }
+            }
+            ansBuilder.AppendLine("---");
+
+
+            // --- Part 2: Adjust Vertex Data Lists ---
+            // If maxIndex is N, we need N+1 elements (0 to N)
+            int requiredTangentsCount = maxTangentIndex;
+            int requiredUVsCount = maxUVIndex;
+            int requiredColorsCount = maxColorIndex;
+
+            ansBuilder.AppendLine($"Target counts - Tangents: {requiredTangentsCount}, UVs: {requiredUVsCount}, Colors: {requiredColorsCount}");
+
+            if (mesh.Vertices == null)
+            {
+                ansBuilder.AppendLine("Warning: Mesh.Vertices is null. Cannot adjust vertex data elements.");
+                mesh.Vertices = new List<FLVER.Vertex>(); // Or simply return if no adjustment can be made
+            }
+
+            if (!mesh.Vertices.Any())
+            {
+                ansBuilder.AppendLine("Note: Mesh.Vertices is empty. No actual vertex data to adjust.");
+            }
+            else
+            {
+                bool firstVertexProcessed = false;
+                for (int i = 0; i < mesh.Vertices.Count; i++)
+                {
+                    FLVER.Vertex v = mesh.Vertices[i];
+                    if (v == null)
+                    {
+                        ansBuilder.AppendLine($"Warning: Vertex at index {i} is null. Skipping.");
+                        continue;
+                    }
+
+                    // Initialize lists if they are null (good practice)
+                    if (v.Tangents == null) v.Tangents = new List<Vector4>();
+                    if (v.UVs == null) v.UVs = new List<Vector3>(); 
+                    if (v.Colors == null) v.Colors = new List<FLVER.VertexColor>();
+
+                    if (!firstVertexProcessed)
+                    {
+                        ansBuilder.AppendLine($"Vertex BEFORE adjustment - Tangents: {v.Tangents.Count}, UVs: {v.UVs.Count}, Colors: {v.Colors.Count}");
+                    }
+
+                    // Ensure enough Tangents
+                    while (v.Tangents.Count < requiredTangentsCount)
+                    {
+                        // Default tangent. W=1 is common. (1,0,0,1) or (0,0,0,1) if unknown.
+                        if (v.Tangents.Count == 0)
+                        {
+                            v.Tangents.Add(new Vector4(1, 0, 0, 1));
+                        }
+                        else {
+                            v.Tangents.Add(v.Tangents[v.Tangents.Count - 1]);
+                        }
+                        
+                    }
+
+                    // Ensure enough UVs
+                    while (v.UVs.Count < requiredUVsCount)
+                    {
+                        // Default UV. Your example v.UVs.Add(new Vector3(1,2,3)) implies Vector3 for UVs.
+                        if (v.UVs.Count == 0) 
+                        { 
+                            v.UVs.Add(new Vector3(0, 0, 0)); 
+                        } else {
+                            v.UVs.Add(v.UVs[v.UVs.Count - 1]);
+                        }
+                        
+                    }
+
+                    // Ensure enough Colors
+                    while (v.Colors.Count < requiredColorsCount)
+                    {
+                        // Default color (opaque white)
+                        if (v.Colors.Count == 0)
+                        {
+                            v.Colors.Add(new FLVER.VertexColor(255, 255, 255, 255));
+                        }
+                        else {
+                            v.Colors.Add(v.Colors[v.Colors.Count - 1]);
+                        }
+                    }
+
+                    if (!firstVertexProcessed)
+                    {
+                        ansBuilder.AppendLine($"Vertex AFTER adjustment - Tangents: {v.Tangents.Count}, UVs: {v.UVs.Count}, Colors: {v.Colors.Count}");
+                        firstVertexProcessed = true;
+                    }
+                }
+                if (!firstVertexProcessed && mesh.Vertices.Any())
+                {
+                    ansBuilder.AppendLine("No valid (non-null) vertices found to show pre/post adjustment counts.");
+                }
+            }
+            ansBuilder.AppendLine($"--- End of Semantic Summary & Vertex Data Adjustment for Mesh [{materialName}] ---");
+            return ansBuilder.ToString();
+        }
+        #endregion VertexBufferEditor
+
+
+
         static void ModelMesh()
         {
 
@@ -363,6 +772,87 @@ namespace MySFformat
                 };
 
                 p.Controls.Add(buttonTBF);
+
+                Button buttonVBE = new Button();
+                buttonVBE.Text = "VBs";
+                ButtonTips("Vertex Buffer & Buffer Layout Compond Editing," +
+                    "\nUseful for materials that need special buffer layouts." +
+                    "\nMesh的Vertex Buffer和Buffer Layout联合JSON修改，可以用来处理动态衣物等问题。", buttonVBE);
+                buttonVBE.Size = new System.Drawing.Size(70, 20);
+                buttonVBE.Location = new System.Drawing.Point(660, currentY);
+
+                buttonVBE.Click += (s, e) => {
+                    FLVER2.Mesh currentMesh = targetFlver.Meshes[btnI];
+                    List<EditableVertexBuffer> editableVBs = new List<EditableVertexBuffer>();
+
+                    foreach (var vb in currentMesh.VertexBuffers)
+                    {
+                        if (vb.LayoutIndex < 0 || vb.LayoutIndex >= targetFlver.BufferLayouts.Count)
+                        {
+                            MessageBox.Show($"Mesh {btnI} VertexBuffer has an invalid LayoutIndex: {vb.LayoutIndex}. Cannot edit.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        editableVBs.Add(new EditableVertexBuffer
+                        {
+                            EdgeCompressed = vb.EdgeCompressed,
+                            BufferIndex = vb.BufferIndex,
+                            ReferredBufferLayout = bufferLayoutToDto(targetFlver.BufferLayouts[vb.LayoutIndex]) // Make a copy for editing
+                        });
+                    }
+
+                    using (var editorForm = new EditVertexBuffersForm(editableVBs))
+                    {
+                        if (editorForm.ShowDialog() == DialogResult.OK)
+                        {
+                            try
+                            {
+                                List<EditableVertexBuffer> resultFromEditor = editorForm.EditedVertexBuffers;
+                                currentMesh.VertexBuffers.Clear(); // Clear old ones
+
+                                foreach (var editedVB in resultFromEditor)
+                                {
+                                    int foundLayoutIndex = -1;
+                                    for (int layoutIdx = 0; layoutIdx < targetFlver.BufferLayouts.Count; layoutIdx++)
+                                    {
+                                        var target = dtoToBufferLayout(editedVB.ReferredBufferLayout);
+                                        if (BufferLayoutsAreEqual(targetFlver.BufferLayouts[layoutIdx], target))
+                                        {
+                                            foundLayoutIndex = layoutIdx;
+                                            break;
+                                        }
+                                    }
+
+                                    if (foundLayoutIndex == -1) // Not found, add new
+                                    {
+                                        targetFlver.BufferLayouts.Add(dtoToBufferLayout(editedVB.ReferredBufferLayout)); // Add a copy
+                                        foundLayoutIndex = targetFlver.BufferLayouts.Count - 1;
+                                    }
+
+                                    currentMesh.VertexBuffers.Add(new FLVER2.VertexBuffer(foundLayoutIndex)
+                                    {
+                                        EdgeCompressed = editedVB.EdgeCompressed,
+                                        BufferIndex = editedVB.BufferIndex
+                                        // LayoutIndex is set by constructor
+                                    });
+                                }
+
+                                updateVertices(); // If this function re-reads from targetFlver
+                                //autoBackUp(); // If you have this
+                                              // targetFlver.Write(flverName); // Consider if this should be immediate or on main "Modify"
+
+                                //MessageBox.Show($"Vertex Buffers & Layout Buffers updated for mesh {btnI} updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                ShowScrollableInfoDialog("Vertex Buffers & Layout Buffers Auto-Conversion Info",
+                                    ProcessMeshSemanticsAndAdjustVertexData(currentMesh, targetFlver.BufferLayouts));
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Error processing VB editor results: {ex.Message}\n\n{ex.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                };
+
+                p.Controls.Add(buttonVBE);
 
 
                 currentY += 20;
@@ -1178,7 +1668,7 @@ namespace MySFformat
             };
 
 
-            f.Size = new System.Drawing.Size(800, 650);
+            f.Size = new System.Drawing.Size(900, 650);
             p.Size = new System.Drawing.Size(650, 600);
             f.Resize += (s, e) =>
             {

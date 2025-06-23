@@ -92,7 +92,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.55NR-dev";
+        public static string version = "X2.55NR-dev2";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -933,6 +933,16 @@ namespace MySFformat
             // The "Size" from JSON will be deserialized here but we'll ignore it
             // when creating the actual LayoutMember, as its Size is calculated.
             public int Size { get; set; }
+
+            public LayoutMemberDto() { }
+            public LayoutMemberDto(FLVER.LayoutMember target) {
+                Stream = target.Stream;
+                SpecialModifier = target.SpecialModifier;
+                Type = target.Type;
+                Semantic = target.Semantic;
+                Index = target.Index;
+                Size = target.Size;
+            }
         }
 
         #region Material_Window
