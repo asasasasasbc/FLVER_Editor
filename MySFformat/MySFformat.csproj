@@ -133,6 +133,7 @@
     <Compile Include="src\ProgramFbxImportForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="src\ProgramMeshUI.cs" />
     <Compile Include="src\ProgramNodesUI.cs" />
     <Compile Include="src\ProgramUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
