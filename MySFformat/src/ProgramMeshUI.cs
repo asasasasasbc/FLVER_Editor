@@ -380,8 +380,8 @@ namespace MySFformat
             int requiredUVsCount = maxUVIndex;
             int requiredColorsCount = maxColorIndex;
 
-            ansBuilder.AppendLine($"Target counts - Tangents: {requiredTangentsCount}, UVs: {requiredUVsCount}, Colors: {requiredColorsCount}");
-
+            ansBuilder.AppendLine($"Target counts - Tangents: {requiredTangentsCount}, UVs: {requiredUVsCount} + 1, Colors: {requiredColorsCount}");
+            requiredUVsCount += 1;//HAVE NO IDEA WHY NEED EXTRA UV
             if (mesh.Vertices == null)
             {
                 ansBuilder.AppendLine("Warning: Mesh.Vertices is null. Cannot adjust vertex data elements.");
