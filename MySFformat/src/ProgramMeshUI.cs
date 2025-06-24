@@ -161,6 +161,75 @@ namespace MySFformat
             return ans;
         }
 
+        /// <summary>
+        ///  Count the number of UV layers required by one LayoutMember
+        ///  /Referred from FLVER.vertex.Write
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static int countUV(FLVER.LayoutMember member) { 
+            int ans = 0;
+            if (member.Semantic == LayoutSemantic.UV)
+            {
+                ans += 1;
+                if (member.Type == LayoutType.Float2)
+                {
+                }
+                else
+                if (member.Type == LayoutType.Float3)
+                {
+                }
+                else
+                if (member.Type == LayoutType.Float4)
+                {
+                    ans += 1;
+                }
+                else
+                if (member.Type == LayoutType.Color)
+                {
+                }
+                else
+                if (member.Type == LayoutType.UByte4)
+                {
+                }
+                else
+                if (member.Type == LayoutType.Byte4)
+                {
+                }
+                else
+                if (member.Type == LayoutType.UByte4Norm)
+                {
+                    ans += 1;
+                }
+                else
+                if (member.Type == LayoutType.Short2)
+                {
+                }
+                else
+                if (member.Type == LayoutType.Half2)
+                {
+                }
+                else
+                if (member.Type == LayoutType.Short4)
+                {
+                    ans += 1;
+                }
+                else
+                if (member.Type == LayoutType.Half4)
+                {
+                    ans += 1;
+                }
+                else {
+                    throw new NotImplementedException($"Write not implemented for {member.Type} {member.Semantic}.");
+                }
+                
+            }
+
+
+            return ans;
+        }
+
         // Form for editing Vertex Buffers
         public class EditVertexBuffersForm : Form
         {
@@ -343,7 +412,7 @@ namespace MySFformat
                                 maxTangentIndex +=1;
                                 break;
                             case FLVER.LayoutSemantic.UV:
-                                maxUVIndex += 1;
+                                maxUVIndex += countUV(member);
                                 break;
                             case FLVER.LayoutSemantic.VertexColor:
                                 maxColorIndex += 1;
@@ -380,8 +449,8 @@ namespace MySFformat
             int requiredUVsCount = maxUVIndex;
             int requiredColorsCount = maxColorIndex;
 
-            ansBuilder.AppendLine($"Target counts - Tangents: {requiredTangentsCount}, UVs: {requiredUVsCount} + 1, Colors: {requiredColorsCount}");
-            requiredUVsCount += 1;//HAVE NO IDEA WHY NEED EXTRA UV
+            ansBuilder.AppendLine($"Target counts - Tangents: {requiredTangentsCount}, UVs: {requiredUVsCount}, Colors: {requiredColorsCount}");
+
             if (mesh.Vertices == null)
             {
                 ansBuilder.AppendLine("Warning: Mesh.Vertices is null. Cannot adjust vertex data elements.");
