@@ -92,7 +92,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.55NR-dev2";
+        public static string version = "X2.6";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -148,6 +148,10 @@ namespace MySFformat
         // Probably requires some shader to work properly? or just use M.reset
 
         //X2 TODO List:
+        // Multi-UV Exporting
+        // Multi-UV Importing
+        // When showing up, make sure no window overlap
+        // Strange Mesh Error problem
         //  importing new skeletons without changing exisitng bones hierarchy
         // Core function: make sure tangent calculation is correct and useable
         // Pipeline check: FLVER editor fbx export -> blender editing -> reimport back to FLVER

@@ -566,15 +566,28 @@ namespace MySFformat
                         // UVs (assuming at least one UV channel, handle multiple if necessary)
                         if (flverMesh.Vertices.Count > 0 && flverMesh.Vertices[0].UVs.Count > 0)
                         {
-                            var uvLayer = new LayerElementUV { Name = "UVChannel_1" }; // FBX standard name for first UV
-                            uvLayer.MappingMode = MappingMode.ByVertex;//MappingMode.ByControlPoint; /
-                                uvLayer.ReferenceMode = ReferenceMode.Direct;
-                            foreach (var v in flverMesh.Vertices)
+                            int uvChannelCount = flverMesh.Vertices[0].UVs.Count;
+                            for (int i = 0; i < uvChannelCount; i++)
                             {
-                                // Flip V coordinate
-                                uvLayer.UV.Add(new XY(v.UVs[0].X, 1.0f - v.UVs[0].Y));
+                                // FBX standard name for first UV, etc.
+                                var uvLayer = new LayerElementUV { Name = $"UVChannel_{i + 1}" };
+
+                                uvLayer.MappingMode = MappingMode.ByVertex; // or MappingMode.ByControlPoint;
+                                uvLayer.ReferenceMode = ReferenceMode.Direct;
+
+                                foreach (var v in flverMesh.Vertices)
+                                {
+                                    if (i < v.UVs.Count)
+                                    {
+                                        uvLayer.UV.Add(new XY(v.UVs[i].X, 1.0f - v.UVs[i].Y));
+                                    }
+                                    else
+                                    {
+                                        uvLayer.UV.Add(new XY(0.0f, 0.0f)); // Does not match- May be corrupted?
+                                    }
+                                }
+                                mioMesh.Layers.Add(uvLayer);
                             }
-                            mioMesh.Layers.Add(uvLayer);
                         }
 
                         // Tangents (optional, but good for normal mapping)
