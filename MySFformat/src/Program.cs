@@ -150,6 +150,8 @@ namespace MySFformat
         // [Done, Experimental] Multi-UV Exporting
         // [Done, Experimental] Multi-UV Importing
         // When showing up, make sure no window overlap
+        // Fix no-texture flver cannot be loaded issue
+        // VBS Editing
 
         //X2.6 TODO List:
         // Strange Mesh Error problem
@@ -162,7 +164,6 @@ namespace MySFformat
         // Pipeline check: whole new animation pipeline walktrough (flver skeleton + further custom animation)
         // exporting dummypolys
         // exporting with axis convertsion
-        // Exporting Multi-UVs
         // 3dsmax support
         // o assign the mesh to use “base buffer layout” and “cloth buffer layouts”
         // sorta like two templates to use one for every other mesh (buffer 0) or cloth mesh (3, 8, 5)
@@ -652,7 +653,11 @@ namespace MySFformat
                 }
 
                 MeshInfos mi = new MeshInfos();
-               var tName = targetFlver.Materials[ targetFlver.Meshes[i].MaterialIndex].Textures[0].Path;
+                var tName = "ERROR(No texture channel found in material!)";
+                // Fix no-texture flver cannot be loaded issue
+                if (targetFlver.Materials[targetFlver.Meshes[i].MaterialIndex].Textures.Count > 0) {
+                    tName = targetFlver.Materials[targetFlver.Meshes[i].MaterialIndex].Textures[0].Path;
+                }
               tName = FindFileName(tName);
                 mi.textureName = tName;
                 //MessageBox.Show("Found texture name:" + mi.textureName);
