@@ -147,11 +147,11 @@ namespace MySFformat
         // NR->ER flver files porting- advanced cloth physics retain feature
         // Probably requires some shader to work properly? or just use M.reset
 
-        // [Done, Experimental] Multi-UV Exporting
+        // [Done, Experimental] Multi-UV FBX Exporting
         // [Done, Experimental] Multi-UV Importing
         // When showing up, make sure no window overlap
         // Fix no-texture flver cannot be loaded issue
-        // VBS Editing
+        // One click VBS (mesh's vertex buffer information) Editing
 
         //X2.6 TODO List:
         // Strange Mesh Error problem
