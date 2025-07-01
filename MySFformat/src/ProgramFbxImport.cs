@@ -290,7 +290,9 @@ namespace MySFformat
                     var vit = m.Vertices[i];
                     var channels = m.TextureCoordinateChannels[0];
 
-                    var uv1 = new Vector3D();
+                    List<Vector3> tempUvs = new List<Vector3>();
+
+                    var uv1 = new Vector3D(); // Basic fall back
                     var uv2 = new Vector3D();
 
                     if (channels != null && m.TextureCoordinateChannelCount > 0)
@@ -299,7 +301,13 @@ namespace MySFformat
                         uv1.Y = 1 - uv1.Y;
                         uv2 = getMyV3D(channels[i]);
                         uv2.Y = 1 - uv2.Y;
+                        for (int j =0; j < m.TextureCoordinateChannelCount; j++) {
+                            var tempChan = m.TextureCoordinateChannels[j];
+                            tempUvs.Add(new Vector3(tempChan[i].X, 1f - tempChan[i].Y, 0));
+                        }
+                        while (tempUvs.Count < 2) { tempUvs.Add(new Vector3(uv1.X, uv1.Y, uv1.Z)); }
                     }
+
 
                     var normal = new Vector3D(0, 1, 0);
                     if (m.HasNormals && m.Normals.Count > i)
@@ -364,7 +372,7 @@ namespace MySFformat
                     }
 
                     FLVER.Vertex v = generateVertex(remappedPosition, uv1.toNumV3(), uv2.toNumV3(), remappedNormal, remappedTangent, tangentW);
-
+                    if (tempUvs.Count > 1) { v.UVs = tempUvs; } // V2.6 Multi-UV Support
                     if (m.HasBones)
                     {
                         for (int j = 0; j < verticesBoneIndices[i].Count && j < 4; j++)

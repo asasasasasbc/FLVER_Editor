@@ -189,8 +189,29 @@ namespace MySFformat
                 Text = "FLVER Editor - " + Path.GetFileName(orgFileName),
                 Size = new Size(800, 750),
                 MinimumSize = new Size(640, 480),
-                StartPosition = FormStartPosition.CenterScreen
+                // Separate Popuped window
+                StartPosition = FormStartPosition.Manual
+                // ORG： StartPosition = FormStartPosition.CenterScreen
             };
+
+            // --- Separate Popuped window ---
+            var screen = Screen.PrimaryScreen.WorkingArea;
+            // 将窗口定位在屏幕的右侧。 (屏幕中心点 + 5像素间隙)
+            int editorX = screen.Left + (screen.Width / 2) + 5;
+            int editorY = screen.Top + (screen.Height - f.Height) / 2;
+
+            // 确保窗口不会跑到屏幕外
+            if (editorX + f.Width > screen.Right)
+            {
+                editorX = screen.Right - f.Width;
+            }
+            if (editorY < screen.Top)
+            {
+                editorY = screen.Top;
+            }
+
+            f.Location = new Point(editorX, editorY);
+            // --- Separate Popuped window End ---
 
             var serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue };
 

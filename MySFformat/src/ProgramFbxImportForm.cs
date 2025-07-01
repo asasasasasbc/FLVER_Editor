@@ -87,7 +87,7 @@ FLVER_Bone_Name_2
             this.Text = "Import FBX Options";
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterParent;
-            this.ClientSize = new Size(500, 545);
+            this.ClientSize = new Size(500, 575);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 

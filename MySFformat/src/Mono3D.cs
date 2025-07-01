@@ -172,12 +172,32 @@ namespace MySFformat
         {
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             Window.AllowUserResizing = true;
+            
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             // string path = @"data\img\27.png";
             //test = Content.Load<Texture2D>(@"data\img\27.png");
-            f =  (Form)Form.FromHandle(Window.Handle);
+            // --- Separate Popuped window ---
+            // ORG： Window.Position = Window.Position + new Microsoft.Xna.Framework.Point(-300, 0);
+            var screen = Screen.PrimaryScreen.WorkingArea;
+            int viewerWidth = graphics.PreferredBackBufferWidth;
+            int viewerHeight = graphics.PreferredBackBufferHeight;
+            // 将窗口定位在屏幕的左侧。 (屏幕中心点 - 自身宽度 - 5像素间隙)
+            int viewerX = screen.Left + (screen.Width / 2) - viewerWidth - 5;
+            int viewerY = screen.Top + (screen.Height - viewerHeight) / 2;
+            // 确保窗口不会跑到屏幕左边外面去
+            if (viewerX < screen.Left)
+            {
+                viewerX = screen.Left;
+            }
+            if (viewerY < screen.Top)
+            {
+                viewerY = screen.Top;
+            }
+            Window.Position = new Microsoft.Xna.Framework.Point(viewerX, viewerY);
+            f = (Form)Form.FromHandle(Window.Handle);
+            // --- Separate Popuped window ---
 
 
 

@@ -147,10 +147,11 @@ namespace MySFformat
         // NR->ER flver files porting- advanced cloth physics retain feature
         // Probably requires some shader to work properly? or just use M.reset
 
-        //X2 TODO List:
-        // Multi-UV Exporting
-        // Multi-UV Importing
+        // [Done, Experimental] Multi-UV Exporting
+        // [Done, Experimental] Multi-UV Importing
         // When showing up, make sure no window overlap
+
+        //X2.6 TODO List:
         // Strange Mesh Error problem
         //  importing new skeletons without changing exisitng bones hierarchy
         // Core function: make sure tangent calculation is correct and useable
