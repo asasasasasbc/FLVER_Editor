@@ -65,6 +65,7 @@ namespace MySFformat
 
         public static int checkingMeshNum = -1;
         public static Boolean useCheckingMesh = false;
+        public static List<int> hidingMeshNums = new List<int>();
 
         /***settings***/
         public static Boolean basicMode = false;
@@ -92,7 +93,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.6";
+        public static string version = "X2.61";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -492,7 +493,7 @@ namespace MySFformat
                 // int currentV = 0;
                 //Microsoft.Xna.Framework.Vector3[] vl = new Microsoft.Xna.Framework.Vector3[3];
                 if (targetFlver.Meshes[i] == null) { continue; }
-
+                
 
                 bool renderBackFace = false;
                 Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);
@@ -502,8 +503,11 @@ namespace MySFformat
                     if (targetFlver.Meshes[i].FaceSets[0].CullBackfaces == false) { renderBackFace = true; }
                 }
                 var faces = targetFlver.Meshes[i].GetFaces();
+                // Render faces
                 for (var fi = 0; fi < faces.Count;fi++)
                 {
+                    // 不能放在前面，不然可能会导致targetV是null
+                    if (hidingMeshNums.Contains(i)) { break; }
                     var vl = faces[fi];
                     var tvl = vl;
                     Vector3[] ps = new Vector3[3];
@@ -676,7 +680,7 @@ namespace MySFformat
             }
             
 
-
+            // Draw Dummies
             for (int i = 0; i < targetFlver.Dummies.Count && dummyDisplay; i++)
             {
                 FLVER.Dummy d = targetFlver.Dummies[i];

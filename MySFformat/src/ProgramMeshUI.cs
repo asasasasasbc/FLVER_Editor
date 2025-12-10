@@ -734,6 +734,8 @@ namespace MySFformat
 
 
 
+
+
             currentY += 20;
 
 
@@ -923,6 +925,50 @@ namespace MySFformat
 
                 p.Controls.Add(buttonVBE);
 
+
+
+
+                // --- 新增功能：显示/隐藏 Mesh 开关 ---
+                CheckBox toggleVis = new CheckBox();
+                toggleVis.Text = "Visible"; // 显示文本
+                toggleVis.AutoSize = true;
+                // VBs按钮位置是660，宽度70，所以在740的位置放置比较合适
+                toggleVis.Location = new System.Drawing.Point(740, currentY);
+
+                // 初始化状态：如果不在隐藏列表中，则勾选（显示）；如果在隐藏列表中，则不勾选（隐藏）
+                if (hidingMeshNums.Contains(btnI))
+                {
+                    toggleVis.Checked = false;
+                }
+                else
+                {
+                    toggleVis.Checked = true;
+                }
+
+                // 添加事件监听
+                toggleVis.CheckedChanged += (s, e) => {
+                    if (toggleVis.Checked)
+                    {
+                        // 勾选 -> 显示 -> 从隐藏列表中移除
+                        if (hidingMeshNums.Contains(btnI))
+                        {
+                            hidingMeshNums.Remove(btnI);
+                            updateVertices();
+                        }
+                    }
+                    else
+                    {
+                        // 取消勾选 -> 隐藏 -> 加入隐藏列表
+                        if (!hidingMeshNums.Contains(btnI))
+                        {
+                            hidingMeshNums.Add(btnI);
+                            updateVertices();
+                        }
+                    }
+                };
+
+                p.Controls.Add(toggleVis);
+                // --- 新增结束 ---
 
                 currentY += 20;
                 sizeY += 20;
@@ -1737,8 +1783,8 @@ namespace MySFformat
             };
 
 
-            f.Size = new System.Drawing.Size(900, 650);
-            p.Size = new System.Drawing.Size(650, 600);
+            f.Size = new System.Drawing.Size(950, 650);
+            p.Size = new System.Drawing.Size(700, 600);
             f.Resize += (s, e) =>
             {
                 p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 50);
