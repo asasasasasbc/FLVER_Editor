@@ -557,6 +557,7 @@ namespace MySFformat
             f.Controls.Add(p);
 
             List<CheckBox> cbList = new List<CheckBox>();//List for deleting
+            List<CheckBox> vbList = new List<CheckBox>();// visible list
             List<TextBox> tbList = new List<TextBox>();
             List<CheckBox> affectList = new List<CheckBox>();
 
@@ -683,8 +684,6 @@ namespace MySFformat
                     {
                         item.Checked = !allSelected;
                     }
-
-
                 };
                 p.Controls.Add(dA);
 
@@ -732,6 +731,36 @@ namespace MySFformat
             }
 
 
+            {
+                Label l = new Label();
+                l.Text = "Visible";
+                l.Size = new System.Drawing.Size(50, 15);
+                l.Location = new System.Drawing.Point(740, currentY + 5);
+                p.Controls.Add(l);
+            }
+            {
+                Button dA = new Button();
+                dA.Text = "A";
+                dA.Size = new System.Drawing.Size(15, 15);
+                ButtonTips("Toggle all meshes' visibile.\n" +
+    "全部隐藏/显示", dA);
+                dA.Location = new System.Drawing.Point(790, currentY + 5);
+                dA.Click += (s, e) => {
+                    Boolean allSelected = true;
+                    foreach (var item in vbList)
+                    {
+                        if (item.Checked == false) { allSelected = false; }
+                    }
+                    foreach (var item in vbList)
+                    {
+                        item.Checked = !allSelected;
+                    }
+                };
+                p.Controls.Add(dA);
+
+
+
+            }
 
 
 
@@ -934,7 +963,7 @@ namespace MySFformat
                 toggleVis.AutoSize = true;
                 // VBs按钮位置是660，宽度70，所以在740的位置放置比较合适
                 toggleVis.Location = new System.Drawing.Point(740, currentY);
-
+                vbList.Add(toggleVis);
                 // 初始化状态：如果不在隐藏列表中，则勾选（显示）；如果在隐藏列表中，则不勾选（隐藏）
                 if (hidingMeshNums.Contains(btnI))
                 {
@@ -1783,8 +1812,8 @@ namespace MySFformat
             };
 
 
-            f.Size = new System.Drawing.Size(950, 650);
-            p.Size = new System.Drawing.Size(700, 600);
+            f.Size = new System.Drawing.Size(970, 650);
+            p.Size = new System.Drawing.Size(720, 600);
             f.Resize += (s, e) =>
             {
                 p.Size = new System.Drawing.Size(f.Size.Width - 150, f.Size.Height - 50);
