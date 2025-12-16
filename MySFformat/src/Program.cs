@@ -93,7 +93,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.61";
+        public static string version = "X2.62";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -493,7 +493,7 @@ namespace MySFformat
                 // int currentV = 0;
                 //Microsoft.Xna.Framework.Vector3[] vl = new Microsoft.Xna.Framework.Vector3[3];
                 if (targetFlver.Meshes[i] == null) { continue; }
-                
+                if (hidingMeshNums.Contains(i)) { continue; }
 
                 bool renderBackFace = false;
                 Microsoft.Xna.Framework.Vector3 light = new Microsoft.Xna.Framework.Vector3(mono.lightX, mono.lightY, mono.lightZ);

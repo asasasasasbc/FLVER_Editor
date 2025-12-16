@@ -460,7 +460,7 @@ namespace MySFformat
 
         private void deleteVertexBelow()
         {
-          
+            if (targetV == null || targetVinfo == null) { return; }
             SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
             float yValue = targetV.Position.Y;
@@ -479,6 +479,7 @@ namespace MySFformat
 
         private void deleteVertexAbove()
         {
+            if (targetV == null || targetVinfo == null) { return; }
             SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
             float yValue = targetV.Position.Y;
@@ -511,6 +512,7 @@ namespace MySFformat
         }
         private void deleteVertex()
         {
+            if (targetV == null || targetVinfo == null) { return; }
             SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
             uint index = targetVinfo.vertexIndex;
             deleteMeshVertexFaceset(m,(int)(index));
@@ -857,7 +859,7 @@ namespace MySFformat
 
             }
 
-            if (Program.setVertexPos)
+            if (targetV != null && Program.setVertexPos)
             {
                 targetV.Position = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
             }
@@ -865,7 +867,7 @@ namespace MySFformat
             Program.useCheckingPoint = true;
             Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
 
-            if (targetV.Normal != null)
+            if (targetV != null && targetV.Normal != null)
             {
                 Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normal.X, targetV.Normal.Y, targetV.Normal.Z);
             }
@@ -873,7 +875,7 @@ namespace MySFformat
             {
                 Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
             }
-            if (targetV.Tangents != null && targetV.Tangents.Count > 0)
+            if (targetV!=null && targetV.Tangents != null && targetV.Tangents.Count > 0)
             {
                 var tangent = targetV.Tangents[0];
                 Program.checkingPointTangent = new System.Numerics.Vector3(tangent.X, tangent.Y, tangent.Z);
@@ -1021,6 +1023,7 @@ namespace MySFformat
             foreach (SoulsFormats.FLVER.Vertex v in Program.vertices)
             {
                 if (v.Position == null) { continue; }
+                
                 float dis = Vector3D.calculateDistanceFromLine(new Vector3D(v.Position), x1, x2);
                 if (ptDistance > dis)
                 {
@@ -1032,7 +1035,7 @@ namespace MySFformat
 
             }
 
-            if (Program.setVertexPos)
+            if (targetV != null && Program.setVertexPos)
             {
                 targetV.Position = new Vector3D(Program.setVertexX, Program.setVertexY, Program.setVertexZ).toNumV3();
             }
@@ -1040,7 +1043,7 @@ namespace MySFformat
             Program.useCheckingPoint = true;
             Program.checkingPoint = new System.Numerics.Vector3(miniPoint.X, miniPoint.Y, miniPoint.Z);
 
-            if (targetV.Normal != null)
+            if (targetV != null && targetV.Normal != null)
             {
                 Program.checkingPointNormal = new System.Numerics.Vector3(targetV.Normal.X, targetV.Normal.Y, targetV.Normal.Z);
             }
@@ -1049,7 +1052,7 @@ namespace MySFformat
                 Program.checkingPointNormal = new System.Numerics.Vector3(0, 0, 0);
             }
 
-            if (targetV.Tangents != null && targetV.Tangents.Count > 0)
+            if (targetV != null && targetV.Tangents != null && targetV.Tangents.Count > 0)
             {
                 var tangent = targetV.Tangents[0];
                 Program.checkingPointTangent = new System.Numerics.Vector3(tangent.X, tangent.Y, tangent.Z);
@@ -1071,6 +1074,10 @@ namespace MySFformat
                 System.Windows.Forms.MessageBox.Show(text.Substring(0, l), "Vertex info1:");
                 System.Windows.Forms.MessageBox.Show(text.Substring(l, text.Length - l), "Vertex info2:");
 
+            }
+
+            if (targetV == null) {
+                System.Windows.Forms.MessageBox.Show("No vertex found!", "Warning:");
             }
 
 
