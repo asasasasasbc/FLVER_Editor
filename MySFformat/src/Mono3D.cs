@@ -79,6 +79,9 @@ namespace MySFformat
         ToolStripMenuItem toggleTangentsItem;
         ToolStripMenuItem togglePoseItem;
 
+        // 添加这个布尔变量用来标记菜单是否刚刚关闭
+        bool menuJustClosed = false;
+
         public void changeToRenderMode(RenderMode targetMode) { 
             renderMode = targetMode;
         }
@@ -444,7 +447,11 @@ namespace MySFformat
             */
 
             f.ContextMenu = cm;
-           
+            cm.Collapse += (s, o) => {
+                // 当菜单关闭（无论是选了选项还是点了外面）时触发
+                menuJustClosed = true;
+            };
+
             f.MouseDown += new MouseEventHandler(this.pictureBox1_MouseDown);
             f.MouseUp += new MouseEventHandler(this.pictureBox1_MouseUp);
         }
@@ -1075,6 +1082,21 @@ namespace MySFformat
 
             KeyboardState state = Keyboard.GetState();
             MouseState mState = Mouse.GetState();
+
+            // --- 新增的代码 START ---
+            // 如果菜单刚刚关闭
+            if (menuJustClosed)
+            {
+                // 将上一帧的鼠标状态强制设为当前状态
+                // 这样 mState.X - prevMState.X 就会等于 0，避免瞬移
+                prevMState = mState;
+
+                // 如果你希望点击的那一下完全没有任何反应（防止误触旋转），
+                // 可以在这里重置标志位后直接 return; 跳过这一帧的逻辑。
+                // 但通常只需重置 prevMState 即可解决瞬移问题。
+                menuJustClosed = false;
+            }
+            // --- 新增的代码 END ---
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
                 Application.Exit();
