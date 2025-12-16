@@ -409,13 +409,20 @@ namespace MySFformat
             });
             cm.MenuItems.Add(mi0);
 
-          /*  cm.MenuItems.Add("Delete Vertex (related faceset)", new EventHandler(delegate (Object o, EventArgs a)
+            cm.MenuItems.Add("Delete Selected Vertex's Faceset and All Linked Faceset", new EventHandler(delegate (Object o, EventArgs a)
             {
-                deleteVertex();
+                deleteVertexLinked();
                 // editVerticesInfo();
                 //    MessageBox.Show(targetV);
+            }));
 
-            }));*/
+            /*  cm.MenuItems.Add("Delete Vertex (related faceset)", new EventHandler(delegate (Object o, EventArgs a)
+              {
+                  deleteVertex();
+                  // editVerticesInfo();
+                  //    MessageBox.Show(targetV);
+
+              }));*/
 
 
             cm.MenuItems.Add("Delete Vertices Above", new EventHandler(delegate (Object o, EventArgs a)
@@ -520,6 +527,122 @@ namespace MySFformat
             targetV.Position = new System.Numerics.Vector3(0,0,0);
 
             Program.updateVertices();
+        }
+
+        private void deleteVertexLinked()
+        {
+            if (targetV == null || targetVinfo == null) { return; }
+
+            // 获取当前选中的 Mesh 和起始顶点索引
+            SoulsFormats.FLVER2.Mesh m = Program.targetFlver.Meshes[targetVinfo.meshIndex];
+            int startIndex = (int)targetVinfo.vertexIndex;
+
+            // 1. 查找所有相连的顶点索引 (构建图并遍历)
+            HashSet<int> linkedIndices = GetLinkedIndices(m, startIndex);
+
+            // 2. 将所有关联顶点的位置设为 0 (为了视觉反馈，保持与 deleteVertex 一致的逻辑)
+            foreach (int index in linkedIndices)
+            {
+                if (index >= 0 && index < m.Vertices.Count)
+                {
+                    m.Vertices[index].Position = new System.Numerics.Vector3(0, 0, 0);
+                }
+            }
+
+            // 3. 批量删除(折叠)涉及这些顶点的所有面
+            // 相比循环调用 deleteMeshVertexFaceset，这样做性能高很多
+            foreach (var fs in m.FaceSets)
+            {
+                // 假设是 Triangle List (根据你原来的代码 i+=3 推断)
+                for (int i = 0; i + 2 < fs.Indices.Count; i += 3)
+                {
+                    // 如果三角形的任意一个顶点属于我们要删除的关联集合
+                    if (linkedIndices.Contains(fs.Indices[i]) ||
+                        linkedIndices.Contains(fs.Indices[i + 1]) ||
+                        linkedIndices.Contains(fs.Indices[i + 2]))
+                    {
+                        // 将该三角形折叠为一个退化三角形 (三个索引设为相同)
+                        // 这在渲染时会使面消失
+                        int collapseVal = fs.Indices[i];
+                        fs.Indices[i] = collapseVal;
+                        fs.Indices[i + 1] = collapseVal;
+                        fs.Indices[i + 2] = collapseVal;
+                    }
+                }
+            }
+
+            // 更新缓冲区
+            Program.updateVertices();
+            System.Windows.Forms.MessageBox.Show($"Deleted {linkedIndices.Count} linked vertices.");
+        }
+
+        // --- 辅助方法：使用 BFS 查找连通分量 ---
+
+        private HashSet<int> GetLinkedIndices(SoulsFormats.FLVER2.Mesh m, int startIdx)
+        {
+            HashSet<int> visited = new HashSet<int>();
+            Queue<int> queue = new Queue<int>();
+
+            // 构建邻接表 (Adjacency List): 顶点 -> 相邻顶点列表
+            Dictionary<int, List<int>> adjacencyGraph = new Dictionary<int, List<int>>();
+
+            // 遍历 FaceSets 来建立连接关系
+            foreach (var fs in m.FaceSets)
+            {
+                List<int> indices = fs.Indices;
+                for (int i = 0; i + 2 < indices.Count; i += 3)
+                {
+                    int v1 = indices[i];
+                    int v2 = indices[i + 1];
+                    int v3 = indices[i + 2];
+
+                    AddEdge(adjacencyGraph, v1, v2);
+                    AddEdge(adjacencyGraph, v2, v3);
+                    AddEdge(adjacencyGraph, v3, v1);
+                }
+            }
+
+            // 开始 BFS 搜索
+            if (adjacencyGraph.ContainsKey(startIdx))
+            {
+                queue.Enqueue(startIdx);
+                visited.Add(startIdx);
+
+                while (queue.Count > 0)
+                {
+                    int current = queue.Dequeue();
+
+                    if (adjacencyGraph.ContainsKey(current))
+                    {
+                        foreach (int neighbor in adjacencyGraph[current])
+                        {
+                            if (!visited.Contains(neighbor))
+                            {
+                                visited.Add(neighbor);
+                                queue.Enqueue(neighbor);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // 如果这个点没有被任何面使用，它就是孤立的
+                visited.Add(startIdx);
+            }
+
+            return visited;
+        }
+
+        // 简单的图加边辅助函数
+        private void AddEdge(Dictionary<int, List<int>> graph, int a, int b)
+        {
+            if (!graph.ContainsKey(a)) graph[a] = new List<int>();
+            if (!graph.ContainsKey(b)) graph[b] = new List<int>();
+
+            // 防止重复添加同样的边可以稍微优化，但在 BFS 中 HashSet 已经处理了去重
+            graph[a].Add(b);
+            graph[b].Add(a);
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
