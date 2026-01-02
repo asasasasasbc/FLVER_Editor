@@ -409,9 +409,16 @@ namespace MySFformat
             });
             cm.MenuItems.Add(mi0);
 
-            cm.MenuItems.Add("Delete Selected Vertex's Faceset and All Linked Faceset", new EventHandler(delegate (Object o, EventArgs a)
+            cm.MenuItems.Add("Delete Selected Vertex's Faceset and All Linked Facesets", new EventHandler(delegate (Object o, EventArgs a)
             {
                 deleteVertexLinked();
+                // editVerticesInfo();
+                //    MessageBox.Show(targetV);
+            }));
+
+            cm.MenuItems.Add("(Silence)Delete Selected Vertex's Faceset and All Linked Facesets", new EventHandler(delegate (Object o, EventArgs a)
+            {
+                deleteVertexLinked(true);
                 // editVerticesInfo();
                 //    MessageBox.Show(targetV);
             }));
@@ -529,7 +536,7 @@ namespace MySFformat
             Program.updateVertices();
         }
 
-        private void deleteVertexLinked()
+        private void deleteVertexLinked(bool silence=false)
         {
             if (targetV == null || targetVinfo == null) { return; }
 
@@ -573,7 +580,14 @@ namespace MySFformat
 
             // 更新缓冲区
             Program.updateVertices();
-            System.Windows.Forms.MessageBox.Show($"Deleted {linkedIndices.Count} linked vertices.");
+            if (silence)
+            {
+                //DO Nothing
+            }
+            else {
+                System.Windows.Forms.MessageBox.Show($"Deleted {linkedIndices.Count} linked vertices.");
+            }
+            
         }
 
         // --- 辅助方法：使用 BFS 查找连通分量 ---
