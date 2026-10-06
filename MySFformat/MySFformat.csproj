@@ -126,6 +126,8 @@
     <Compile Include="src\IniParser.cs" />
     <Compile Include="src\Matrix3D.cs" />
     <Compile Include="src\Mono3D.cs" />
+    <Compile Include="src\ViewerCameraSettings.cs" />
+    <Compile Include="src\RenderCli.cs" />
     <Compile Include="src\Program.cs" />
     <Compile Include="src\ProgramDummiesUI.cs" />
     <Compile Include="src\ProgramFbxExport.cs" />

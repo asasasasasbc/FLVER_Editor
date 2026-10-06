@@ -183,6 +183,12 @@ namespace MySFformat
         [STAThread]
         static void Main(string[] args)
         {
+            if (args.Any(x => x.StartsWith("--", StringComparison.Ordinal)))
+            {
+                if (args.Contains("--help")) Console.WriteLine(RenderCliOptions.Help);
+                else Environment.ExitCode = RunRenderCli(args);
+                return;
+            }
             argments = args;
             Console.WriteLine("Hello!");
             string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);

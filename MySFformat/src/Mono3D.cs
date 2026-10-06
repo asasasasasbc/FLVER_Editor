@@ -82,6 +82,84 @@ namespace MySFformat
         // 添加这个布尔变量用来标记菜单是否刚刚关闭
         bool menuJustClosed = false;
 
+        // Synchronous camera helper: no worker, watcher thread, or background task.
+        double nextCameraRead;
+        string lastCameraKey;
+        string baseViewerTitle;
+        RenderTarget2D cliRenderTarget;
+        int cliFrames;
+        public bool RenderCompleted { get; private set; }
+        public float RenderProjectionAspect { get; private set; }
+        public float RenderViewportAspect { get; private set; }
+        public float RenderPreferredAspect { get; private set; }
+        public float RenderProjectionM11 { get; private set; }
+        public float RenderProjectionM22 { get; private set; }
+
+        private void ReadCameraHelper(bool force)
+        {
+            try
+            {
+                string path = ViewerCameraSettings.FindPath(Program.flverName);
+                if (path == null) { lastCameraKey = null; return; }
+                string json = File.ReadAllText(path);
+                string key = path + "\n" + json;
+                if (!force && key == lastCameraKey) return;
+                // Cache invalid contents too; retry only after a change or manual reload.
+                lastCameraKey = key;
+                var settings = ViewerCameraSettings.Parse(json);
+                // Viewer uses Z-up and swaps FLVER Y/Z for its draw coordinates.
+                cameraX = settings.camera[0];
+                cameraY = settings.camera[2];
+                cameraZ = settings.camera[1];
+                centerX = settings.target[0];
+                centerY = settings.target[2];
+                centerZ = settings.target[1];
+                offsetX = offsetY = offsetZ = 0;
+                renderMode = (RenderMode)Enum.Parse(typeof(RenderMode), settings.renderMode);
+                changeBoneDisplay(settings.showBones);
+                changeDummyDisplay(settings.showDummies);
+                Window.Title = baseViewerTitle + " [Camera JSON: " + Path.GetFileName(path) + "]";
+                // Read-back evidence for automation; never rewrites the input or FLVER.
+                try
+                {
+                    File.WriteAllText(path + ".applied.json",
+                        new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new {
+                            model = Program.flverName,
+                            camera = settings.camera,
+                            target = settings.target,
+                            viewerCamera = new[] { cameraX, cameraY, cameraZ },
+                            viewerTarget = new[] { centerX, centerY, centerZ },
+                            settings.renderMode, settings.showBones, settings.showDummies
+                        }));
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+            catch (Exception ex)
+            {
+                Window.Title = baseViewerTitle + " [Camera JSON rejected: " + ex.Message + "]";
+            }
+        }
+
+        private void SaveCameraHelper()
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(Program.flverName)) return;
+                var settings = new ViewerCameraSettings {
+                    camera = new[] { cameraX + offsetX, cameraZ + offsetZ, cameraY + offsetY },
+                    target = new[] { centerX + offsetX, centerZ + offsetZ, centerY + offsetY },
+                    renderMode = renderMode.ToString(),
+                    showBones = Program.boneDisplay, showDummies = Program.dummyDisplay
+                };
+                string json = new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(settings);
+                ViewerCameraSettings.Parse(json);
+                File.WriteAllText(Path.GetFullPath(Program.flverName) + ".view.json", json);
+                ReadCameraHelper(true);
+            }
+            catch (Exception ex) { System.Windows.Forms.MessageBox.Show(ex.Message, "Camera JSON"); }
+        }
+
         public void changeToRenderMode(RenderMode targetMode) { 
             renderMode = targetMode;
         }
@@ -174,6 +252,7 @@ namespace MySFformat
         public Mono3D()
         {
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
+            baseViewerTitle = Window.Title;
             Window.AllowUserResizing = true;
             
             this.IsMouseVisible = true;
@@ -200,6 +279,23 @@ namespace MySFformat
             }
             Window.Position = new Microsoft.Xna.Framework.Point(viewerX, viewerY);
             f = (Form)Form.FromHandle(Window.Handle);
+            if (Program.RenderOptions != null)
+            {
+                var options = Program.RenderOptions;
+                graphics.PreferredBackBufferWidth = options.Width;
+                graphics.PreferredBackBufferHeight = options.Height;
+                graphics.SynchronizeWithVerticalRetrace = false;
+                IsFixedTimeStep = false;
+                InactiveSleepTime = TimeSpan.Zero;
+                f.ShowInTaskbar = false;
+                f.StartPosition = FormStartPosition.Manual;
+                f.Location = new System.Drawing.Point(-30000, -30000);
+                var settings = Program.RenderCamera;
+                cameraX = settings.camera[0]; cameraY = settings.camera[2]; cameraZ = settings.camera[1];
+                centerX = settings.target[0]; centerY = settings.target[2]; centerZ = settings.target[1];
+                renderMode = (RenderMode)Enum.Parse(typeof(RenderMode), settings.renderMode);
+                return; // No editor menus, dialogs, handlers or interactive controls.
+            }
             // --- Separate Popuped window ---
 
 
@@ -373,9 +469,13 @@ namespace MySFformat
             animMenuItem.DropDownItems.Add(editPoseItem);
 
             // 5. 将顶层菜单项添加到主菜单栏
+            var cameraMenuItem = new ToolStripMenuItem("Camera Helper");
+            cameraMenuItem.DropDownItems.Add("Reload camera JSON", null, (sender, e) => ReadCameraHelper(true));
+            cameraMenuItem.DropDownItems.Add("Save current view next to FLVER", null, (sender, e) => SaveCameraHelper());
             mainMenu.Items.Add(renderingMenuItem);
             mainMenu.Items.Add(overlayMenuItem);
             mainMenu.Items.Add(animMenuItem);
+            mainMenu.Items.Add(cameraMenuItem);
 
             // 6. 将主菜单栏应用到窗口
             f.MainMenuStrip = mainMenu;
@@ -731,6 +831,7 @@ namespace MySFformat
             effect = new BasicEffect(graphics.GraphicsDevice);
             effect.VertexColorEnabled = true;
             base.Initialize();
+            if (Program.RenderOptions != null) f.Hide();
         }
 
 
@@ -1223,6 +1324,16 @@ namespace MySFformat
 
         protected override void Update(GameTime gameTime)
         {
+            if (Program.RenderOptions != null)
+            {
+                base.Update(gameTime);
+                return; // Batch renders never consume the user's mouse or keyboard.
+            }
+            if (gameTime.TotalGameTime.TotalSeconds >= nextCameraRead)
+            {
+                nextCameraRead = gameTime.TotalGameTime.TotalSeconds + 0.5;
+                ReadCameraHelper(false);
+            }
 
             KeyboardState state = Keyboard.GetState();
             MouseState mState = Mouse.GetState();
@@ -1599,6 +1710,13 @@ namespace MySFformat
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            if (Program.RenderOptions != null)
+            {
+                if (cliRenderTarget == null)
+                    cliRenderTarget = new RenderTarget2D(GraphicsDevice, Program.RenderOptions.Width,
+                        Program.RenderOptions.Height, false, SurfaceFormat.Color, DepthFormat.Depth24);
+                GraphicsDevice.SetRenderTarget(cliRenderTarget);
+            }
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
             // TODO: Add your drawing code here
@@ -1691,6 +1809,38 @@ namespace MySFformat
 
             spriteBatch.End();
             base.Draw(gameTime);
+            if (Program.RenderOptions != null)
+            {
+                GraphicsDevice.SetRenderTarget(null);
+                if (++cliFrames >= Program.RenderOptions.Frames)
+                {
+                    string output = Path.GetFullPath(Program.RenderOptions.Screenshot);
+                    Directory.CreateDirectory(Path.GetDirectoryName(output));
+                    // MonoGame's bundled PNG encoder can emit a truncated IDAT stream.
+                    // Read GPU pixels and use the Windows PNG encoder instead.
+                    var pixels = new Color[cliRenderTarget.Width * cliRenderTarget.Height];
+                    cliRenderTarget.GetData(pixels);
+                    using (var bitmap = new System.Drawing.Bitmap(cliRenderTarget.Width, cliRenderTarget.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+                    {
+                        var rect = new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                        var data = bitmap.LockBits(rect, System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                        try
+                        {
+                            var bytes = new byte[pixels.Length * 4];
+                            for (int i = 0; i < pixels.Length; i++)
+                            {
+                                bytes[i * 4] = pixels[i].B; bytes[i * 4 + 1] = pixels[i].G;
+                                bytes[i * 4 + 2] = pixels[i].R; bytes[i * 4 + 3] = pixels[i].A;
+                            }
+                            System.Runtime.InteropServices.Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
+                        }
+                        finally { bitmap.UnlockBits(data); }
+                        bitmap.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                    RenderCompleted = true;
+                    Exit();
+                }
+            }
         }
 
         void DrawGround()
@@ -1712,14 +1862,22 @@ namespace MySFformat
             effect.View = Matrix.CreateLookAt(
                 cameraPosition, cameraLookAtVector, cameraUpVector);
             effect.VertexColorEnabled = true;
-            float aspectRatio =
-                graphics.PreferredBackBufferWidth / (float)graphics.PreferredBackBufferHeight;
+            // Use the currently bound render target, never the native window/DPI-adjusted preferred size.
+            float aspectRatio = GraphicsDevice.Viewport.AspectRatio;
             float fieldOfView = Microsoft.Xna.Framework.MathHelper.PiOver4;
             float nearClipPlane = 0.1f;
             float farClipPlane = 200;
 
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(
                 fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
+            if (Program.RenderOptions != null)
+            {
+                RenderProjectionAspect = aspectRatio;
+                RenderViewportAspect = GraphicsDevice.Viewport.AspectRatio;
+                RenderPreferredAspect = graphics.PreferredBackBufferWidth / (float)graphics.PreferredBackBufferHeight;
+                RenderProjectionM11 = effect.Projection.M11;
+                RenderProjectionM22 = effect.Projection.M22;
+            }
 
 
 
