@@ -68,7 +68,10 @@ namespace MySFformat
         bool rightClickSilence = false;
         Form f;
         Texture2D testTexture;
-        Dictionary<string, Texture2D> textureMap = new Dictionary<string, Texture2D>();
+        Dictionary<string, Texture2D> textureMap = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+        public int LoadedTextures { get { return textureMap.Count; } }
+        public int TexturedMeshes { get { return meshInfos == null ? 0 : meshInfos.Count(m => textureMap.ContainsKey(m.textureName)); } }
+        public int TextureErrors { get; private set; }
         private static GCHandle handle;
 
         ToolStripMenuItem ItemF6;
@@ -852,34 +855,38 @@ namespace MySFformat
             //decrypt tpf file;
             string tpfFile = Program.orgFileName.Substring(0,Program.orgFileName.Length - 5) + "tpf";
 
-            try {
-
-                if (Program.targetTPF != null)
+            try
+            {
+                var tpf = Program.targetTPF;
+                if (tpf == null && File.Exists(tpfFile)) tpf = SoulsFormats.TPF.Read(tpfFile);
+                if (tpf != null)
                 {
-                    foreach (var t in Program.targetTPF.Textures)
-                    {
-                        textureMap.Add(t.Name, getTextureFromBitmap(readDdsStreamToBitmap(new MemoryStream(t.Bytes)), this.GraphicsDevice));
-                        //   System.Windows.MessageBox.Show("Added:" + t.Name);
-                    }
-                }
-                else
-                 if (File.Exists(tpfFile))
-                {
-                    var tpf = SoulsFormats.TPF.Read(tpfFile);
                     foreach (var t in tpf.Textures)
                     {
-                        textureMap.Add(t.Name, getTextureFromBitmap(readDdsStreamToBitmap(new MemoryStream(t.Bytes)), this.GraphicsDevice));
-                        //   System.Windows.MessageBox.Show("Added:" + t.Name);
+                        try
+                        {
+                            using (var stream = new MemoryStream(TpfTextureDecoder.GetDdsBytes(t)))
+                            using (var bitmap = readDdsStreamToBitmap(stream))
+                            {
+                                var texture = getTextureFromBitmap(bitmap, GraphicsDevice);
+                                Texture2D old;
+                                if (textureMap.TryGetValue(t.Name, out old)) old.Dispose();
+                                textureMap[t.Name] = texture;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            TextureErrors++;
+                            Console.Error.WriteLine("Texture " + t.Name + ": " + ex.Message);
+                            System.Diagnostics.Trace.WriteLine("Texture " + t.Name + ": " + ex);
+                        }
                     }
-
-
                 }
-
-
-
-            } catch (Exception e) 
+            }
+            catch (Exception ex)
             {
-            
+                TextureErrors++;
+                Console.Error.WriteLine("TPF load failed: " + ex.Message);
             }
 
 

@@ -54,6 +54,7 @@ namespace MySFformat
             }
 
             orgFileName = openFileDialog1.FileName;
+            targetTPF = null;
             string fname = openFileDialog1.FileName;
             FLVER2 b = null;
 
@@ -134,16 +135,14 @@ namespace MySFformat
             }
 
             List<BinderFile> flverFiles = new List<BinderFile>();
+            LoadBinderTextures(bnds);
             foreach (var bf in bnds.Files)
             {
                 if (bf.Name.ToLower().Contains(".flver"))
                 {
                     flverFiles.Add(bf);
                 }
-                else if (bf.Name.ToLower().EndsWith(".tpf") && loadTexture)
-                {
-                    try { targetTPF = TPF.Read(bf.Bytes); } catch { /* Ignore TPF read errors */ }
-                }
+
             }
 
             if (flverFiles.Count == 0)

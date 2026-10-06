@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>DrSwizzler</id>
+    <version>1.0.8</version>
+    <authors>Shadowth117</authors>
+    <projectUrl>https://github.com/Shadowth117/DrSwizzler</projectUrl>
+    <description>A library for deswizzling and swizzling texture data for various game consoles.</description>
+    <repository type="git" commit="06cbda610e508bff28787223e1fc54cf54c27ff2" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+</package>

@@ -71,10 +71,11 @@ namespace MySFformat
                 RenderOptions = RenderCliOptions.Parse(args);
                 flverName = orgFileName = Path.GetFullPath(RenderOptions.Model);
                 if (!File.Exists(flverName)) throw new FileNotFoundException("Model not found", flverName);
-                loadTexture = false; show3D = true; legacyDisplay = false;
+                loadTexture = true; targetTPF = null; show3D = true; legacyDisplay = false;
                 if (BND4.Is(flverName))
                 {
                     var binder = BND4.Read(flverName);
+                    LoadBinderTextures(binder);
                     var models = binder.Files.Where(x => x.Name.EndsWith(".flver", StringComparison.OrdinalIgnoreCase)).ToArray();
                     var selected = String.IsNullOrEmpty(RenderOptions.Member)
                         ? (models.Length == 1 ? models[0] : null)
@@ -114,6 +115,8 @@ namespace MySFformat
                     model = flverName, output, RenderOptions.Width, RenderOptions.Height,
                     RenderOptions.Frames, camera = RenderCamera.camera, target = RenderCamera.target,
                     RenderCamera.renderMode, pose = RenderOptions.Pose,
+                    loadedTextures = mono.LoadedTextures, textureErrors = mono.TextureErrors,
+                    texturedMeshes = mono.TexturedMeshes,
                     hkxSkeleton = RenderOptions.HkxSkeleton, hkxAnimation = RenderOptions.HkxAnimation, hkxFrame = RenderOptions.HkxFrame,
                     projectionAspect = mono.RenderProjectionAspect,
                     viewportAspect = mono.RenderViewportAspect,
