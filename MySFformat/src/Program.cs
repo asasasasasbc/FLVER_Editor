@@ -371,7 +371,9 @@ namespace MySFformat
             List<Matrix3D> boneTransMats = new List<Matrix3D>(); // Calculated by pose node
             List<Matrix3D> boneITransMats = new List<Matrix3D>();// Calculated by bone node
             List<Matrix3D> poseTransMats = new List<Matrix3D>(); // Calculated by pose node
-            bool hasPose = poseDisplay && poseNodes.Count == targetFlver.Nodes.Count;
+            var hkxPose = CurrentHkxPose;
+            bool hasHkx = hkxPose != null && hkxPose.Length == targetFlver.Nodes.Count;
+            bool hasPose = hasHkx || (poseDisplay && poseNodes.Count == targetFlver.Nodes.Count);
             // transform matrix calculation
             var targetNodes = targetFlver.Nodes;
             Transform3D[] boneTrans = new Transform3D[targetNodes.Count];
@@ -400,11 +402,12 @@ namespace MySFformat
 
             // Pose Calc
             if (hasPose) { 
-                targetNodes = poseNodes;
+                targetNodes = hasHkx ? targetFlver.Nodes : poseNodes;
                 //Reconstruct transform hierarchy
                 for (int i = 0; i < targetNodes.Count; i++)
                 {
                     poseTrans[i] = new Transform3D();
+                    if (hasHkx) poseTrans[i].worldOverride = hkxPose[i];
                     poseTrans[i].rotOrder = rotOrder;
                     poseTrans[i].position = new Vector3D(targetNodes[i].Translation);
                     poseTrans[i].setRotationInRad(new Vector3D(targetNodes[i].Rotation));
@@ -521,7 +524,7 @@ namespace MySFformat
                     ps[1] = vl[1].Position;
                     ps[2] = vl[2].Position;
                     //为了优化下PoseTransform
-                    if (boneITransMats.Count == targetFlver.Nodes.Count && poseDisplay) {
+                    if (boneITransMats.Count == targetFlver.Nodes.Count && (poseDisplay || hasHkx)) {
                         for (var j =0; j < 3;j++)
                         {
                             var v = vl[j]; 

@@ -117,6 +117,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\HkxAnimationClip.cs" />
+    <Compile Include="src\HkxPoseBinding.cs" />
+    <Compile Include="src\HkxPlaybackState.cs" />
+    <Compile Include="src\HkxPlaybackForm.cs" />
     <Compile Include="src\BasicTools.cs" />
     <Compile Include="src\BonePoseEditorForm.cs">
       <SubType>Form</SubType>
@@ -204,6 +208,9 @@
     </Content>
     <Content Include="dummyInfo.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\HavokToolset\havok_toolset.exe;tools\HavokToolset\modules\*.spk;tools\HavokToolset\LICENSE;tools\HavokToolset\README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="icon_lSi_icon.ico" />
     <Content Include="MeshIO.dll" />

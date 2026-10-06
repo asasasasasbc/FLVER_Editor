@@ -253,7 +253,8 @@ namespace MySFformat
         {
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             baseViewerTitle = Window.Title;
-            Window.AllowUserResizing = true;
+            // Defer resize-enabling until Initialize: MonoGame's resize handler
+            // dereferences GraphicsDevice, which does not exist during construction.
             
             this.IsMouseVisible = true;
             graphics = new GraphicsDeviceManager(this);
@@ -421,6 +422,8 @@ namespace MySFformat
 
 
             //动画相关的子项
+            animMenuItem.DropDownItems.Add("Load HKX / Animation Player...", null, (sender, e) => Program.OpenHkxPlayback());
+            animMenuItem.DropDownItems.Add(new ToolStripSeparator());
             var loadPoseItem = new ToolStripMenuItem("Load Pose");
             loadPoseItem.ToolTipText = "Load modified Pose/Nodes.json to check bones' pose.\n" +
 "读取修改后的json骨骼文件为动画姿态，以查看是否有骨骼权重等问题。";
@@ -832,6 +835,7 @@ namespace MySFformat
             effect.VertexColorEnabled = true;
             base.Initialize();
             if (Program.RenderOptions != null) f.Hide();
+            else Window.AllowUserResizing = true;
         }
 
 
@@ -1324,6 +1328,7 @@ namespace MySFformat
 
         protected override void Update(GameTime gameTime)
         {
+            Program.ConsumeHkxRefresh();
             if (Program.RenderOptions != null)
             {
                 base.Update(gameTime);

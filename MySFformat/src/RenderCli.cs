@@ -9,6 +9,8 @@ namespace MySFformat
     public sealed class RenderCliOptions
     {
         public string Model, Screenshot, Camera, Member, Pose;
+        public string HkxSkeleton, HkxAnimation;
+        public int HkxFrame;
         public int Width = 1200, Height = 1200, Frames = 2;
         public static readonly string Help =
             "FLVER Editor synchronous render CLI (Windows graphics session required)\n" +
@@ -17,6 +19,7 @@ namespace MySFformat
             "  --width N --height N 64..4096, default 1200x1200\n" +
             "  --member NAME        Select FLVER member in a multi-model BND4/DCX\n" +
             "  --pose POSE.json     Native editor pose-node JSON\n" +
+            "  --hkx-skeleton S.hkx --hkx-animation A.hkx --hkx-frame N (60 Hz)\n" +
             "  --frames N           Render 1..30 frames then save and exit\n" +
             "No interactive editor, no model writes, no mouse/keyboard inputs.\n";
 
@@ -35,6 +38,9 @@ namespace MySFformat
                     case "--camera": o.Camera = value; break;
                     case "--member": o.Member = value; break;
                     case "--pose": o.Pose = value; break;
+                    case "--hkx-skeleton": o.HkxSkeleton = value; break;
+                    case "--hkx-animation": o.HkxAnimation = value; break;
+                    case "--hkx-frame": o.HkxFrame = Int32.Parse(value); break;
                     case "--width": o.Width = Int32.Parse(value); break;
                     case "--height": o.Height = Int32.Parse(value); break;
                     case "--frames": o.Frames = Int32.Parse(value); break;
@@ -47,6 +53,8 @@ namespace MySFformat
                 throw new ArgumentException("Screenshot output must be .png.");
             if (o.Width < 64 || o.Width > 4096 || o.Height < 64 || o.Height > 4096 || o.Frames < 1 || o.Frames > 30)
                 throw new ArgumentException("Invalid render dimensions or frame count.");
+            if ((o.HkxSkeleton == null) != (o.HkxAnimation == null) || o.HkxFrame < 0 || (o.HkxAnimation != null && o.Pose != null) || (o.HkxFrame != 0 && o.HkxAnimation == null))
+                throw new ArgumentException("HKX requires skeleton + animation, a nonnegative frame, and no --pose.");
             return o;
         }
     }
@@ -87,6 +95,13 @@ namespace MySFformat
                     if (nodes == null || nodes.Count != targetFlver.Nodes.Count) throw new ArgumentException("Pose node count does not match the model.");
                     poseNodes = nodes; poseDisplay = true;
                 }
+                if (RenderOptions.HkxAnimation != null)
+                {
+                    var clip = HkxAnimationClip.Load(RenderOptions.HkxSkeleton, RenderOptions.HkxAnimation, HkxToolsPath);
+                    var binding = BindHkx(clip);
+                    SetHkxPreview(targetFlver, binding.Sample(RenderOptions.HkxFrame / (float)HkxAnimationClip.SampleRate));
+                    Console.WriteLine("HKX matched " + binding.MatchedCount + "/" + targetFlver.Nodes.Count + " bones; duration " + clip.Duration);
+                }
                 using (mono = new Mono3D())
                 {
                     updateVertices();
@@ -99,6 +114,7 @@ namespace MySFformat
                     model = flverName, output, RenderOptions.Width, RenderOptions.Height,
                     RenderOptions.Frames, camera = RenderCamera.camera, target = RenderCamera.target,
                     RenderCamera.renderMode, pose = RenderOptions.Pose,
+                    hkxSkeleton = RenderOptions.HkxSkeleton, hkxAnimation = RenderOptions.HkxAnimation, hkxFrame = RenderOptions.HkxFrame,
                     projectionAspect = mono.RenderProjectionAspect,
                     viewportAspect = mono.RenderViewportAspect,
                     preferredAspect = mono.RenderPreferredAspect,

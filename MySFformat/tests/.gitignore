@@ -1,0 +1,5 @@
+# Local test binaries, game asset copies and render evidence (never redistribute game HKX/FLVER).
+*.exe
+*.pdb
+hkx-work/
+__pycache__/

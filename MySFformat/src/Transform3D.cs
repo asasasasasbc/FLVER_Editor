@@ -13,6 +13,8 @@ namespace MySFformat
     class Transform3D
     {
         public string name = "";
+        // HKX preview retains its sampled quaternion transform without Euler conversion.
+        public Matrix3D worldOverride;
         public Vector3D position = new Vector3D();
 
 
@@ -32,6 +34,7 @@ namespace MySFformat
         /// Computes the tranformation matrix, from bone/local space to world space
         /// </summary>
         public Matrix3D getTransMatrix() {
+            if (worldOverride != null) return worldOverride;
             Matrix3D transMatrix = new Matrix3D();
             {
                 Matrix3D rs = Matrix3D.generateScaleMatrix(scale);
