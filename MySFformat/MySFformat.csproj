@@ -119,6 +119,7 @@
   <ItemGroup>
     <Compile Include="src\HkxAnimationClip.cs" />
     <Compile Include="src\HkxPoseBinding.cs" />
+    <Compile Include="src\HkxGeometryCache.cs" />
     <Compile Include="src\HkxPlaybackState.cs" />
     <Compile Include="src\HkxPlaybackForm.cs" />
     <Compile Include="src\BasicTools.cs" />

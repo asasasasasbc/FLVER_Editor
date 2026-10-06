@@ -299,11 +299,23 @@ namespace MySFformat
             exportJson(serializer.Serialize(poseNodes), "Pose.json", "Pose JSON exported successfully!");
         }
 
+        static HkxGeometryCache hkxGeometry;
         public static void updateVertices()
+        {
+            // All existing model-edit and manual refresh paths invalidate animation data.
+            hkxGeometry = null;
+            UpdateVerticesCore(false);
+        }
+        static void UpdateVerticesCore(bool animationOnly)
         {
 
             if (legacyDisplay) { updateVerticesLegacy();return; }
-            List<VertexPositionColor> ans = new List<VertexPositionColor>();
+            var hkxPose = CurrentHkxPose;
+            bool hasHkx = hkxPose != null && hkxPose.Length == targetFlver.Nodes.Count;
+            var cache = animationOnly && hasHkx ? hkxGeometry : null;
+            if (cache != null && !Object.ReferenceEquals(cache.Model, targetFlver)) cache = null;
+            List<VertexPositionColor> ans = cache == null ? new List<VertexPositionColor>() : cache.Lines;
+            ans.Clear();
             void DrawLine(Vector3D v1, Vector3D v2, Microsoft.Xna.Framework.Color c, float offsize = 0.005f)
             {
                 ans.Add(new VertexPositionColor(new Microsoft.Xna.Framework.Vector3(v1.X - offsize, v1.Z, v1.Y), c));
@@ -362,8 +374,9 @@ namespace MySFformat
                 }
 
             }
-            List<VertexPositionColor> triangles = new List<VertexPositionColor>();
-            List<VertexPositionColorTexture> textureTriangles = new List<VertexPositionColorTexture>();
+            List<VertexPositionColor> triangles = cache == null ? new List<VertexPositionColor>() : cache.Triangles;
+            List<VertexPositionColorTexture> textureTriangles = cache == null ? new List<VertexPositionColorTexture>() : cache.Textured;
+            triangles.Clear(); textureTriangles.Clear();
             vertices.Clear();
             verticesInfo.Clear();
             List<MeshInfos> mis = new List<MeshInfos>();
@@ -371,13 +384,13 @@ namespace MySFformat
             List<Matrix3D> boneTransMats = new List<Matrix3D>(); // Calculated by pose node
             List<Matrix3D> boneITransMats = new List<Matrix3D>();// Calculated by bone node
             List<Matrix3D> poseTransMats = new List<Matrix3D>(); // Calculated by pose node
-            var hkxPose = CurrentHkxPose;
-            bool hasHkx = hkxPose != null && hkxPose.Length == targetFlver.Nodes.Count;
             bool hasPose = hasHkx || (poseDisplay && poseNodes.Count == targetFlver.Nodes.Count);
             // transform matrix calculation
             var targetNodes = targetFlver.Nodes;
             Transform3D[] boneTrans = new Transform3D[targetNodes.Count];
             var poseTrans = new Transform3D[targetNodes.Count];
+            if (cache == null)
+            {
             //Reconstruct transform hierarchy
             for (int i = 0; i < targetNodes.Count; i++)
             {
@@ -398,6 +411,13 @@ namespace MySFformat
                 var itranMat = tranMat.inverse();
                 boneTransMats.Add(tranMat);
                 boneITransMats.Add(itranMat);
+            }
+                if (animationOnly && hasHkx)
+                    hkxGeometry = cache = new HkxGeometryCache(targetFlver, boneTrans, boneTransMats, boneITransMats);
+            }
+            else
+            {
+                boneTrans = cache.Bones; boneTransMats = cache.Bind; boneITransMats = cache.InverseBind;
             }
 
             // Pose Calc
@@ -511,7 +531,10 @@ namespace MySFformat
                 {
                     if (targetFlver.Meshes[i].FaceSets[0].CullBackfaces == false) { renderBackFace = true; }
                 }
-                var faces = targetFlver.Meshes[i].GetFaces();
+                var cachedMesh = cache == null ? null : cache.GetMesh(targetFlver.Meshes[i]);
+                var faces = cachedMesh == null ? targetFlver.Meshes[i].GetFaces() : cachedMesh.Faces;
+                if (cachedMesh != null) cachedMesh.Skin(poseTransMats);
+                Vector3[] ps = new Vector3[3];
                 // Render faces
                 for (var fi = 0; fi < faces.Count;fi++)
                 {
@@ -519,12 +542,18 @@ namespace MySFformat
                     if (hidingMeshNums.Contains(i)) { break; }
                     var vl = faces[fi];
                     var tvl = vl;
-                    Vector3[] ps = new Vector3[3];
                     ps[0] = vl[0].Position;
                     ps[1] = vl[1].Position;
                     ps[2] = vl[2].Position;
                     //为了优化下PoseTransform
-                    if (boneITransMats.Count == targetFlver.Nodes.Count && (poseDisplay || hasHkx)) {
+                    if (cachedMesh != null)
+                    {
+                        var ids = cachedMesh.Indices[fi];
+                        ps[0] = cachedMesh.Positions[ids[0]];
+                        ps[1] = cachedMesh.Positions[ids[1]];
+                        ps[2] = cachedMesh.Positions[ids[2]];
+                    }
+                    else if (boneITransMats.Count == targetFlver.Nodes.Count && (poseDisplay || hasHkx)) {
                         for (var j =0; j < 3;j++)
                         {
                             var v = vl[j]; 
@@ -730,10 +759,10 @@ namespace MySFformat
                 useCheckingPoint = false;
             }
             useCheckingMesh = false;
-            mono.vertices = ans.ToArray();
+            mono.vertices = cache == null ? ans.ToArray() : HkxGeometryCache.CopyBuffer(ans, mono.vertices);
             // mono.triTextureVertices = textureTriangles.ToArray();
             mono.meshInfos = mis.ToArray();
-            mono.triVertices = triangles.ToArray();
+            mono.triVertices = cache == null ? triangles.ToArray() : HkxGeometryCache.CopyBuffer(triangles, mono.triVertices);
         }
 
 

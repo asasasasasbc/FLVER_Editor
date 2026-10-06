@@ -161,7 +161,7 @@ namespace MySFformat
         internal static void ConsumeHkxRefresh()
         {
             if (System.Threading.Interlocked.Exchange(ref hkxRefreshPending, 0) != 0 && mono != null && targetFlver != null)
-                updateVertices();
+                UpdateVerticesCore(true);
         }
     }
 }
