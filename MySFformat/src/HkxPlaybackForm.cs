@@ -20,8 +20,9 @@ namespace MySFformat
         readonly TrackBar slider = new TrackBar { Name = "frameSlider", Dock = DockStyle.Fill, Minimum = 0, Maximum = 1, TickStyle = TickStyle.None };
         readonly NumericUpDown frame = new NumericUpDown { Name = "frameNumber", Width = 85, Minimum = 0 };
         readonly NumericUpDown speed = new NumericUpDown { Name = "speed", Width = 72, DecimalPlaces = 2, Minimum = 0.05m, Maximum = 4, Increment = 0.25m, Value = 1 };
-        readonly CheckBox loop = new CheckBox { Name = "loop", Text = "Loop / 循环", Checked = true, AutoSize = true };
-        readonly Button play = new Button { Name = "playPause", Text = "Play / 播放", AutoSize = true };
+        readonly CheckBox loop = new CheckBox { Name = "loop", Text = "Loop", Checked = true, AutoSize = true };
+        readonly Button play = new Button { Name = "playPause", Text = "Play", AutoSize = true };
+        readonly ToolTip tips = new ToolTip { AutoPopDelay = 15000, InitialDelay = 400, ReshowDelay = 100, ShowAlways = true };
         readonly Timer timer = new Timer { Interval = 16 };
         readonly Stopwatch clock = new Stopwatch();
         HkxAnimationClip clip;
@@ -31,7 +32,7 @@ namespace MySFformat
         bool updating;
         public HkxPlaybackForm()
         {
-            Text = "HKX Animation / 动画播放"; Width = 760; Height = 350; MinimumSize = new Size(620, 350);
+            Text = "HKX Animation"; Width = 760; Height = 350; MinimumSize = new Size(620, 350);
             StartPosition = FormStartPosition.CenterParent;
             var root = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(10), ColumnCount = 1, RowCount = 5 };
             root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38)); root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
@@ -48,6 +49,19 @@ namespace MySFformat
             controls.Controls.Add(frame); controls.Controls.Add(new Label { Text = "Speed", AutoSize = true, Padding = new Padding(0, 6, 0, 0) }); controls.Controls.Add(speed); controls.Controls.Add(loop);
             AddButton(controls, "bindPose", "Bind Pose", () => { Pause(); Program.ClearHkxPreview(); });
             root.Controls.Add(controls, 0, 3); root.Controls.Add(status, 0, 4);
+            tips.SetToolTip(Controls.Find("loadSkeleton", true).Single(), "Select the character's skeleton.hkx.\n选择角色对应的 skeleton.hkx 骨架文件。");
+            tips.SetToolTip(Controls.Find("loadAnimation", true).Single(), "Load an animation HKX using the selected skeleton.\n使用已选骨架加载 HKX 动画文件。");
+            tips.SetToolTip(play, "Play or pause the animation at the current frame.\n从当前帧播放动画，或暂停播放。");
+            tips.SetToolTip(Controls.Find("stop", true).Single(), "Stop playback and return to frame 0.\n停止播放并返回第 0 帧。");
+            tips.SetToolTip(Controls.Find("previousFrame", true).Single(), "Pause and step back one frame.\n暂停播放并后退一帧。");
+            tips.SetToolTip(Controls.Find("nextFrame", true).Single(), "Pause and step forward one frame.\n暂停播放并前进一帧。");
+            tips.SetToolTip(Controls.Find("bindPose", true).Single(), "Pause and clear the HKX preview to restore the static pose.\n暂停并清除 HKX 动画预览，恢复静态姿态。");
+            tips.SetToolTip(loop, "Repeat the animation when it reaches the end.\n动画到达末尾后重新循环播放。");
+            tips.SetToolTip(slider, "Drag to a sampled frame; seeking pauses playback.\n拖动到指定采样帧；跳帧时暂停播放。");
+            tips.SetToolTip(frame, "Enter the sampled frame number (60 Hz timeline).\n输入采样帧编号（时间轴按 60 Hz 采样）。");
+            tips.SetToolTip(speed, "Playback speed multiplier; 1.00 is normal speed.\n播放速度倍率；1.00 为正常速度。");
+            tips.SetToolTip(skeletonText, "Path to the selected skeleton HKX.\n当前选中的骨架 HKX 文件路径。");
+            tips.SetToolTip(animationText, "Path to the selected animation HKX.\n当前选中的动画 HKX 文件路径。");
             skeletonText.Text = File.Exists(skeletonPath) ? skeletonPath : "Choose skeleton.hkx first";
             status.Text = "Load a FLVER, choose its skeleton.hkx, then Load HKX.\nPreview only: no model or game files are modified.\nTimeline uses 60 Hz samples; frame 0 is the first sample.";
             slider.ValueChanged += (s, e) => { if (!updating) SeekFrame(slider.Value); };
@@ -114,9 +128,14 @@ namespace MySFformat
         {
             if (Playback == null) return;
             updating = true; slider.Value = Playback.Frame; frame.Value = Playback.Frame; updating = false;
-            play.Text = Playback.Playing ? "Pause / 暂停" : "Play / 播放";
+            play.Text = Playback.Playing ? "Pause" : "Play";
             status.Text = String.Format("Frame {0} / {1}    {2:F3} / {3:F3} s    {4} Hz samples\nMatched bones: {5}/{6}. Unmatched bones follow their FLVER parent.\n{7}", Playback.Frame, Playback.LastFrame, Playback.Time, Playback.Duration, Playback.Fps, binding.MatchedCount, model.Nodes.Count,
                 binding.UnmatchedNames.Length == 0 ? "Preview only; close this window to restore the previous static pose." : "Unmatched: " + String.Join(", ", binding.UnmatchedNames.Take(12)));
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) tips.Dispose();
+            base.Dispose(disposing);
         }
     }
     static partial class Program

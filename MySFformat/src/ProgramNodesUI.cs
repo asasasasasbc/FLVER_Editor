@@ -283,7 +283,7 @@ namespace MySFformat
             // --- About Menu ---
             var aboutMenu = new ToolStripMenuItem("【About】");
             var aboutItem = new ToolStripMenuItem("About this program...", null, (s, e) => {
-                MessageBox.Show($"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks to:\nTKGP Katalash Dropoff\n莫 SoulsformatsNEXT", "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks to:\nTKGP Katalash Dropoff\n莫 SoulsformatsNEXT PredatorCZ", "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
             });
             aboutMenu.DropDownItems.Add(aboutItem);
 
@@ -547,7 +547,7 @@ namespace MySFformat
         {
             return new Label
             {
-                Text = $"FLVER Editor {version} by Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash & 莫 & SoulsformatsNEXT",
+                Text = $"FLVER Editor {version} by Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash & 莫 & SoulsformatsNEXT & PredatorCZ",
                 Dock = DockStyle.Bottom,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Height = 25

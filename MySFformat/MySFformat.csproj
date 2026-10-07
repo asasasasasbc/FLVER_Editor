@@ -126,7 +126,9 @@
     <Compile Include="src\HkxPoseBinding.cs" />
     <Compile Include="src\HkxGeometryCache.cs" />
     <Compile Include="src\HkxPlaybackState.cs" />
-    <Compile Include="src\HkxPlaybackForm.cs" />
+    <Compile Include="src\HkxPlaybackForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="src\BasicTools.cs" />
     <Compile Include="src\BonePoseEditorForm.cs">
       <SubType>Form</SubType>
