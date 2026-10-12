@@ -7,3 +7,8 @@
 MySFformat/.vs/MySFformat.csproj.dtbcache.json
 /MySFformat/tests/cloth-work
 /MySFformat/tests/native-hkx-work
+
+# Local migration archives, game fixtures and development evidence.
+/helper-ext/
+**/__pycache__/
+MySFformat/.vs/MySFformat.csproj.dtbcache.json

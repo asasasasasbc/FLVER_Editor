@@ -183,6 +183,10 @@ namespace MySFformat
         [STAThread]
         static void Main(string[] args)
         {
+            if(args.Length>0&&args[0].StartsWith("--cloth-",StringComparison.Ordinal))
+            {
+                Environment.ExitCode=RunClothCli(args);return;
+            }
             if (args.Any(x => x.StartsWith("--", StringComparison.Ordinal)))
             {
                 if (args.Contains("--help")) Console.WriteLine(RenderCliOptions.Help);

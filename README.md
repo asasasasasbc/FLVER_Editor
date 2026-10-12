@@ -9,6 +9,8 @@ Users can view and edit models, materials, dummy points inside the FLVER file an
 
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
 
+For HKX animation playback and the dedicated Bloodborne / Dark Souls III Cloth tools, see [Cloth and Animation](cloth-and-animation-README.md).
+
 If you just want the .exe executable program, please download the release version at here: https://github.com/asasasasasbc/FLVER_Editor/releases
 
 Author: Forsakensilver (遗忘的银灵)
@@ -30,6 +32,14 @@ Unfortunately, xentax is down, please use aquatools or fbx exporting function th
 EldenRing Era:
 
 ## Update log
+
+### X2.7 update
+
+- Added **HKX animation playback** with skeleton binding, timeline seeking, frame stepping, speed control, looping and bind-pose reset.
+- Added a dedicated **Cloth** window for Bloodborne / Dark Souls III inspection, HKX editing/writeback, CLM2 editing and companion-file verification.
+- Organized native HKX packfile and CLM2 code into source subfolders; local test artifacts remain outside the source distribution.
+
+See [Cloth and Animation](cloth-and-animation-README.md) for usage and supported layouts.
 
 Flver Editor X2.5 (Original Flver Editor) Update
 
@@ -320,4 +330,23 @@ Components in the right panel:
 		Import external model files into the flver.
 		After import, you need to click [Modify] to save your result.
 		You may also need to rotate the mesh to fix the axis problem.
+
+### Credits and third-party components
+
+| Contributor / project | Role | Source / license |
+|---|---|---|
+| Forsakensilver | Original FLVER Editor author | [FLVER Editor](https://github.com/asasasasasbc/FLVER_Editor), GPL-3.0 |
+| TKGP, Katalash, Soulsmods / SoulsFormatsNEXT contributors | FLVER, Binder, and other FromSoftware formats | [SoulsFormatsNEXT](https://github.com/soulsmods/SoulsFormatsNEXT); existing library notices retained |
+| TKGP / SoulsFormats and SoulsFormatsNEXT contributors | Known CLM2 structure and binary read/write; entry semantics remain unknown | [CLM2 source](https://github.com/soulsmods/SoulsFormatsNEXT/blob/master/SoulsFormats/Formats/CLM2.cs), GPL-3.0 |
+| DexesTTP | Original HKXPack; architecture informing the native C# port; copyright notice retained | [HKXPack](https://github.com/Dexesttp/hkxpack), MIT |
+| JeNoVaViRuS | hkxpack-souls; reference for the native C# implementation and schema extraction | [hkxpack-souls](https://github.com/JeNoVaViRuS/hkxpack-souls), MIT |
+| PredatorCZ | HavokLib / HavokToolset used by the animation decoder | [HavokLib](https://github.com/PredatorCZ/HavokLib), GPL-3.0 |
+| Dropoff, Zullie the Witch, 莫, and previously credited contributors | Existing editor contributions and reference-workflow credits | Prior credits remain in this README and application |
+
+The Cloth codec is a **local C# implementation informed by hkxpack-souls**.
+Implementation: `MySFformat/src/HkxPack/`; schemas and retained MIT notice:
+`MySFformat/tools/Cloth/`. Local implementation and corrections are not
+attributed to upstream authors. Preserve applicable third-party notices and
+source-distribution obligations. No proprietary Havok runtime solver is bundled;
+do not redistribute game/model test assets.
 		

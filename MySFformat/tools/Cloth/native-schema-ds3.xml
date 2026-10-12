@@ -1,0 +1,690 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ds3-cloth-schema abi="8,1,0,1" sdk="hk_2014.1.0-r1"><class name="hclBendStiffnessConstraintSet" version="1" signature="0x11315f09" size="56" parent="hclConstraintSet">
+  <members>
+    <member name="links" offset="32" ctype="hclBendStiffnessConstraintSetLink" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="useRestPoseConfig" offset="48" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBendStiffnessConstraintSetLink" version="1" signature="0x8b8a5e6f" size="32">
+  <members>
+    <member name="weightA" offset="0" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="weightB" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="weightC" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="weightD" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bendStiffness" offset="16" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="restCurvature" offset="20" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleA" offset="24" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleB" offset="26" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleC" offset="28" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleD" offset="30" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBufferDefinition" version="1" signature="0x7f4a5bfc" size="72" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="type" offset="24" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="subType" offset="28" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numVertices" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numTriangles" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bufferLayout" offset="40" ctype="hclBufferLayout" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBufferLayout" version="1" signature="0xd26825a7" size="26">
+  <enums>
+    <enum name="SlotFlags" flags="00000000">
+      <enumitem name="SF_NO_ALIGNED_START" value="0" />
+      <enumitem name="SF_16BYTE_ALIGNED_START" value="1" />
+      <enumitem name="SF_64BYTE_ALIGNED_START" value="3" />
+    </enum>
+    <enum name="TriangleFormat" flags="00000000">
+      <enumitem name="TF_THREE_INT32S" value="0" />
+      <enumitem name="TF_THREE_INT16S" value="1" />
+      <enumitem name="TF_OTHER" value="2" />
+    </enum>
+  </enums>
+  <members>
+    <member name="elementsLayout" offset="0" ctype="hclBufferLayoutBufferElement" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="slots" offset="16" ctype="hclBufferLayoutSlot" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="numSlots" offset="24" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFormat" offset="25" etype="TriangleFormat" vtype="TYPE_ENUM" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBufferLayoutBufferElement" version="1" signature="0x3e0b1ef4" size="4">
+  <members>
+    <member name="vectorConversion" offset="0" etype="VectorConversion" vtype="TYPE_ENUM" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="vectorSize" offset="1" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="slotId" offset="2" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="slotStart" offset="3" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBufferLayoutSlot" version="1" signature="0xc485fa70" size="2">
+  <members>
+    <member name="flags" offset="0" etype="SlotFlags" vtype="TYPE_ENUM" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stride" offset="1" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBufferUsage" version="1" signature="0xf02067ba" size="5">
+  <enums>
+    <enum name="Component" flags="00000000">
+      <enumitem name="COMPONENT_POSITION" value="0" />
+      <enumitem name="COMPONENT_NORMAL" value="1" />
+      <enumitem name="COMPONENT_TANGENT" value="2" />
+      <enumitem name="COMPONENT_BITANGENT" value="3" />
+    </enum>
+    <enum name="InternalFlags" flags="00000000">
+      <enumitem name="USAGE_NONE" value="0" />
+      <enumitem name="USAGE_READ" value="1" />
+      <enumitem name="USAGE_WRITE" value="2" />
+      <enumitem name="USAGE_FULL_WRITE" value="4" />
+      <enumitem name="USAGE_READ_BEFORE_WRITE" value="8" />
+    </enum>
+  </enums>
+  <members>
+    <member name="perComponentFlags" offset="0" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="trianglesRead" offset="4" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclCapsuleShape" version="1" signature="0xdd03f524" size="96" parent="hclShape">
+  <members>
+    <member name="start" offset="32" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="end" offset="48" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="dir" offset="64" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="radius" offset="80" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="capLenSqrdInv" offset="84" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclClothContainer" version="1" signature="0x3512912b" size="48" parent="hkReferencedObject">
+  <members>
+    <member name="collidables" offset="16" ctype="hclCollidable" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="clothDatas" offset="32" ctype="hclClothData" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclClothData" version="1" signature="0xf943cea2" size="128" parent="hkReferencedObject">
+  <enums>
+    <enum name="Platform" flags="00000000">
+      <enumitem name="HCL_PLATFORM_INVALID" value="0" />
+      <enumitem name="HCL_PLATFORM_WIN32" value="1" />
+      <enumitem name="HCL_PLATFORM_X64" value="2" />
+      <enumitem name="HCL_PLATFORM_MACPPC" value="4" />
+      <enumitem name="HCL_PLATFORM_IOS" value="8" />
+      <enumitem name="HCL_PLATFORM_MAC386" value="16" />
+      <enumitem name="HCL_PLATFORM_PS3" value="32" />
+      <enumitem name="HCL_PLATFORM_XBOX360" value="64" />
+      <enumitem name="HCL_PLATFORM_WII" value="128" />
+      <enumitem name="HCL_PLATFORM_LRB" value="256" />
+      <enumitem name="HCL_PLATFORM_LINUX" value="512" />
+      <enumitem name="HCL_PLATFORM_PSVITA" value="1024" />
+      <enumitem name="HCL_PLATFORM_ANDROID" value="2048" />
+      <enumitem name="HCL_PLATFORM_CTR" value="4096" />
+      <enumitem name="HCL_PLATFORM_WIIU" value="8192" />
+      <enumitem name="HCL_PLATFORM_PS4" value="16384" />
+      <enumitem name="HCL_PLATFORM_XBOXONE" value="32768" />
+    </enum>
+  </enums>
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="simClothDatas" offset="24" ctype="hclSimClothData" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bufferDefinitions" offset="40" ctype="hclBufferDefinition" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformSetDefinitions" offset="56" ctype="hclTransformSetDefinition" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="operators" offset="72" ctype="hclOperator" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="clothStateDatas" offset="88" ctype="hclClothState" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="actions" offset="104" ctype="hclAction" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="targetPlatform" offset="120" etype="Platform" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclClothState" version="1" signature="0x7b02cd1b" size="88" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="operators" offset="24" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="usedBuffers" offset="40" ctype="hclClothStateBufferAccess" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="usedTransformSets" offset="56" ctype="hclClothStateTransformSetAccess" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="usedSimCloths" offset="72" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclClothStateBufferAccess" version="1" signature="0x6a9c903" size="16">
+  <members>
+    <member name="bufferIndex" offset="0" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bufferUsage" offset="4" ctype="hclBufferUsage" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowBufferIndex" offset="12" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclClothStateTransformSetAccess" version="1" signature="0x2b6cbad" size="32">
+  <members>
+    <member name="transformSetIndex" offset="0" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformSetUsage" offset="8" ctype="hclTransformSetUsage" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclCollidable" version="1" signature="0xf14068be" size="144" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transform" offset="32" vtype="TYPE_TRANSFORM" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="linearVelocity" offset="96" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="angularVelocity" offset="112" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionEnabled" offset="128" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionPriority" offset="129" vtype="TYPE_INT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionRadius" offset="132" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shape" offset="136" ctype="hclShape" vtype="TYPE_POINTER" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclCompressibleLinkConstraintSet" version="1" signature="0x51e7d475" size="48" parent="hclConstraintSet">
+  <members>
+    <member name="links" offset="32" ctype="hclCompressibleLinkConstraintSetLink" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclCompressibleLinkConstraintSetLink" version="1" signature="0x93ac24d1" size="16">
+  <members>
+    <member name="particleA" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleB" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="restLength" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="compressionLength" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclConstraintSet" version="1" signature="0x2f15c82b" size="32" parent="hkReferencedObject">
+  <enums>
+    <enum name="MaxConstraintSetSize" flags="00000000">
+      <enumitem name="MAX_CONSTRAINT_SET_SIZE" value="128" />
+    </enum>
+  </enums>
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="type" offset="24" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hclCopyVerticesOperator" version="1" signature="0xe6db074c" size="56" parent="hclOperator">
+  <members>
+    <member name="inputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numberOfVertices" offset="40" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startVertexIn" offset="44" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startVertexOut" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="copyNormals" offset="52" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclInputConvertOperator" version="1" signature="0xed50bb9f" size="88" parent="hclOperator">
+  <members>
+    <member name="userBufferIndex" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowBufferIndex" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="conversionInfo" offset="40" ctype="hclRuntimeConversionInfo" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclLocalRangeConstraintSet" version="1" signature="0x82567805" size="64" parent="hclConstraintSet">
+  <enums>
+    <enum name="ShapeType" flags="00000000">
+      <enumitem name="SHAPE_SPHERE" value="0" />
+      <enumitem name="SHAPE_CYLINDER" value="1" />
+    </enum>
+    <enum name="ForceUpgrade6" flags="00000000">
+      <enumitem name="HCL_FORCE_UPGRADE6" value="0" />
+    </enum>
+  </enums>
+  <members>
+    <member name="localConstraints" offset="32" ctype="hclLocalRangeConstraintSetLocalConstraint" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceMeshBufferIdx" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="52" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shapeType" offset="56" etype="ShapeType" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="applyNormalComponent" offset="60" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclLocalRangeConstraintSetLocalConstraint" version="1" signature="0x63abec5e" size="16">
+  <members>
+    <member name="particleIndex" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceVertex" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maximumDistance" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxNormalDistance" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minNormalDistance" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclMoveParticlesOperator" version="1" signature="0xe65a701c" size="56" parent="hclOperator">
+  <enums>
+    <enum name="ForceUpgrade610" flags="00000000">
+      <enumitem name="HCL_FORCE_UPGRADE610" value="0" />
+    </enum>
+  </enums>
+  <members>
+    <member name="vertexParticlePairs" offset="32" ctype="hclMoveParticlesOperatorVertexParticlePair" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="simClothIndex" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="refBufferIdx" offset="52" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclMoveParticlesOperatorVertexParticlePair" version="1" signature="0xdecad447" size="4">
+  <members>
+    <member name="vertexIndex" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleIndex" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformer" version="1" signature="0x342813e1" size="88">
+  <enums>
+    <enum name="ControlByte" flags="00000000">
+      <enumitem name="FOUR_BLEND" value="0" />
+      <enumitem name="THREE_BLEND" value="1" />
+      <enumitem name="TWO_BLEND" value="2" />
+      <enumitem name="ONE_BLEND" value="3" />
+      <enumitem name="NEXT_SPU_BATCH" value="4" />
+    </enum>
+  </enums>
+  <members>
+    <member name="fourBlendEntries" offset="0" ctype="hclObjectSpaceDeformerFourBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="threeBlendEntries" offset="16" ctype="hclObjectSpaceDeformerThreeBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="twoBlendEntries" offset="32" ctype="hclObjectSpaceDeformerTwoBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="oneBlendEntries" offset="48" ctype="hclObjectSpaceDeformerOneBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="controlBytes" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startVertexIndex" offset="80" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="endVertexIndex" offset="82" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="batchSizeSpu" offset="84" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partialWrite" offset="86" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerFourBlendEntryBlock" version="1" signature="0xa0fff771" size="224">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+    <member name="boneWeights" offset="160" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockP" version="1" signature="0x3992aad4" size="128">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockPN" version="1" signature="0xf66f11c2" size="256">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="128" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockPNT" version="1" signature="0x218ca51d" size="384">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="128" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+    <member name="localTangent" offset="256" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockUnpackedP" version="1" signature="0xf11d6383" size="256">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockUnpackedPN" version="1" signature="0xbbef768c" size="512">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerLocalBlockUnpackedPNT" version="1" signature="0x522b62b" size="768">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localTangent" offset="512" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerOneBlendEntryBlock" version="1" signature="0xc1c287ad" size="64">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerThreeBlendEntryBlock" version="1" signature="0x4c91300b" size="176">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="48" flags="FLAGS_NONE" default="0" />
+    <member name="boneWeights" offset="128" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="48" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceDeformerTwoBlendEntryBlock" version="1" signature="0x6e5eaa75" size="128">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="32" flags="FLAGS_NONE" default="0" />
+    <member name="boneWeights" offset="96" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="32" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceMeshMeshDeformOperator" version="1" signature="0x7fc45151" size="168" parent="hclOperator">
+  <enums>
+    <enum name="ScaleNormalBehaviour" flags="00000000">
+      <enumitem name="SCALE_NORMAL_IGNORE" value="0" />
+      <enumitem name="SCALE_NORMAL_APPLY" value="1" />
+      <enumitem name="SCALE_NORMAL_INVERT" value="2" />
+    </enum>
+  </enums>
+  <members>
+    <member name="inputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="scaleNormalBehaviour" offset="40" etype="ScaleNormalBehaviour" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputTrianglesSubset" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFromMeshTransforms" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="objectSpaceDeformer" offset="80" ctype="hclObjectSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceMeshMeshDeformPOperator" version="1" signature="0x574824cf" size="200" parent="hclObjectSpaceMeshMeshDeformOperator">
+  <members>
+    <member name="localPs" offset="168" ctype="hclObjectSpaceDeformerLocalBlockP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPs" offset="184" ctype="hclObjectSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceSkinOperator" version="1" signature="0x2755b686" size="160" parent="hclOperator">
+  <members>
+    <member name="boneFromSkinMeshTransforms" offset="32" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformSubset" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIndex" offset="64" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformSetIndex" offset="68" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="objectSpaceDeformer" offset="72" ctype="hclObjectSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceSkinPNOperator" version="1" signature="0x84488b96" size="192" parent="hclObjectSpaceSkinOperator">
+  <members>
+    <member name="localPNs" offset="160" ctype="hclObjectSpaceDeformerLocalBlockPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNs" offset="176" ctype="hclObjectSpaceDeformerLocalBlockUnpackedPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceSkinPNTOperator" version="1" signature="0xb6099e3f" size="192" parent="hclObjectSpaceSkinOperator">
+  <members>
+    <member name="localPNTs" offset="160" ctype="hclObjectSpaceDeformerLocalBlockPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNTs" offset="176" ctype="hclObjectSpaceDeformerLocalBlockUnpackedPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclOperator" version="1" signature="0x558ee36b" size="32" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="type" offset="24" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hclOutputConvertOperator" version="1" signature="0xed50bb9f" size="88" parent="hclOperator">
+  <members>
+    <member name="userBufferIndex" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowBufferIndex" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="conversionInfo" offset="40" ctype="hclRuntimeConversionInfo" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclRuntimeConversionInfo" version="1" signature="0xe36985b8" size="42">
+  <enums>
+    <enum name="VectorConversion" flags="00000000">
+      <enumitem name="VC_FLOAT4" value="0" />
+      <enumitem name="VC_FLOAT3" value="1" />
+      <enumitem name="VC_BYTE4" value="2" />
+      <enumitem name="VC_SHORT3" value="3" />
+      <enumitem name="VC_HFLOAT3" value="4" />
+      <enumitem name="VC_CUSTOM_A" value="20" />
+      <enumitem name="VC_CUSTOM_B" value="21" />
+      <enumitem name="VC_CUSTOM_C" value="22" />
+      <enumitem name="VC_CUSTOM_D" value="23" />
+      <enumitem name="VC_CUSTOM_E" value="24" />
+      <enumitem name="VC_NONE" value="250" />
+    </enum>
+  </enums>
+  <members>
+    <member name="slotConversions" offset="0" ctype="hclRuntimeConversionInfoSlotConversion" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="elementConversions" offset="28" ctype="hclRuntimeConversionInfoElementConversion" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="numSlotsConverted" offset="40" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numElementsConverted" offset="41" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclRuntimeConversionInfoElementConversion" version="1" signature="0xa19a443a" size="3">
+  <members>
+    <member name="index" offset="0" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="offset" offset="1" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="conversion" offset="2" etype="VectorConversion" vtype="TYPE_ENUM" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclRuntimeConversionInfoSlotConversion" version="1" signature="0xd8db9c79" size="7">
+  <members>
+    <member name="elements" offset="0" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="numElements" offset="4" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="index" offset="5" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partialWrite" offset="6" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclScratchBufferDefinition" version="1" signature="0xa0130a2c" size="96" parent="hclBufferDefinition">
+  <members>
+    <member name="triangleIndices" offset="72" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="storeNormals" offset="88" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="storeTangentsAndBiTangents" offset="89" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclShadowBufferDefinition" version="1" signature="0x4b5133e0" size="96" parent="hclBufferDefinition">
+  <members>
+    <member name="triangleIndices" offset="72" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowPositions" offset="88" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowNormals" offset="89" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowTangents" offset="90" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="shadowBiTangents" offset="91" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclShape" version="1" signature="0xb5af9cb6" size="24" parent="hkReferencedObject">
+  <members>
+    <member name="type" offset="16" vtype="TYPE_ENUM" vsubtype="TYPE_INT32" arrsize="0" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hclSimClothData" version="1" signature="0xe6105187" size="384" parent="hkReferencedObject">
+  <members>
+    <member name="simulationInfo" offset="16" ctype="hclSimClothDataOverridableSimulationInfo" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="name" offset="48" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleDatas" offset="56" ctype="hclSimClothDataParticleData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="fixedParticles" offset="72" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleIndices" offset="88" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFlips" offset="104" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="totalMass" offset="120" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="collidableTransformMap" offset="128" ctype="hclSimClothDataCollidableTransformMap" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="perInstanceCollidables" offset="168" ctype="hclCollidable" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="staticConstraintSets" offset="184" ctype="hclConstraintSet" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="antiPinchConstraintSets" offset="200" ctype="hclConstraintSet" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="simClothPoses" offset="216" ctype="hclSimClothPose" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="actions" offset="232" ctype="hclAction" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="staticCollisionMasks" offset="248" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="perParticlePinchDetectionEnabledFlags" offset="264" vtype="TYPE_ARRAY" vsubtype="TYPE_BOOL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="collidablePinchingDatas" offset="280" ctype="hclSimClothDataCollidablePinchingData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minPinchedParticleIndex" offset="296" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxPinchedParticleIndex" offset="298" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxCollisionPairs" offset="300" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxParticleRadius" offset="304" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="landscapeCollisionData" offset="308" ctype="hclSimClothDataLandscapeCollisionData" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numLandscapeCollidableParticles" offset="328" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="doNormals" offset="332" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transferMotionData" offset="336" ctype="hclSimClothDataTransferMotionData" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataCollidablePinchingData" version="1" signature="0x4c1edaa8" size="8">
+  <members>
+    <member name="pinchDetectionEnabled" offset="0" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionPriority" offset="1" vtype="TYPE_INT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionRadius" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataCollidableTransformMap" version="1" signature="0x8addbbbb" size="40">
+  <members>
+    <member name="transformSetIndex" offset="0" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformIndices" offset="8" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="offsets" offset="24" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataLandscapeCollisionData" version="1" signature="0x1d595840" size="20">
+  <members>
+    <member name="landscapeRadius" offset="0" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="enableStuckParticleDetection" offset="4" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stuckParticlesStretchFactorSq" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionEnabled" offset="12" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionPriority" offset="13" vtype="TYPE_INT8" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionRadius" offset="16" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataOverridableSimulationInfo" version="1" signature="0x383b984f" size="32">
+  <members>
+    <member name="gravity" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="globalDampingPerSecond" offset="16" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="collisionTolerance" offset="20" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="subSteps" offset="24" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="pinchDetectionEnabled" offset="28" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="landscapeCollisionEnabled" offset="29" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transferMotionEnabled" offset="30" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataParticleData" version="1" signature="0x230c8c28" size="16">
+  <members>
+    <member name="mass" offset="0" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="invMass" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="radius" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="friction" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothDataTransferMotionData" version="1" signature="0xd49be55" size="48">
+  <members>
+    <member name="transformSetIndex" offset="0" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformIndex" offset="4" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transferTranslationMotion" offset="8" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minTranslationSpeed" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxTranslationSpeed" offset="16" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minTranslationBlend" offset="20" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxTranslationBlend" offset="24" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transferRotationMotion" offset="28" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minRotationSpeed" offset="32" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxRotationSpeed" offset="36" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="minRotationBlend" offset="40" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="maxRotationBlend" offset="44" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimClothPose" version="1" signature="0x1b254ca1" size="40" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="positions" offset="24" vtype="TYPE_ARRAY" vsubtype="TYPE_VECTOR4" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimulateOperator" version="1" signature="0x75c72f0f" size="72" parent="hclOperator">
+  <members>
+    <member name="simClothIndex" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="subSteps" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numberOfSolveIterations" offset="40" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="constraintExecution" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_INT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="adaptConstraintStiffness" offset="64" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclStandardLinkConstraintSet" version="1" signature="0x426b3354" size="48" parent="hclConstraintSet">
+  <members>
+    <member name="links" offset="32" ctype="hclStandardLinkConstraintSetLink" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclStandardLinkConstraintSetLink" version="1" signature="0x7fe2e88e" size="12">
+  <members>
+    <member name="particleA" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleB" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="restLength" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclStretchLinkConstraintSet" version="1" signature="0x426b3354" size="48" parent="hclConstraintSet">
+  <members>
+    <member name="links" offset="32" ctype="hclStretchLinkConstraintSetLink" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclStretchLinkConstraintSetLink" version="1" signature="0x7fe2e88e" size="12">
+  <members>
+    <member name="particleA" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleB" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="restLength" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTaperedCapsuleShape" version="1" signature="0xdfa58f21" size="176" parent="hclShape">
+  <members>
+    <member name="small" offset="32" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="big" offset="48" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="coneApex" offset="64" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="coneAxis" offset="80" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="lVec" offset="96" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="dVec" offset="112" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tanThetaVecNeg" offset="128" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="smallRadius" offset="144" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bigRadius" offset="148" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="l" offset="152" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="d" offset="156" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="cosTheta" offset="160" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="sinTheta" offset="164" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tanTheta" offset="168" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tanThetaSqr" offset="172" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTransformSetDefinition" version="1" signature="0x18fd4565" size="32" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="type" offset="24" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numTransforms" offset="28" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTransformSetUsage" version="1" signature="0xbf809381" size="24">
+  <enums>
+    <enum name="Component" flags="00000000">
+      <enumitem name="COMPONENT_TRANSFORM" value="0" />
+      <enumitem name="COMPONENT_INVTRANSPOSE" value="1" />
+      <enumitem name="NUM_COMPONENTS" value="2" />
+    </enum>
+    <enum name="InternalFlags" flags="00000000">
+      <enumitem name="USAGE_NONE" value="0" />
+      <enumitem name="USAGE_READ" value="1" />
+      <enumitem name="USAGE_WRITE" value="2" />
+      <enumitem name="USAGE_FULL_WRITE" value="4" />
+      <enumitem name="USAGE_READ_BEFORE_WRITE" value="8" />
+    </enum>
+  </enums>
+  <members>
+    <member name="perComponentFlags" offset="0" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="2" flags="FLAGS_NONE" default="0" />
+    <member name="perComponentTransformTrackers" offset="8" ctype="hclTransformSetUsageTransformTracker" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTransformSetUsageTransformTracker" version="1" signature="0xd9c5ea8b" size="72">
+  <members>
+    <member name="read" offset="0" ctype="hkBitField" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="readBeforeWrite" offset="24" ctype="hkBitField" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="written" offset="48" ctype="hkBitField" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTransitionConstraintSet" version="1" signature="0x9cfe2c7d" size="72" parent="hclConstraintSet">
+  <members>
+    <member name="perParticleData" offset="32" ctype="hclTransitionConstraintSetPerParticle" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toAnimPeriod" offset="48" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toAnimPlusDelayPeriod" offset="52" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toSimPeriod" offset="56" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toSimPlusDelayPeriod" offset="60" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceMeshBufferIdx" offset="64" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclTransitionConstraintSetPerParticle" version="1" signature="0x6890a0de" size="16">
+  <members>
+    <member name="particleIndex" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceVertex" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toAnimDelay" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toSimDelay" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="toSimMaxDistance" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclUpdateAllVertexFramesOperator" version="1" signature="0x9f7b4db7" size="144" parent="hclOperator">
+  <members>
+    <member name="vertToNormalID" offset="32" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFlips" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceVertices" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tangentEdgeCosAngle" offset="80" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tangentEdgeSinAngle" offset="96" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="biTangentFlip" offset="112" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bufferIdx" offset="128" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numUniqueNormalIDs" offset="132" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateNormals" offset="136" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateTangents" offset="137" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateBiTangents" offset="138" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclUpdateSomeVertexFramesOperator" version="1" signature="0x9aadaeec" size="192" parent="hclOperator">
+  <members>
+    <member name="involvedTriangles" offset="32" ctype="hclUpdateSomeVertexFramesOperatorTriangle" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="involvedVertices" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="selectionVertexToInvolvedVertex" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="involvedVertexToNormalID" offset="80" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFlips" offset="96" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceVertices" offset="112" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tangentEdgeCosAngle" offset="128" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="tangentEdgeSinAngle" offset="144" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="biTangentFlip" offset="160" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bufferIdx" offset="176" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numUniqueNormalIDs" offset="180" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateNormals" offset="184" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateTangents" offset="185" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="updateBiTangents" offset="186" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclUpdateSomeVertexFramesOperatorTriangle" version="1" signature="0x308967e1" size="6">
+  <members>
+    <member name="indices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="3" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkBaseObject" version="1" signature="0xe0708a00" size="8">
+  <members>
+  </members>
+</class><class name="hkBitField" version="1" signature="0xe5dbbb9c" size="24" parent="hkBitFieldBasehkBitFieldStoragehkArrayunsignedinthkContainerHeapAllocator">
+  <members>
+  </members>
+</class><class name="hkBitFieldBasehkBitFieldStoragehkArrayunsignedinthkContainerHeapAllocator" version="1" signature="0x7538539b" size="24">
+  <members>
+    <member name="storage" offset="0" ctype="hkBitFieldStoragehkArrayunsignedinthkContainerHeapAllocator" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkBitFieldStoragehkArrayunsignedinthkContainerHeapAllocator" version="1" signature="0xda41bd9b" size="24">
+  <members>
+    <member name="words" offset="0" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numBits" offset="16" vtype="TYPE_INT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkReferencedObject" version="1" signature="0xb70c7949" size="16" parent="hkBaseObject">
+  <members>
+    <member name="memSizeAndRefCount" offset="8" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hkRootLevelContainer" version="1" signature="0x2772c11e" size="16">
+  <members>
+    <member name="namedVariants" offset="0" ctype="hkRootLevelContainerNamedVariant" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkRootLevelContainerNamedVariant" version="1" signature="0xb103a2cd" size="24">
+  <members>
+    <member name="name" offset="0" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="className" offset="8" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="variant" offset="16" ctype="hkReferencedObject" vtype="TYPE_POINTER" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkaAnimationContainer" version="1" signature="0x26859f4c" size="96" parent="hkReferencedObject">
+  <members>
+    <member name="skeletons" offset="16" ctype="hkaSkeleton" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="animations" offset="32" ctype="hkaAnimation" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bindings" offset="48" ctype="hkaAnimationBinding" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="attachments" offset="64" ctype="hkaBoneAttachment" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="skins" offset="80" ctype="hkaMeshBinding" vtype="TYPE_ARRAY" vsubtype="TYPE_POINTER" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkaBone" version="1" signature="0x35912f8a" size="16">
+  <members>
+    <member name="name" offset="0" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="lockTranslation" offset="8" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkaSkeleton" version="1" signature="0xfec1cedb" size="136" parent="hkReferencedObject">
+  <members>
+    <member name="name" offset="16" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="parentIndices" offset="24" vtype="TYPE_ARRAY" vsubtype="TYPE_INT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bones" offset="40" ctype="hkaBone" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referencePose" offset="56" vtype="TYPE_ARRAY" vsubtype="TYPE_QSTRANSFORM" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="referenceFloats" offset="72" vtype="TYPE_ARRAY" vsubtype="TYPE_REAL" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="floatSlots" offset="88" vtype="TYPE_ARRAY" vsubtype="TYPE_STRINGPTR" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localFrames" offset="104" ctype="hkaSkeletonLocalFrameOnBone" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partitions" offset="120" ctype="hkaSkeletonPartition" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkaSkeletonLocalFrameOnBone" version="1" signature="0xe9151edc" size="16">
+  <members>
+    <member name="localFrame" offset="0" ctype="hkLocalFrame" vtype="TYPE_POINTER" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndex" offset="8" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkaSkeletonPartition" version="1" signature="0x7c8e6a55" size="16">
+  <members>
+    <member name="name" offset="0" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startBoneIndex" offset="8" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="numBones" offset="10" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class></ds3-cloth-schema>

@@ -1,0 +1,196 @@
+{
+  "source": "https://github.com/JeNoVaViRuS/hkxpack-souls",
+  "jar": "hkxpack-souls_v0.4/app/hkxpack-cli.jar",
+  "jar_sha256": "aece0eaa7492dc57b30c982096f24935cd292ab81dc7230c77d190967ee57c0c",
+  "schema_sha256": "15ff3f41c3dcb803c7b4dfb1c64393ad2a50b3ae7bad14a1160c7013939003aa",
+  "classes": 81,
+  "layout": "8,1,0,1",
+  "offset_differences": [
+    {
+      "class": "hclInputConvertOperator",
+      "member": "userBufferIndex",
+      "bb_offset": "28",
+      "ds3_offset": "32"
+    },
+    {
+      "class": "hclInputConvertOperator",
+      "member": "shadowBufferIndex",
+      "bb_offset": "32",
+      "ds3_offset": "36"
+    },
+    {
+      "class": "hclInputConvertOperator",
+      "member": "conversionInfo",
+      "bb_offset": "36",
+      "ds3_offset": "40"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "small",
+      "bb_offset": "16",
+      "ds3_offset": "32"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "big",
+      "bb_offset": "32",
+      "ds3_offset": "48"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "coneApex",
+      "bb_offset": "48",
+      "ds3_offset": "64"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "coneAxis",
+      "bb_offset": "64",
+      "ds3_offset": "80"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "lVec",
+      "bb_offset": "80",
+      "ds3_offset": "96"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "dVec",
+      "bb_offset": "96",
+      "ds3_offset": "112"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "tanThetaVecNeg",
+      "bb_offset": "112",
+      "ds3_offset": "128"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "smallRadius",
+      "bb_offset": "128",
+      "ds3_offset": "144"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "bigRadius",
+      "bb_offset": "132",
+      "ds3_offset": "148"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "l",
+      "bb_offset": "136",
+      "ds3_offset": "152"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "d",
+      "bb_offset": "140",
+      "ds3_offset": "156"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "cosTheta",
+      "bb_offset": "144",
+      "ds3_offset": "160"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "sinTheta",
+      "bb_offset": "148",
+      "ds3_offset": "164"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "tanTheta",
+      "bb_offset": "152",
+      "ds3_offset": "168"
+    },
+    {
+      "class": "hclTaperedCapsuleShape",
+      "member": "tanThetaSqr",
+      "bb_offset": "156",
+      "ds3_offset": "172"
+    },
+    {
+      "class": "hclCapsuleShape",
+      "member": "start",
+      "bb_offset": "16",
+      "ds3_offset": "32"
+    },
+    {
+      "class": "hclCapsuleShape",
+      "member": "end",
+      "bb_offset": "32",
+      "ds3_offset": "48"
+    },
+    {
+      "class": "hclCapsuleShape",
+      "member": "dir",
+      "bb_offset": "48",
+      "ds3_offset": "64"
+    },
+    {
+      "class": "hclCapsuleShape",
+      "member": "radius",
+      "bb_offset": "64",
+      "ds3_offset": "80"
+    },
+    {
+      "class": "hclCapsuleShape",
+      "member": "capLenSqrdInv",
+      "bb_offset": "68",
+      "ds3_offset": "84"
+    },
+    {
+      "class": "hclSimulateOperator",
+      "member": "simClothIndex",
+      "bb_offset": "28",
+      "ds3_offset": "32"
+    },
+    {
+      "class": "hclSimulateOperator",
+      "member": "subSteps",
+      "bb_offset": "32",
+      "ds3_offset": "36"
+    },
+    {
+      "class": "hclSimulateOperator",
+      "member": "numberOfSolveIterations",
+      "bb_offset": "36",
+      "ds3_offset": "40"
+    },
+    {
+      "class": "hclSimulateOperator",
+      "member": "constraintExecution",
+      "bb_offset": "40",
+      "ds3_offset": "48"
+    },
+    {
+      "class": "hclSimulateOperator",
+      "member": "adaptConstraintStiffness",
+      "bb_offset": "56",
+      "ds3_offset": "64"
+    },
+    {
+      "class": "hclOutputConvertOperator",
+      "member": "userBufferIndex",
+      "bb_offset": "28",
+      "ds3_offset": "32"
+    },
+    {
+      "class": "hclOutputConvertOperator",
+      "member": "shadowBufferIndex",
+      "bb_offset": "32",
+      "ds3_offset": "36"
+    },
+    {
+      "class": "hclOutputConvertOperator",
+      "member": "conversionInfo",
+      "bb_offset": "36",
+      "ds3_offset": "40"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "source": "https://github.com/JeNoVaViRuS/hkxpack-souls",
+  "base_commit": "920f8c40285cfc49ff1a14c6ce0d03775b1ffd9d",
+  "audited_jar_sha256": "4f5d31126755c08a028b9911ade46fdcadad6c0f7842a226328289a5af422f11",
+  "schema_sha256": "31a0c4e4aef2530ced812dde606b1131020713c21833320807d9bbbccf66d2f5",
+  "classes": 90,
+  "types": {
+    "TYPE_ENUM": 11,
+    "TYPE_UINT8": 17,
+    "TYPE_ARRAY": 88,
+    "TYPE_UINT32": 40,
+    "TYPE_UINT16": 37,
+    "TYPE_REAL": 61,
+    "TYPE_STRINGPTR": 14,
+    "TYPE_INT32": 6,
+    "TYPE_BOOL": 34,
+    "TYPE_STRUCT": 20,
+    "TYPE_INT8": 3,
+    "TYPE_VECTOR4": 23,
+    "TYPE_TRANSFORM": 1,
+    "TYPE_POINTER": 3,
+    "TYPE_INT16": 9
+  },
+  "array_subtypes": {
+    "TYPE_POINTER": 18,
+    "TYPE_STRUCT": 30,
+    "TYPE_INT32": 1,
+    "TYPE_UINT16": 14,
+    "TYPE_UINT8": 4,
+    "TYPE_UINT32": 5,
+    "TYPE_BOOL": 1,
+    "TYPE_MATRIX4": 3,
+    "TYPE_VECTOR4": 1,
+    "TYPE_INT16": 2,
+    "TYPE_QSTRANSFORM": 1,
+    "TYPE_REAL": 7,
+    "TYPE_STRINGPTR": 1
+  },
+  "fixtures": [
+    "BB Hunter",
+    "BB Hiro",
+    "BB Clorinde v10",
+    "DS3 bd_m_3000"
+  ],
+  "purpose": "Local BB Cloth C# reader/writer schema closure; not a proprietary Havok SDK/runtime",
+  "corrections": "Same declared sizes/fixups/BB fields as the audited Jar. Source-derived metadata; preserve notices."
+}

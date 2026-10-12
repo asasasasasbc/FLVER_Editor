@@ -283,7 +283,7 @@ namespace MySFformat
             // --- About Menu ---
             var aboutMenu = new ToolStripMenuItem("【About】");
             var aboutItem = new ToolStripMenuItem("About this program...", null, (s, e) => {
-                MessageBox.Show($"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks to:\nTKGP Katalash Dropoff\n莫 SoulsformatsNEXT PredatorCZ", "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(BuildAboutText(), "About FLVER Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
             });
             aboutMenu.DropDownItems.Add(aboutItem);
 
@@ -472,6 +472,7 @@ namespace MySFformat
                 Width = SIDE_PANEL_W,
                 FlowDirection = FlowDirection.TopDown,
                 WrapContents = false,
+                AutoScroll = true,
                 Padding = new Padding(10, 5, 10, 5) // Padding for the panel itself
             };
             var buttons = new List<Button>();
@@ -517,6 +518,7 @@ namespace MySFformat
                 "打开材质编辑窗口。", (s, e) => ModelMaterial());
             AddButton("Mesh", "Open the mesh window.\n" +
     "打开面片编辑(Mesh)窗口。", (s, e) => ModelMesh());
+            AddButton("Cloth", "Open the independent cloth inspector.\n查看原生布料粒子、约束、碰撞和活动范围（不是游戏解算预览）。", (s, e) => OpenClothInspector());
             AddButton("Dummy", "Open the dummy window. Dummy contains the info about weapon art trail, weapon trail, damage point etc.\n" +
 "打开辅助点(Dummy)窗口。辅助点包含了武器的一些剑风位置，伤害位置之类的信息。", (s, e) => dummies());
             AddButton("Modify JSON", "Save the json text you modified in bones and header json part to the flver file.\n" +
@@ -545,13 +547,22 @@ namespace MySFformat
 
         private static Label CreateThanksLabel()
         {
-            return new Label
+            var label = new Label
             {
-                Text = $"FLVER Editor {version} by Forsakensilver(遗忘的银灵) Special thanks: TKGP & Katalash & 莫 & SoulsformatsNEXT & PredatorCZ",
+                Text = $"FLVER Editor {version} by Forsakensilver (遗忘的银灵)\nSpecial thanks: TKGP, Katalash, Dropoff, Zullie the Witch, 莫, SoulsFormatsNEXT, PredatorCZ\nNative HKX port credits: DexesTTP (HKXPack) & JeNoVaViRuS (hkxpack-souls)",
                 Dock = DockStyle.Bottom,
                 TextAlign = ContentAlignment.MiddleCenter,
-                Height = 25
+                Height = 64
             };
+            var tip = new ToolTip { AutoPopDelay = 20000, ShowAlways = true };
+            tip.SetToolTip(label,"Original editor: Forsakensilver. Native C# HKX port informed by DexesTTP / JeNoVaViRuS (MIT upstream). CLM2: SoulsFormatsNEXT. Animation decoder: PredatorCZ (GPL-3.0). See README.\n原编辑器：Forsakensilver。纯C# HKX移植参考DexesTTP / JeNoVaViRuS（上游MIT）。CLM2：SoulsFormatsNEXT。动画解码：PredatorCZ（GPL-3.0）。来源见README。");
+            label.Disposed += (s,e) => tip.Dispose();
+            return label;
+        }
+
+        private static string BuildAboutText()
+        {
+            return $"FLVER Editor {version}\nhttps://github.com/asasasasasbc/FLVER_Editor/releases\nAuthor: Forsakensilver (遗忘的银灵)\n\nSpecial thanks:\nTKGP, Katalash, Dropoff, Zullie the Witch, 莫, SoulsFormatsNEXT\nCLM2 structure/read/write: TKGP / SoulsFormatsNEXT (GPL-3.0)\n\nNative Cloth HKX C# implementation informed by (MIT upstream):\nDexesTTP — original HKXPack\nJeNoVaViRuS — hkxpack-souls\nhttps://github.com/JeNoVaViRuS/hkxpack-souls\n\nAnimation decoding (GPL-3.0):\nPredatorCZ — HavokLib / HavokToolset\nhttps://github.com/PredatorCZ/HavokLib\n\nLocal C# implementation informed by hkxpack-souls.\nBB / DS3 Cloth inspection and writeback, not a Havok solver.\nNative source: src/HkxPack; CLM2 source: src/Clm2\nMIT notice and schema provenance: tools/Cloth\nSee README.md and cloth-and-animation-README.md for credits and limitations.";
         }
 
         #endregion

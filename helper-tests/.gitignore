@@ -1,0 +1,4 @@
+# Compile local helpers into ../helper-ext/test-binaries instead of committing binaries.
+*.exe
+*.pdb
+__pycache__/
