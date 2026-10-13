@@ -27,7 +27,7 @@ namespace MySFformat
             MouseDown+=(s,e)=>{
                 Focus();down=last=cursor=e.Location;drag=false;gesture=e.Button;Capture=true;
                 subtract=(ModifierKeys&Keys.Alt)!=0;add=(ModifierKeys&(Keys.Control|Keys.Shift))!=0;
-                if(gesture==MouseButtons.Left&&Domain!=null&&SelectionMode==2){if(!add&&!subtract)SelectedParticles.Clear();BrushAt(e.Location);}
+                if(gesture==MouseButtons.Left&&Domain!=null&&SelectionMode==2&&PickValueRequested==null){if(!add&&!subtract)SelectedParticles.Clear();BrushAt(e.Location);}
             };
             MouseMove+=(s,e)=>{
                 cursor=e.Location;
@@ -35,7 +35,7 @@ namespace MySFformat
                 int dx=e.X-last.X,dy=e.Y-last.Y;if(Math.Abs(e.X-down.X)+Math.Abs(e.Y-down.Y)>4)drag=true;
                 if(gesture==MouseButtons.Right){yaw+=dx*.01f;pitch+=dy*.01f;}
                 else if(gesture==MouseButtons.Middle){pan.X+=dx;pan.Y+=dy;}
-                else if(gesture==MouseButtons.Left&&SelectionMode==2&&Domain!=null)
+                else if(gesture==MouseButtons.Left&&SelectionMode==2&&Domain!=null&&PickValueRequested==null)
                 {
                     int steps=Math.Max(1,(int)(Math.Sqrt(dx*dx+dy*dy)/Math.Max(2,BrushRadius/2)));
                     for(int n=1;n<=steps;n++)BrushAt(new Point(last.X+dx*n/steps,last.Y+dy*n/steps));
@@ -45,6 +45,13 @@ namespace MySFformat
             MouseUp+=(s,e)=>{
                 var active=gesture;gesture=MouseButtons.None;Capture=false;
                 if(active!=MouseButtons.Left||Domain==null)return;
+                if(PickValueRequested!=null)
+                {
+                    float distance=144;int source=-1;
+                    for(int i=0;i<DisplayPositions.Length;i++){var point=Project(DisplayPositions[i]);float dx=point.X-e.X,dy=point.Y-e.Y;float squared=dx*dx+dy*dy;if(squared<distance&&IsParticleVisible(i)){distance=squared;source=i;}}
+                    if(source>=0)PickValueRequested(source);
+                    return;
+                }
                 if(SelectionMode==2){NotifySelection();return;}
                 if(!add&&!subtract)SelectedParticles.Clear();
                 if(SelectionMode==1&&drag)

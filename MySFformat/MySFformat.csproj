@@ -126,6 +126,10 @@
     <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />
     <Compile Include="src\Cloth\Editing\ClothEditing.cs" />
     <Compile Include="src\Cloth\Editing\ClothSelection.cs" />
+    <Compile Include="src\Cloth\Editing\ClothAnimation.cs" />
+    <Compile Include="src\Cloth\Editing\ClothSelectionEditor.cs" />
+    <Compile Include="src\Cloth\Editing\ClothInspectorActions.cs" />
+    <Compile Include="src\Cloth\Editing\ClothCanvasRendering.cs" />
     <Compile Include="src\HkxPack\HkxPackfileCodec.cs" />
     <Compile Include="src\ClothCli.cs" />
     <Compile Include="src\HkxPack\HkxXmlEditForm.cs">

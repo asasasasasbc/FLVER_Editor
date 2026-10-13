@@ -57,17 +57,17 @@ namespace MySFformat
                 canvas.SetSelection(particles.SelectedRows.Cast<DataGridViewRow>().Select(r=>r.Index));ShowDomainSummary();
             };
             particles.DataError+=(s,e)=>{e.ThrowException=false;editState.Text="Invalid particle value; edit not applied";};
+            particles.VisibleChanged+=(s,e)=>ScrollParticleSelectionIntoView();
+            particles.SizeChanged+=(s,e)=>ScrollParticleSelectionIntoView();
             var edits=new FlowLayoutPanel {Dock=DockStyle.Bottom,AutoSize=true,WrapContents=true};
-            var modify=new Button {Name="modifyClothSelection",Text="Modify Selected…",AutoSize=true};
             var discard=new Button {Name="discardClothChanges",Text="Discard Pending",AutoSize=true};
-            edits.Controls.AddRange(new Control[]{modify,applyAuthor,discard,undoAuthor,redoAuthor,editState});split.Panel2.Controls.Add(edits);
+            edits.Controls.AddRange(new Control[]{applyAuthor,discard,undoAuthor,redoAuthor,editState});split.Panel2.Controls.Add(edits);
             applyAuthor.Click+=async(s,e)=>await ApplyAuthorChangesAsync();
-            modify.Click+=(s,e)=>ShowModifySelection();
-            discard.Click+=(s,e)=>{if(Document==null)return;stagedXml=new XDocument(Document.Xml);editingDirty=false;ShowDomain();};
+            discard.CausesValidation=false;
+            discard.Click+=(s,e)=>{if(Document==null)return;ResetSelectionEditor();stagedXml=new XDocument(Document.Xml);editingDirty=false;ShowDomain();};
             undoAuthor.Click+=async(s,e)=>await RestoreHistoryAsync(false);
             redoAuthor.Click+=async(s,e)=>await RestoreHistoryAsync(true);
             tips.SetToolTip(applyAuthor,"Validate pending edits with full native pack/readback, then commit to memory. Running preview restarts; paused remains paused. Source files are never written.\n完整打包/读回验证后应用到内存；播放自动重启、暂停保持暂停，不写源文件。");
-            tips.SetToolTip(modify,"Set or multiply an editable field for selected particles. Missing LocalRange records are not invented. Apply Changes commits the batch.\n批量设置或缩放选中粒子的字段；不凭空新增LocalRange记录，点Apply提交。");
             tips.SetToolTip(authorParameters,"Edit author parameters, not preview overrides. Index arrays, bindings and unknown fields stay read-only in this first version.\n修改作者参数，不是预览覆盖；索引数组、绑定和未知字段本版仍只读。");
             tips.SetToolTip(discard,"Discard only pending table edits, not applied edits.\n仅丢弃尚未Apply的表格修改。");
             tips.SetToolTip(undoAuthor,"Undo one applied author edit; pending changes must be applied or discarded first.\n撤销一次已应用作者修改；先应用或丢弃待提交修改。");
@@ -240,17 +240,49 @@ namespace MySFformat
         void SynchronizeParticleSelection()
         {
             if(syncingSelection)return;syncingSelection=true;
-            try{particles.ClearSelection();foreach(int id in canvas.SelectedParticles)if(id>=0&&id<particles.Rows.Count)particles.Rows[id].Selected=true;}
+            try
+            {
+                if(selectedValueDirty&&!inlineParticleTargets.SequenceEqual(SelectedParticleIds))
+                {
+                    canvas.SetSelection(inlineParticleTargets);
+                    selectedParticleInfo.Text="Apply or discard the entered value before changing selection";
+                }
+                // 设定当前行锚点，防止首次切到粒子 tab 时 DataGridView 自动
+                // 选中第 0 行，从而把画布上的多选覆盖成单选。
+                if(canvas.SelectedParticles.Count>0)
+                {
+                    int first=canvas.SelectedParticles.Min();
+                    if(first<particles.Rows.Count)particles.CurrentCell=particles.Rows[first].Cells[0];
+                }
+                particles.ClearSelection();
+                foreach(int id in canvas.SelectedParticles)if(id>=0&&id<particles.Rows.Count)particles.Rows[id].Selected=true;
+            }
             finally{syncingSelection=false;}
+            ScrollParticleSelectionIntoView();
             UpdateEditState();
+        }
+        void ScrollParticleSelectionIntoView()
+        {
+            if(!IsHandleCreated||IsDisposed||!particles.Visible||canvas.SelectedParticles.Count==0)return;
+            BeginInvoke(new Action(()=>
+            {
+                if(IsDisposed||!particles.Visible||canvas.SelectedParticles.Count==0)return;
+                int first=canvas.SelectedParticles.Min();
+                if(first>=particles.Rows.Count)return;
+                try{particles.FirstDisplayedScrollingRowIndex=first;}
+                catch(InvalidOperationException){/* tab 正在布局时下次可见/尺寸事件再定位。 */}
+            }));
         }
         void UpdateEditState()
         {
-            applyAuthor.Enabled=editingDirty&&!applyingAuthor;undoAuthor.Enabled=!editingDirty&&!applyingAuthor&&undoDocuments.Count>0;redoAuthor.Enabled=!editingDirty&&!applyingAuthor&&redoDocuments.Count>0;
-            load.Enabled=!editingDirty&&!applyingAuthor;domains.Enabled=!editingDirty&&!applyingAuthor;
-            nativeLayout.Enabled=!editingDirty&&!applyingAuthor;authorParameters.Enabled=particles.Enabled=constraintParameters.Enabled=!applyingAuthor;
+            bool pending=editingDirty||selectedValueDirty;
+            applyAuthor.Enabled=pending&&!applyingAuthor;undoAuthor.Enabled=!pending&&!applyingAuthor&&undoDocuments.Count>0;redoAuthor.Enabled=!pending&&!applyingAuthor&&redoDocuments.Count>0;
+            load.Enabled=!pending&&!applyingAuthor;domains.Enabled=!pending&&!applyingAuthor;
+            nativeLayout.Enabled=!pending&&!applyingAuthor;authorParameters.Enabled=particles.Enabled=constraintParameters.Enabled=!applyingAuthor;
             foreach(string name in new[]{"editHkx","saveHkx","saveRangeCopy","modifyClothSelection","discardClothChanges"})foreach(var control in Controls.Find(name,true))control.Enabled=!applyingAuthor&&(!editingDirty||name=="modifyClothSelection"||name=="discardClothChanges");
-            editState.Text=canvas.SelectedParticles.Count+" selected · "+(editingDirty?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"No author changes")+(previewEnvironmentDirty?" · Environment pending — Apply Environment":"");
+            editState.Text=canvas.SelectedParticles.Count+" selected · "+(pending?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"No author changes")+(previewEnvironmentDirty?" · Environment pending — Apply Environment":"");
+            selectedParticleEditor.Enabled=!applyingAuthor;
+            RefreshSelectionEditor();
         }
         public async Task ApplyAuthorChangesAsync()
         {
@@ -272,6 +304,7 @@ namespace MySFformat
         {
             bool restart=previewSession!=null||previewPreparing,paused=previewSession!=null&&!previewPlaying;
             var restartEnvironment=previewSession==null?null:appliedEnvironment.Clone();
+            bool resumeAnimation=HasLinkedAnimation&&ClothAnimationPlayback.Playing;
             int domain=domains.SelectedIndex;int[] selected=SelectedParticleIds;
             StopClothPreview();Document=document;editingDirty=false;stagedXml=new XDocument(document.Xml);
             updatingLayout=true;nativeLayout.SelectedIndex=document.NativeLayout=="8,1,0,1"?1:0;updatingLayout=false;
@@ -279,7 +312,7 @@ namespace MySFformat
             var view=canvas.SaveCamera();changingDomain=true;for(int i=0;i<document.Domains.Count;i++)domains.Items[i]=document.Domains[i];domains.SelectedIndex=domain;changingDomain=false;ShowDomain();canvas.RestoreCamera(view);canvas.SetSelection(selected);
             Text="Cloth Inspector — "+System.IO.Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"");
             status.Text="Author changes validated and applied in memory. Save HKX Copy to export; source files unchanged.";
-            if(restart){await StartClothPreviewAsync(restartEnvironment);if(paused&&previewSession!=null)PauseClothPreview();}
+            if(restart){if(resumeAnimation)ClothAnimationPlayback.Play();await StartClothPreviewAsync(restartEnvironment);if(paused&&previewSession!=null)PauseClothPreview();}
             if(!IsDisposed)UpdateEditState();
         }
         async Task RestoreHistoryAsync(bool redo)

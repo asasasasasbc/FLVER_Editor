@@ -83,14 +83,15 @@ input layout. These mappings certify the tested profiles, not all DS3 assets
 or a universal game identifier.
 
 Native DS3 XML carries `nativeLayout="8,1,0,1"`. Legacy XML without layout
-defaults to BB: **select DS3 in the third toolbar row before saving**, or use
+defaults to BB: **select DS3 in the Layout version box on the toolbar before saving**, or use
 the CLI layout option below. Changing layout selects the write schema; it is
 not a complete automatic conversion between games.
 
 ### Native Cloth playback in the Cloth window
 
-Optional native playback is now available on the fourth toolbar row:
-**Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth**, and **HCT Runtime…**.
+Optional native playback is now available on the playback toolbar row:
+**Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth** (new native history)
+and **Reset View** (camera only); **HCT Runtime…** lives on the Preview Environment tab.
 Choose `hctPreviewPlugin.dll` with the standard file picker; the runtime root is
 detected automatically. The selected local path is remembered for this user.
 

@@ -168,7 +168,7 @@ namespace MySFformat.Cloth.Preview
             for(int c=0;c<instances.Length;c++)for(int t=0;t<d.Cloths[c].TransformSkeletons.Length;t++)
             {
                 var data=d.Skeletons[d.Cloths[c].TransformSkeletons[t]].Matrices;var inverse=new float[data.Length];
-                for(int i=0;i<data.Length;i+=16){var m=new Matrix4x4(data[i],data[i+1],data[i+2],data[i+3],data[i+4],data[i+5],data[i+6],data[i+7],data[i+8],data[i+9],data[i+10],data[i+11],data[i+12],data[i+13],data[i+14],data[i+15]);Matrix4x4 inv;if(!Matrix4x4.Invert(m,out inv))throw new InvalidDataException("Singular input pose");Array.Copy(Flat(Matrix4x4.Transpose(inv)),0,inverse,i,16);}
+                for(int i=0;i<data.Length;i+=16){var m=new Matrix4x4(data[i],data[i+1],data[i+2],data[i+3],data[i+4],data[i+5],data[i+6],data[i+7],data[i+8],data[i+9],data[i+10],data[i+11],data[i+12],data[i+13],data[i+14],data[i+15]);Matrix4x4 inv;if(!Matrix4x4.Invert(m,out inv))throw new InvalidDataException("Singular input pose");var transposed=Flat(Matrix4x4.Transpose(inv));if(transposed.Any(v=>!Finite(v)))throw new InvalidDataException("Nonfinite inverse input pose");Array.Copy(transposed,0,inverse,i,16);}
                 var ts=Marshal.ReadIntPtr(Marshal.ReadIntPtr(instances[c],0x30),t*8);Marshal.Copy(data,0,Marshal.ReadIntPtr(ts,0x18),data.Length);Marshal.Copy(inverse,0,Marshal.ReadIntPtr(ts,0x28),inverse.Length);
             }
         }
@@ -176,6 +176,7 @@ namespace MySFformat.Cloth.Preview
         {
             var json=new JavaScriptSerializer{MaxJsonLength=128*1024*1024};var d=json.Deserialize<PreviewDescription>(File.ReadAllText(Path.Combine(assets,"description.json")));
             Action restore=null;HostEnvironment environment=null;
+            System.Windows.Forms.CheckBox clothControl=null;bool originalClothEnabled=false;
             try
             {
                 Stage("LOAD_ADAPTER_SCENE");Call(type,control,"updateContentsFromPackfile",(object)File.ReadAllBytes(Path.Combine(assets,"scene.hkx")));
@@ -187,7 +188,35 @@ namespace MySFformat.Cloth.Preview
                 // Use HCT's complete preview step path: the direct world solver
                 // bypasses the preview wind integration. Retain the audited world
                 // post/readback sequence used by this process-isolated adapter.
-                Action run=delegate{Call(type,control,"step",1f/60);};
+                clothControl=type.GetField("clothCheckBox",BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic).GetValue(control) as System.Windows.Forms.CheckBox;
+                if(clothControl==null)throw new NotSupportedException("HCT cloth control not available");
+                originalClothEnabled=clothControl.Checked;
+                IntPtr scratchAllocation=IntPtr.Zero,scratch=IntPtr.Zero;int scratchCapacity=0;
+                Action run=delegate{clothControl.Checked=true;Call(type,control,"step",1f/60);};
+                Action animatedRun=delegate
+                {
+                    // HCT 暂停它自己的 Cloth 步进，只更新预览环境/scene；
+                    // 核验粒子未被重复求解后，用编辑器姿态执行一次原生步进。
+                    clothControl.Checked=false;
+                    var before=Particles(instances,d);
+                    Call(type,control,"step",1f/60);
+                    if(Marshal.ReadInt32(world,0x20)!=instances.Length)throw new InvalidDataException("Cloth UI pause changed instance ownership");
+                    var after=Particles(instances,d);
+                    if(before.Where((value,i)=>Math.Abs(value-after[i])>1e-6f).Any())throw new InvalidDataException("HCT Cloth pause did not prevent duplicate stepping");
+                    int bytes=Function<ScratchCall>(0x733210)(world,1);
+                    Range(bytes,256*1024*1024,"animated scratch allocation");
+                    if(scratch==IntPtr.Zero||bytes>scratchCapacity)
+                    {
+                        if(scratchAllocation!=IntPtr.Zero)Marshal.FreeHGlobal(scratchAllocation);
+                        scratchAllocation=IntPtr.Zero;scratch=IntPtr.Zero;
+                        scratchAllocation=Marshal.AllocHGlobal(bytes+16);
+                        scratch=new IntPtr((scratchAllocation.ToInt64()+15)&~15L);
+                        scratchCapacity=bytes;
+                    }
+                    Poses(instances,d);
+                    Function<AssetCall>(0x733710)(world,IntPtr.Zero);
+                    Function<StepCall>(0x733A20)(world,IntPtr.Zero,1,1f/60,scratch);
+                };
                 for(int phase=0;phase<2;phase++)
                 {
                     for(int c=0;c<instances.Length;c++){int target=phase==0?d.Cloths[c].PreviousState:d.Cloths[c].CurrentState;state(instances[c],target<0?0:target);}Poses(instances,d);
@@ -197,7 +226,11 @@ namespace MySFformat.Cloth.Preview
                 for(int c=0;c<instances.Length;c++)state(instances[c],0);
                 Stage("AUTHORED_INITIALIZATION_EXECUTED");Poses(instances,d);run();var initial=Particles(instances,d);var firstDisplay=buffers.Values.SelectMany(b=>b.Positions()).ToArray();post(world);
                 Stage("NATIVE_MANAGER_STEP_WITH_ENVIRONMENT");
-                if(pipeName!=null)return ServePreview(pipeName,instances,d,run,delegate{post(world);},environment);
+                if(pipeName!=null)
+                {
+                    try{return ServePreview(pipeName,instances,d,run,animatedRun,delegate{post(world);},environment);}
+                    finally{if(scratchAllocation!=IntPtr.Zero)Marshal.FreeHGlobal(scratchAllocation);}
+                }
                 var watch=Stopwatch.StartNew();float[] final=initial;float maxDelta=0;int changed=0;float[] display=firstDisplay;
                 for(int frame=1;frame<frames;frame++)
                 {
@@ -213,16 +246,19 @@ namespace MySFformat.Cloth.Preview
             }
             finally
             {
+                if(clothControl!=null)clothControl.Checked=originalClothEnabled;
                 if(environment!=null)environment.Dispose();foreach(var b in new List<UserBuffer>(buffers.Values))b.Dispose();if(restore!=null)restore();
             }
         }
-        static object ServePreview(string name,IntPtr[] instances,PreviewDescription d,Action run,Action post,HostEnvironment environment)
+        static object ServePreview(string name,IntPtr[] instances,PreviewDescription d,Action run,Action animatedRun,Action post,HostEnvironment environment)
         {
             int frames=0;using(var pipe=new NamedPipeClientStream(".",name,PipeDirection.InOut))
             {
                 pipe.Connect(15000);var reader=new BinaryReader(pipe);var writer=new BinaryWriter(pipe);
-                writer.Write(0x33565043);writer.Write(d.Cloths.Sum(c=>c.ParticleCounts.Length));
-                foreach(var cloth in d.Cloths)for(int s=0;s<cloth.ParticleCounts.Length;s++){writer.Write(cloth.Name+" / "+cloth.SimulationNames[s]);writer.Write(cloth.ParticleCounts[s]);}writer.Flush();
+                writer.Write(0x34565043);writer.Write(d.Cloths.Sum(c=>c.ParticleCounts.Length));
+                foreach(var cloth in d.Cloths)for(int s=0;s<cloth.ParticleCounts.Length;s++){writer.Write(cloth.Name+" / "+cloth.SimulationNames[s]);writer.Write(cloth.ParticleCounts[s]);}
+                writer.Write(d.Skeletons.Length);foreach(var skeleton in d.Skeletons){writer.Write(skeleton.Name);writer.Write(skeleton.Bones.Length);foreach(string bone in skeleton.Bones)writer.Write(bone);}writer.Flush();
+                var authored=d.Skeletons.Select(s=>(float[])s.Matrices.Clone()).ToArray();
                 try
                 {
                     while(true)
@@ -230,14 +266,18 @@ namespace MySFformat.Cloth.Preview
                         int command=reader.ReadInt32();if(command==2)break;if(command!=1)throw new InvalidDataException("Unknown preview command");
                         int sequence=reader.ReadInt32(),steps=reader.ReadInt32();if(sequence<1||steps<1||steps>4)throw new InvalidDataException("Preview step bounds");
                         var settings=d.Environment.Clone();settings.WindEnabled=reader.ReadBoolean();settings.WindX=reader.ReadSingle();settings.WindY=reader.ReadSingle();settings.WindZ=reader.ReadSingle();settings.WindSpeed=reader.ReadSingle();settings.WindMaxDrag=reader.ReadSingle();settings.Validate();environment.Apply(settings);
+                        float[][][] poses=null;if(reader.ReadBoolean())
+                        {
+                            poses=new float[steps][][];for(int p=0;p<steps;p++){poses[p]=new float[d.Skeletons.Length][];for(int s=0;s<d.Skeletons.Length;s++){var values=new float[authored[s].Length];for(int v=0;v<values.Length;v++){values[v]=reader.ReadSingle();if(!Finite(values[v]))throw new InvalidDataException("Nonfinite animation pose");}poses[p][s]=values;}}
+                        }
                         var watch=Stopwatch.StartNew();float[] positions=null;
-                        for(int i=0;i<steps;i++){Poses(instances,d);run();try{positions=Particles(instances,d);}finally{post();}frames++;}
+                        for(int i=0;i<steps;i++){for(int s=0;s<d.Skeletons.Length;s++)d.Skeletons[s].Matrices=poses==null?authored[s]:poses[i][s];Poses(instances,d);if(poses==null)run();else animatedRun();try{positions=Particles(instances,d);}finally{post();}frames++;}
                         watch.Stop();writer.Write(3);writer.Write(sequence);writer.Write(frames);writer.Write(watch.Elapsed.TotalMilliseconds);writer.Write(positions.Length);foreach(float value in positions)writer.Write(value);writer.Flush();
                     }
                 }
                 catch(IOException){/* Owned client closed/cancelled; no cross-process or source changes. */}
             }
-            return new{mode="local named pipe",frames=frames,poseMode="constant authored reference",finitePositions=true,clm2Loaded=d.Clm2Loaded,runtimeRepacked=d.RuntimeRepacked};
+            return new{mode="local named pipe",frames=frames,poseMode="authored reference or streamed animation",finitePositions=true,clm2Loaded=d.Clm2Loaded,runtimeRepacked=d.RuntimeRepacked};
         }
     }
 }

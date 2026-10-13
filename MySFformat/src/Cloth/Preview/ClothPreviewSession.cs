@@ -25,6 +25,8 @@ namespace MySFformat.Cloth.Preview
         readonly NamedPipeServerStream pipe;
         readonly string[] names;
         readonly int[] counts;
+        readonly string[] skeletonNames;
+        readonly string[][] skeletonBones;
         readonly Process process;
         readonly System.Threading.Timer watchdog;
         readonly object diagnosticsGate=new object();
@@ -36,6 +38,8 @@ namespace MySFformat.Cloth.Preview
         public string WorkDirectory {get;private set;}
         public int ProcessId {get{return process.Id;}}
         public string[] DomainNames {get{return (string[])names.Clone();}}
+        public string[] SkeletonNames {get{return (string[])skeletonNames.Clone();}}
+        public string[][] SkeletonBones {get{return skeletonBones.Select(b=>(string[])b.Clone()).ToArray();}}
         public static string HelpersDirectory {get{return Path.Combine(Path.GetDirectoryName(typeof(ClothPreviewSession).Assembly.Location),"tools","ClothPreview");}}
         public static string RuntimeSettingFile {get{return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"FLVER_Editor","ClothPreview","runtime-path.txt");}}
         public static string DefaultRuntime
@@ -109,9 +113,13 @@ namespace MySFformat.Cloth.Preview
                     var connected=pipe.WaitForConnectionAsync(cancel);
                     while(!connected.Wait(100)){cancel.ThrowIfCancellationRequested();if(process.HasExited)throw new InvalidOperationException("Native preview exited during initialization: "+Diagnostic());}
                     connected.GetAwaiter().GetResult();cancel.ThrowIfCancellationRequested();reader=new BinaryReader(pipe);writer=new BinaryWriter(pipe);
-                    if(reader.ReadInt32()!=0x33565043)throw new InvalidDataException("Cloth preview protocol mismatch");int domains=reader.ReadInt32();if(domains<1||domains>1024)throw new InvalidDataException("Unsafe preview domain count");
+                    if(reader.ReadInt32()!=0x34565043)throw new InvalidDataException("Cloth preview protocol mismatch");int domains=reader.ReadInt32();if(domains<1||domains>1024)throw new InvalidDataException("Unsafe preview domain count");
                     names=new string[domains];counts=new int[domains];int total=0;for(int i=0;i<domains;i++){names[i]=reader.ReadString();counts[i]=reader.ReadInt32();if(names[i].Length>4096||counts[i]<1||counts[i]>1000000)throw new InvalidDataException("Unsafe preview topology");total=checked(total+counts[i]);}
                     if(total>1000000||names.Distinct().Count()!=domains)throw new InvalidDataException("Ambiguous/oversized preview topology");
+                    int skeletonCount=reader.ReadInt32();if(skeletonCount<1||skeletonCount>64)throw new InvalidDataException("Unsafe preview skeleton count");
+                    skeletonNames=new string[skeletonCount];skeletonBones=new string[skeletonCount][];int boneTotal=0;
+                    for(int s=0;s<skeletonCount;s++){skeletonNames[s]=reader.ReadString();int bones=reader.ReadInt32();if(skeletonNames[s].Length>4096||bones<1||bones>4096)throw new InvalidDataException("Unsafe preview skeleton");boneTotal+=bones;skeletonBones[s]=new string[bones];for(int b=0;b<bones;b++){skeletonBones[s][b]=reader.ReadString();if(skeletonBones[s][b].Length>4096)throw new InvalidDataException("Unsafe bone name");}}
+                    if(boneTotal>16384)throw new InvalidDataException("Oversized preview skeletons");
                     watchdog.Change(Timeout.Infinite,Timeout.Infinite);
                 }
             }
@@ -119,9 +127,10 @@ namespace MySFformat.Cloth.Preview
         }
         string Diagnostic(){lock(diagnosticsGate)return diagnostic;}
         void Abort(string reason){lock(diagnosticsGate)diagnostic=reason+"\n"+diagnostic;try{pipe.Dispose();}catch{}KillOwned(process);}
-        public Task<ClothPreviewFrame> StepAsync(int steps)
+        public Task<ClothPreviewFrame> StepAsync(int steps,float[][][] poses=null)
         {
             if(steps<1||steps>4)throw new ArgumentOutOfRangeException("steps");
+            if(poses!=null){if(poses.Length!=steps)throw new ArgumentException("Pose substep count mismatch");poses=poses.Select(p=>{if(p==null||p.Length!=skeletonBones.Length)throw new ArgumentException("Pose skeleton count mismatch");return p.Select((values,s)=>{if(values==null||values.Length!=skeletonBones[s].Length*16||values.Any(v=>float.IsNaN(v)||float.IsInfinity(v)))throw new ArgumentException("Invalid pose matrices");return (float[])values.Clone();}).ToArray();}).ToArray();}
             if(Interlocked.CompareExchange(ref stepping,1,0)!=0)throw new InvalidOperationException("Only one native frame request may be in flight.");
             return Task.Run(()=>
             {
@@ -130,6 +139,7 @@ namespace MySFformat.Cloth.Preview
                     if(Volatile.Read(ref disposed)!=0)throw new ObjectDisposedException("ClothPreviewSession");watchdog.Change(15000,Timeout.Infinite);
                     int request=++sequence;writer.Write(1);writer.Write(request);writer.Write(steps);writer.Flush();
                     writer.Write(environment.WindEnabled);writer.Write(environment.WindX);writer.Write(environment.WindY);writer.Write(environment.WindZ);writer.Write(environment.WindSpeed);writer.Write(environment.WindMaxDrag);writer.Flush();
+                    writer.Write(poses!=null);if(poses!=null)foreach(var pose in poses)foreach(var skeleton in pose)foreach(float value in skeleton)writer.Write(value);writer.Flush();
                     if(reader.ReadInt32()!=3||reader.ReadInt32()!=request)throw new InvalidDataException("Cloth preview frame sequence mismatch");
                     int frame=reader.ReadInt32();double milliseconds=reader.ReadDouble();int values=reader.ReadInt32();if(frame<1||values!=counts.Sum()*3||double.IsNaN(milliseconds)||double.IsInfinity(milliseconds))throw new InvalidDataException("Cloth preview frame bounds");
                     var domains=new Dictionary<string,Vector3[]>();for(int d=0;d<counts.Length;d++){var points=new Vector3[counts[d]];for(int i=0;i<points.Length;i++){float x=reader.ReadSingle(),y=reader.ReadSingle(),z=reader.ReadSingle();if(float.IsNaN(x)||float.IsInfinity(x)||float.IsNaN(y)||float.IsInfinity(y)||float.IsNaN(z)||float.IsInfinity(z))throw new InvalidDataException("Nonfinite native frame");points[i]=new Vector3(x,y,z);}domains.Add(names[d],points);}

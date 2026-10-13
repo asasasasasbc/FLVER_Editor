@@ -7,8 +7,8 @@ a portable Havok replacement.
 
 ## Cloth-window integration
 
-The playback toolbar has **Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth**;
-**HCT Runtime…** lives in Preview Environment. Runtime selection uses the same standard file-picker style as
+The playback toolbar has **Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth**
+and **Reset View** (camera only); **HCT Runtime…** lives in Preview Environment. Runtime selection uses the same standard file-picker style as
 Load Cloth, selecting `hctPreviewPlugin.dll` and inferring its runtime root.
 Matching CLM2 companions load with HKX, including direct Binder entries; manual
 comparison data and unsaved CLM2 edits are not silently replaced.
