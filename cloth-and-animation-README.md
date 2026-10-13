@@ -26,7 +26,9 @@ independent window. UI labels are English; tooltips are English/Chinese.
 
 - Load a cloth `_c.hkx`, parts Binder (`.dcx`) or author XML.
 - An empty window automatically looks for `<FLVER name>_c.hkx` beside the
-  loaded FLVER. Reopening does not replace an existing comparison document.
+  loaded FLVER and loads its matching CLM2 companion at the same time. Direct
+  Binder inputs can supply both entries. Reopening does not replace an existing
+  comparison document; manually selected or unsaved CLM2 data is preserved.
 - Inspect simulation domains, fixed/dynamic particles, triangles, constraints,
   solver settings, collision masks, bone subsets and rest-space colliders.
 - Rotate/zoom the rest wireframe and select particles to view LocalRange
@@ -85,6 +87,111 @@ defaults to BB: **select DS3 in the third toolbar row before saving**, or use
 the CLI layout option below. Changing layout selects the write schema; it is
 not a complete automatic conversion between games.
 
+### Native Cloth playback in the Cloth window
+
+Optional native playback is now available on the fourth toolbar row:
+**Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth**, and **HCT Runtime…**.
+Choose `hctPreviewPlugin.dll` with the standard file picker; the runtime root is
+detected automatically. The selected local path is remembered for this user.
+
+The Cloth canvas shows real simulated particles and wireframes at a constant
+authored skeleton pose. It does **not** animate the skeleton, deform the main
+Viewer model or read live-game forces. Parameters, range centers and collider
+wireframes remain reference data. Pause freezes stepping; Reset initializes a
+fresh owned host. Changing source/model data or closing the window stops the
+owned host and restores the rest view.
+
+**Stop Cloth** ends the host without restarting and keeps the environment controls.
+The Preview Environment tab contains preview-only gravity XYZ, native wind direction XYZ,
+constant wind speed and native maximum drag. **Apply Environment** recreates
+the current host with those settings, retaining its playing/paused state;
+**File Gravity / Wind Off** restores author gravity and disables preview wind.
+Changed controls take effect on Apply, Reset or the next new Play, not by silently
+editing the running solver or author data.
+
+Gravity overrides only the temporary runtime HKX `simulationInfo.gravity` values.
+Wind uses native HCT `hctPreviewClothWindForm` set-direction/min/max-speed/max-drag
+and apply-settings methods; there are no fabricated particle translations.
+The tested samples respond differently to zero/downward gravity and ±X wind.
+Native wind participation/drag remains asset-dependent and is not a simulation
+of all game-world wind behavior. Applying environment settings does not change
+HKX exports, source files or the editor's author document.
+
+### Direct author editing and particle selection (2026-10-13)
+
+The Cloth window now has editable author tables and a separate **Preview Environment**
+tab. The CLM2 action row is retained. **Edit HKX XML…** is the advanced full-XML
+editor, not the normal parameter editor. Export range scaling lives in the Raw XML
+tab and remains an export-only operation.
+
+- **Parameters / Binding**: edit simulation gravity `(x y z 0)`, damping/tolerance,
+  supported booleans, and solver iteration/substep counts. Bindings and index arrays
+  remain read-only.
+- **Particles / Range**: edit dynamic mass (updates reciprocal inverse mass), radius,
+  friction and existing LocalRange maximum distances. IDs, fixed state, inverse mass
+  and collision masks are read-only. Missing LocalRange records are not invented;
+  setting a particle's distance updates all its existing LocalRange records.
+- **Constraints**: select a record in the upper table, then edit known stiffness,
+  bend-stiffness, rest/compression length or maximum-distance fields in the lower
+  table. Particle indices and derived bend weights/curvature are read-only.
+- **Modify Selected…** stages a set/multiply operation for selected particles as
+  one batch. **Apply Changes** performs semantic and native pack/readback validation
+  before committing to memory. **Discard Pending** drops only uncommitted changes.
+  **Undo / Redo** restore applied author snapshots. Save/export requires pending
+  changes to be applied or discarded first; source files are never overwritten.
+- Apply while playing automatically recreates and resumes the native host; applying
+  while paused recreates it and stays paused; applying while stopped does not start
+  physics. The camera and particle selection are retained.
+
+Left mouse selects, box-selects or paints a **Circle Brush** with adjustable screen
+radius. Ctrl/Shift adds selection, Alt removes. **Visible only** checks occlusion
+against the cloth's triangles; disable it for rear/through selection. Reference
+colliders do not occlude selections. View and table selection are synchronized.
+**Select Similar…** matches any selected seed by fixed/dynamic state, absolute range
+or inverse-mass tolerance, authored Y height, or shared constraint-set membership.
+Constraint-set selection can select most of a cloth; it is not an edge-loop tool.
+Selection is confined to the current simulation domain; no skin weights are guessed.
+
+**Middle drag pans**, right drag rotates, wheel zooms and **F / Focus** centers the
+selection. This version does not edit topology, fixed-particle membership, skin
+bindings or collider-derived geometry; those still require advanced author work.
+
+### Native wind stepping correction
+
+Wind is now **enabled by default** and labeled **Wind Enabled (Native HCT)**; there
+is no alternative fake wind backend. **Wind Test (+X)** stages a stronger diagnostic
+preset (speed 20, max drag 5); press Apply Environment, and Play if stopped.
+
+The previous low-level world-only step path accepted the wind UI settings but did
+not reproduce HCT's complete preview wind behavior. Normal and initialization
+stepping now call managed `PreviewPlugin.hctPreviewControl.step(float)` at 1/60,
+followed by the adapter's audited particle/display readback and world post call.
+Do not mix the old direct stepping path with that wrapper or omit the post sequence.
+The wrapper is invoked only in the offline x64 helper, never the editor process.
+
+In the DS3 600-frame off/strong-wind comparison, the maximum particle-component
+difference increased from roughly `0.00029` (old path) to `0.22224` (new path).
+BB Clorinde v10 also passed 600 finite frames with wind. These are preview behavior
+checks, not proof of game-world wind equivalence or a recovered force algorithm.
+
+The current in-memory HKX, FLVER and CLM2 are snapshotted, including unsaved
+edits. Native stepping and named-pipe I/O stay off the UI thread. HCT remains
+optional and proprietary; it is not loaded into the editor process or bundled.
+The tested HCT 2018.1 x64 runtime needs these **six vendor DLLs**:
+
+```text
+tools/hctPreviewPlugin.dll
+tools/gac/Havok.Tool.UI.dll
+tools/gac/Havok.Tool.Interfaces.dll
+tools/gac/Havok.Graphics.dll
+tools/gac/Havok.Graphics.Bridge.dll
+utils/hkCompatFormats.dll
+```
+
+This subset is about 70 MiB, in addition to standard Windows/.NET/VC runtime
+dependencies. Ordinary FLVER editing and native HKX/CLM2 read/write require none
+of these six DLLs. No Cloth authoring/filter/setup DLL is needed for playback.
+
 ### Headless cloth conversion
 
 ```bat
@@ -100,7 +207,8 @@ checks. Unpack accepts a supported cloth HKX or parts Binder.
 
 ### Limits and validation
 
-Cloth inspection is **not Havok simulation or live-game monitoring**. Range
+Rest inspection is **not Havok simulation or live-game monitoring**. Optional
+native playback runs a local HCT solver, not the game's runtime. Range
 spheres do not model normal limits or combined constraints. Rest collider
 wireframes are not proof of runtime collision response; serialized inspection
 cannot confirm or exclude world-space wind. Gameplay remains a separate test.
@@ -116,6 +224,16 @@ Animation regression includes binding/playback, repeated resize and 18 distinct
 GPU-rendered views. These are offline checks, not blanket runtime certification.
 
 ## Source organization and local tests
+
+Experimental runtime research lives in
+[`MySFformat/src/Cloth/Preview/`](MySFformat/src/Cloth/Preview/README.md).
+The isolated HCT bootstrap probe has passed using a local six-DLL subset,
+without loading vendor DLLs from the original installation or global GAC.
+Constant-pose native Cloth stepping and Cloth-window playback pass for DS3
+`BD_M_3000` and BB Clorinde v10, with CLM2 loaded and source files protected.
+Animated input and main-Viewer mesh integration are not yet implemented.
+User-supplied HCT remains proprietary;
+no vendor DLLs are included in the editor/source distribution.
 
 - `MySFformat/src/HkxPack/`: native packfile codec and HKX XML editor.
 - `MySFformat/src/Clm2/`: CLM2 document, serialization checks and editor.

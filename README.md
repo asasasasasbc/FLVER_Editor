@@ -37,6 +37,7 @@ EldenRing Era:
 
 - Added **HKX animation playback** with skeleton binding, timeline seeking, frame stepping, speed control, looping and bind-pose reset.
 - Added a dedicated **Cloth** window for Bloodborne / Dark Souls III inspection, HKX editing/writeback, CLM2 editing and companion-file verification.
+- Cloth now supports direct parameter/particle/constraint editing, staged Apply with Undo/Redo, circle/box/similar particle selection, camera panning and optional native preview with corrected wind stepping.
 - Organized native HKX packfile and CLM2 code into source subfolders; local test artifacts remain outside the source distribution.
 
 See [Cloth and Animation](cloth-and-animation-README.md) for usage and supported layouts.
@@ -341,6 +342,7 @@ Components in the right panel:
 | DexesTTP | Original HKXPack; architecture informing the native C# port; copyright notice retained | [HKXPack](https://github.com/Dexesttp/hkxpack), MIT |
 | JeNoVaViRuS | hkxpack-souls; reference for the native C# implementation and schema extraction | [hkxpack-souls](https://github.com/JeNoVaViRuS/hkxpack-souls), MIT |
 | PredatorCZ | HavokLib / HavokToolset used by the animation decoder | [HavokLib](https://github.com/PredatorCZ/HavokLib), GPL-3.0 |
+| DSAnimStudio contributors / KamiyamaShiki0704 | Initialization reference for the experimental isolated HCT preview host; not bundled Havok runtime code | [DSAnimStudio feature branch](https://github.com/KamiyamaShiki0704/DSAnimStudio/tree/feat/root-motion-bullet-physics-fx-preview), GPL-3.0 |
 | Dropoff, Zullie the Witch, 莫, and previously credited contributors | Existing editor contributions and reference-workflow credits | Prior credits remain in this README and application |
 
 The Cloth codec is a **local C# implementation informed by hkxpack-souls**.

@@ -19,6 +19,19 @@ namespace MySFformat
         public bool Edited { get; set; }
         public static Clm2Document Load(string path)
         {return FromBytes(File.ReadAllBytes(path),Path.GetFullPath(path));}
+        public static Clm2Document LoadCompanion(string clothSource)
+        {
+            if(string.IsNullOrWhiteSpace(clothSource)||!File.Exists(clothSource))return null;
+            string extension=Path.GetExtension(clothSource);
+            if(extension.Equals(".hkx",StringComparison.OrdinalIgnoreCase)||extension.Equals(".xml",StringComparison.OrdinalIgnoreCase))
+            {string companion=Path.ChangeExtension(clothSource,".clm2");return File.Exists(companion)?Load(companion):null;}
+            if(!BND4.Is(clothSource))return null;
+            var binder=BND4.Read(clothSource);var hkx=binder.Files.Where(f=>f.Name.EndsWith("_c.hkx",StringComparison.OrdinalIgnoreCase)).ToArray();
+            if(hkx.Length!=1)return null;string basename=Path.GetFileNameWithoutExtension(hkx[0].Name)+".clm2";
+            var files=binder.Files.Where(f=>Path.GetFileName(f.Name).Equals(basename,StringComparison.OrdinalIgnoreCase)).ToArray();
+            if(files.Length>1)throw new InvalidDataException("Binder contains multiple matching CLM2 companions.");
+            return files.Length==0?null:FromBytes(files[0].Bytes,Path.GetFullPath(clothSource)+"!"+files[0].Name);
+        }
         static Clm2Document FromBytes(byte[] bytes,string source)
         {
             // Bounds preflight before the library allocates counts or follows offsets.

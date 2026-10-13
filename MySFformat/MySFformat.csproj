@@ -122,6 +122,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ClothDocument.cs" />
+    <Compile Include="src\Cloth\Preview\ClothPreviewSession.cs" />
+    <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />
+    <Compile Include="src\Cloth\Editing\ClothEditing.cs" />
+    <Compile Include="src\Cloth\Editing\ClothSelection.cs" />
     <Compile Include="src\HkxPack\HkxPackfileCodec.cs" />
     <Compile Include="src\ClothCli.cs" />
     <Compile Include="src\HkxPack\HkxXmlEditForm.cs">
@@ -291,6 +295,7 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="src\Cloth\Preview\PreviewBuild.targets" />
   <Import Project="..\packages\AssimpNet.4.1.0\build\AssimpNet.targets" Condition="Exists('..\packages\AssimpNet.4.1.0\build\AssimpNet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

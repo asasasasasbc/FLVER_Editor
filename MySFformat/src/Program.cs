@@ -306,6 +306,7 @@ namespace MySFformat
         static HkxGeometryCache hkxGeometry;
         public static void updateVertices()
         {
+            if(clothInspectorForm!=null)clothInspectorForm.RequestStopForModelChange();
             // All existing model-edit and manual refresh paths invalidate animation data.
             hkxGeometry = null;
             UpdateVerticesCore(false);
