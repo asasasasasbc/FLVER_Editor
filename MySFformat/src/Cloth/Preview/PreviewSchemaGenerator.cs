@@ -18,10 +18,13 @@ namespace MySFformat.Cloth.Preview
             }
             return c;
         }
-        static void Merge(string input,string output)
+        static void Merge(string input,string output,XElement[] compatibilityClasses=null)
         {
             var tree=XDocument.Load(input);var root=tree.Root;
             Action<XElement> optional=c=>{if(!root.Elements("class").Any(e=>(string)e.Attribute("name")== (string)c.Attribute("name")))root.Add(c);};
+            // 仅供预览运行副本：BendLink / 旧 MeshMeshDeform 在已审核的
+            // 2014 BB schema 中标注两种 ABI；普通 DS3 writer 不扩展。
+            if(compatibilityClasses!=null)foreach(var c in compatibilityClasses)optional(new XElement(c));
             optional(Class("hclSphereShape",48,3615093445,"hclShape","sphere,32,STRUCT,,hkSphere"));
             optional(Class("hkSphere",16,339607449,"","pos,0,VECTOR4"));
             optional(Class("hclGatherAllVerticesOperator",64,3664999062,"hclOperator","vertexInputFromVertexOutput,32,ARRAY,INT16;inputBufferIdx,48,UINT32;outputBufferIdx,52,UINT32;gatherNormals,56,BOOL;partialGather,57,BOOL"));
@@ -38,6 +41,13 @@ namespace MySFformat.Cloth.Preview
             root.Add(Class("hkxMaterial",224,2019476322,"hkxAttributeHolder","name,32,STRINGPTR;stages,40,ARRAY,STRUCT,hkReferencedObject;diffuseColor,64,VECTOR4;ambientColor,80,VECTOR4;specularColor,96,VECTOR4;emissiveColor,112,VECTOR4;subMaterials,128,ARRAY,POINTER,hkxMaterial;extraData,144,POINTER;uvMapScale1,152,REAL;uvMapScale2,156,REAL;uvMapOffset1,160,REAL;uvMapOffset2,164,REAL;uvMapRotation,168,REAL;uvMapAlgorithm,172,UINT32;specularMultiplier,176,REAL;specularExponent,180,REAL;transparency,184,UINT8;userData,192,UINT64;properties,200,ARRAY,STRUCT,hkReferencedObject"));
             tree.Save(output);
         }
-        static void Main(string[] args){if(args.Length!=4)throw new ArgumentException("Expected BB input/output and DS3 input/output");Merge(args[0],args[1]);Merge(args[2],args[3]);}
+        static void Main(string[] args)
+        {
+            if(args.Length!=4)throw new ArgumentException("Expected BB input/output and DS3 input/output");
+            string[] names={"hclBendLinkConstraintSet","hclBendLinkConstraintSetLink","hclMeshMeshDeformOperator","hclMeshMeshDeformOperatorTriangleVertexPair"};
+            var compatibility=XDocument.Load(args[0]).Root.Elements("class").Where(c=>names.Contains((string)c.Attribute("name"))).ToArray();
+            if(compatibility.Length!=names.Length)throw new InvalidOperationException("Missing audited preview compatibility schema");
+            Merge(args[0],args[1]);Merge(args[2],args[3],compatibility);
+        }
     }
 }

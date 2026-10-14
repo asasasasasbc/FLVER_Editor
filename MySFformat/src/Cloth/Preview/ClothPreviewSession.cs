@@ -112,7 +112,8 @@ namespace MySFformat.Cloth.Preview
                 {
                     var connected=pipe.WaitForConnectionAsync(cancel);
                     while(!connected.Wait(100)){cancel.ThrowIfCancellationRequested();if(process.HasExited)throw new InvalidOperationException("Native preview exited during initialization: "+Diagnostic());}
-                    connected.GetAwaiter().GetResult();cancel.ThrowIfCancellationRequested();reader=new BinaryReader(pipe);writer=new BinaryWriter(pipe);
+                    // 独立读写缓冲，避免逐个矩阵 float 触发管道系统调用。
+                    connected.GetAwaiter().GetResult();cancel.ThrowIfCancellationRequested();reader=new BinaryReader(new BufferedStream(pipe,65536));writer=new BinaryWriter(new BufferedStream(pipe,65536));
                     if(reader.ReadInt32()!=0x34565043)throw new InvalidDataException("Cloth preview protocol mismatch");int domains=reader.ReadInt32();if(domains<1||domains>1024)throw new InvalidDataException("Unsafe preview domain count");
                     names=new string[domains];counts=new int[domains];int total=0;for(int i=0;i<domains;i++){names[i]=reader.ReadString();counts[i]=reader.ReadInt32();if(names[i].Length>4096||counts[i]<1||counts[i]>1000000)throw new InvalidDataException("Unsafe preview topology");total=checked(total+counts[i]);}
                     if(total>1000000||names.Distinct().Count()!=domains)throw new InvalidDataException("Ambiguous/oversized preview topology");

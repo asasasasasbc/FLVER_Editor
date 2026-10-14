@@ -28,6 +28,7 @@ namespace MySFformat.Cloth.Preview
     public sealed class PreviewInitialization
     {
         public int Operator, Simulation, Input, Output, Count;
+        public bool UseReferencePose;
     }
     public sealed class PreviewDescription
     {

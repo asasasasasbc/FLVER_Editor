@@ -145,7 +145,20 @@ namespace MySFformat.Cloth.Preview
                     var data=Marshal.ReadIntPtr(instances[c],0x18);if(init.Operator<0||init.Operator>=Marshal.ReadInt32(data,0x58)||init.Simulation<0||init.Simulation>=Marshal.ReadInt32(instances[c],0x48)||init.Count!=d.Cloths[c].ParticleCounts[init.Simulation]||init.Input<0||init.Input>=Marshal.ReadInt32(instances[c],0x28)||init.Output<0||init.Output>=Marshal.ReadInt32(instances[c],0x28))throw new InvalidDataException("Initialization index bounds");
                     var location=IntPtr.Add(Marshal.ReadIntPtr(data,0x50),init.Operator*8);var original=Marshal.ReadIntPtr(location);var module=GetModuleHandle("hctPreviewPlugin.dll");
                     if(Marshal.ReadIntPtr(Marshal.ReadIntPtr(original),0x20).ToInt64()-module.ToInt64()!=0x7FF620||Marshal.ReadInt32(original,0x48)!=init.Simulation)throw new InvalidDataException("Unverified simulate operator layout");
-                    var copy=Marshal.AllocHGlobal(96);allocations.Add(copy);Marshal.Copy(new byte[96],0,copy,96);Marshal.WriteIntPtr(copy,IntPtr.Add(module,0xBBBEC0));Marshal.WriteInt32(copy,0x48,init.Input);Marshal.WriteInt32(copy,0x4c,init.Output);Marshal.WriteInt32(copy,0x50,init.Count);
+                    if(init.UseReferencePose)
+                    {
+                        // 非 identity 的 reference mesh 不可直接 memcpy 到粒子顺序。
+                        // 只初始化原生粒子 XYZ；保留原生第四分量，第一步后照常核验 rest 与历史。
+                        var sim=Marshal.ReadIntPtr(Marshal.ReadIntPtr(instances[c],0x40),init.Simulation*8);
+                        if(Marshal.ReadInt32(sim,0x28)!=init.Count)throw new InvalidDataException("Reference initialization topology");
+                        var reference=d.Cloths[c].ReferenceParticles[init.Simulation];
+                        if(reference.Length!=init.Count*4||reference.Any(v=>!Finite(v)))throw new InvalidDataException("Invalid reference initialization pose");
+                        var values=new float[init.Count*4];var positions=Marshal.ReadIntPtr(sim,0x20);Marshal.Copy(positions,values,0,values.Length);
+                        for(int i=0;i<init.Count;i++)Array.Copy(reference,i*4,values,i*4,3);
+                        Marshal.Copy(values,0,positions,values.Length);
+                        Console.WriteLine("REFERENCE_POSE_INITIALIZATION "+d.Cloths[c].Name+" / "+d.Cloths[c].SimulationNames[init.Simulation]);
+                    }
+                    var copy=Marshal.AllocHGlobal(96);allocations.Add(copy);Marshal.Copy(new byte[96],0,copy,96);Marshal.WriteIntPtr(copy,IntPtr.Add(module,0xBBBEC0));Marshal.WriteInt32(copy,0x48,init.Input);Marshal.WriteInt32(copy,0x4c,init.Output);Marshal.WriteInt32(copy,0x50,init.UseReferencePose?0:init.Count);
                     locations.Add(location);originals.Add(original);Marshal.WriteIntPtr(location,copy);
                 }
                 return restore;
@@ -254,7 +267,8 @@ namespace MySFformat.Cloth.Preview
         {
             int frames=0;using(var pipe=new NamedPipeClientStream(".",name,PipeDirection.InOut))
             {
-                pipe.Connect(15000);var reader=new BinaryReader(pipe);var writer=new BinaryWriter(pipe);
+                // v4 字节布局不变；整批 Flush，避免逐 float 做管道 I/O。
+                pipe.Connect(15000);var reader=new BinaryReader(new BufferedStream(pipe,65536));var writer=new BinaryWriter(new BufferedStream(pipe,65536));
                 writer.Write(0x34565043);writer.Write(d.Cloths.Sum(c=>c.ParticleCounts.Length));
                 foreach(var cloth in d.Cloths)for(int s=0;s<cloth.ParticleCounts.Length;s++){writer.Write(cloth.Name+" / "+cloth.SimulationNames[s]);writer.Write(cloth.ParticleCounts[s]);}
                 writer.Write(d.Skeletons.Length);foreach(var skeleton in d.Skeletons){writer.Write(skeleton.Name);writer.Write(skeleton.Bones.Length);foreach(string bone in skeleton.Bones)writer.Write(bone);}writer.Flush();

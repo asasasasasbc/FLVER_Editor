@@ -33,6 +33,12 @@ EldenRing Era:
 
 ## Update log
 
+### Viewer UI fixes
+
+- The 3D Viewer opens near the main editor on the same monitor and stays within the working area.
+- Camera drags must start inside the focused viewport. Background mouse, wheel and keyboard input no longer controls the Viewer; losing focus cancels drags.
+- Escape and gamepad Back no longer quit the editor. Use the normal window close command instead.
+
 ### X2.7 update
 
 - Added **HKX animation playback** with skeleton binding, timeline seeking, frame stepping, speed control, looping and bind-pose reset.

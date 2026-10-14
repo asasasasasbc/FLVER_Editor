@@ -364,7 +364,10 @@
     <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="32" flags="FLAGS_NONE" default="0" />
     <member name="boneWeights" offset="96" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="32" flags="FLAGS_NONE" default="0" />
   </members>
-</class><class name="hclObjectSpaceMeshMeshDeformOperator" version="1" signature="0x7fc45151" size="168" parent="hclOperator">
+</class><class name="hclObjectSpaceMeshMeshDeformOperator" version="1" signature="0x7fc45151" size="160" parent="hclOperator">
+  <!-- BB ABI reuses hclOperator tail at +28: scalar fields +28/+32/+36,
+       array fixups +40/+56, deformer +72; original Hunter male 2014 binary audit.
+       DS3 ABI intentionally retains +32/+36/+40, arrays +48/+64, deformer +80. -->
   <enums>
     <enum name="ScaleNormalBehaviour" flags="00000000">
       <enumitem name="SCALE_NORMAL_IGNORE" value="0" />
@@ -373,17 +376,23 @@
     </enum>
   </enums>
   <members>
-    <member name="inputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="outputBufferIdx" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="scaleNormalBehaviour" offset="40" etype="ScaleNormalBehaviour" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="inputTrianglesSubset" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="triangleFromMeshTransforms" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="objectSpaceDeformer" offset="80" ctype="hclObjectSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputBufferIdx" offset="28" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="scaleNormalBehaviour" offset="36" etype="ScaleNormalBehaviour" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputTrianglesSubset" offset="40" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleFromMeshTransforms" offset="56" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="objectSpaceDeformer" offset="72" ctype="hclObjectSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
   </members>
-</class><class name="hclObjectSpaceMeshMeshDeformPOperator" version="1" signature="0x574824cf" size="200" parent="hclObjectSpaceMeshMeshDeformOperator">
+</class><class name="hclObjectSpaceMeshMeshDeformPOperator" version="1" signature="0x574824cf" size="192" parent="hclObjectSpaceMeshMeshDeformOperator">
   <members>
-    <member name="localPs" offset="168" ctype="hclObjectSpaceDeformerLocalBlockP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
-    <member name="localUnpackedPs" offset="184" ctype="hclObjectSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localPs" offset="160" ctype="hclObjectSpaceDeformerLocalBlockP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPs" offset="176" ctype="hclObjectSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceMeshMeshDeformPNTOperator" version="1" signature="0xe20c4d3e" size="192" parent="hclObjectSpaceMeshMeshDeformOperator">
+  <!-- HkxPack-Plus classxml hclObjectSpaceMeshMeshDeformPNTOperator_1; original Hunter male binary signature/readback gate. -->
+  <members>
+    <member name="localPNTs" offset="160" ctype="hclObjectSpaceDeformerLocalBlockPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNTs" offset="176" ctype="hclObjectSpaceDeformerLocalBlockUnpackedPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
   </members>
 </class><class name="hclObjectSpaceSkinOperator" version="1" signature="0x2755b686" size="160" parent="hclOperator">
   <members>

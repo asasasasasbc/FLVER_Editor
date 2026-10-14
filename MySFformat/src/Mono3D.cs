@@ -34,6 +34,11 @@ namespace MySFformat
         Texture2D test;
         KeyboardState prevState = new KeyboardState();
         MouseState prevMState = new MouseState();
+        readonly System.Drawing.Rectangle? editorBounds;
+        bool rotateDragging;
+        bool panDragging;
+        bool inputWasFocused;
+        bool contextMenuOpen;
        public RenderMode renderMode = RenderMode.Both;
         public VertexPositionColor[] vertices = new VertexPositionColor[0];
         public VertexPositionColor[] triVertices = new VertexPositionColor[0];
@@ -252,8 +257,9 @@ namespace MySFformat
                 }
             }));
         }
-        public Mono3D()
+        public Mono3D(System.Drawing.Rectangle? editorBounds = null)
         {
+            this.editorBounds = editorBounds;
             Window.Title = "FLVER-X Viewer by Forsakensilver, press F to refresh, press F1 F2 F3 F4 F5: Change render mode Right click: check vertex info B: Toggle bone display M: Dummy display";
             baseViewerTitle = Window.Title;
             // Defer resize-enabling until Initialize: MonoGame's resize handler
@@ -264,24 +270,6 @@ namespace MySFformat
             Content.RootDirectory = "Content";
             // string path = @"data\img\27.png";
             //test = Content.Load<Texture2D>(@"data\img\27.png");
-            // --- Separate Popuped window ---
-            // ORG： Window.Position = Window.Position + new Microsoft.Xna.Framework.Point(-300, 0);
-            var screen = Screen.PrimaryScreen.WorkingArea;
-            int viewerWidth = graphics.PreferredBackBufferWidth;
-            int viewerHeight = graphics.PreferredBackBufferHeight;
-            // 将窗口定位在屏幕的左侧。 (屏幕中心点 - 自身宽度 - 5像素间隙)
-            int viewerX = screen.Left + (screen.Width / 2) - viewerWidth - 5;
-            int viewerY = screen.Top + (screen.Height - viewerHeight) / 2;
-            // 确保窗口不会跑到屏幕左边外面去
-            if (viewerX < screen.Left)
-            {
-                viewerX = screen.Left;
-            }
-            if (viewerY < screen.Top)
-            {
-                viewerY = screen.Top;
-            }
-            Window.Position = new Microsoft.Xna.Framework.Point(viewerX, viewerY);
             f = (Form)Form.FromHandle(Window.Handle);
             if (Program.RenderOptions != null)
             {
@@ -301,6 +289,12 @@ namespace MySFformat
                 return; // No editor menus, dialogs, handlers or interactive controls.
             }
             // --- Separate Popuped window ---
+            f.StartPosition = FormStartPosition.Manual;
+            f.Shown += (s, e) => PositionViewer();
+            f.Deactivate += (s, e) =>
+            {
+                rotateDragging = panDragging = inputWasFocused = false;
+            };
 
 
 
@@ -567,7 +561,13 @@ namespace MySFformat
             */
 
             f.ContextMenu = cm;
+            cm.Popup += (s, e) =>
+            {
+                contextMenuOpen = true;
+                rotateDragging = panDragging = false;
+            };
             cm.Collapse += (s, o) => {
+                contextMenuOpen = false;
                 // 当菜单关闭（无论是选了选项还是点了外面）时触发
                 menuJustClosed = true;
             };
@@ -767,6 +767,10 @@ namespace MySFformat
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
+            if (!HasViewerInputFocus() || !IsViewportPoint(e.Location)) return;
+            prevMState = Mouse.GetState();
+            if (e.Button == MouseButtons.Left) rotateDragging = true;
+            if (e.Button == MouseButtons.Middle) panDragging = true;
             switch (e.Button)
             {
                 case MouseButtons.Right:
@@ -795,6 +799,9 @@ namespace MySFformat
         }
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left) rotateDragging = false;
+            if (e.Button == MouseButtons.Middle) panDragging = false;
+            if (!HasViewerInputFocus() || !IsViewportPoint(e.Location)) return;
             switch (e.Button)
             {
                 case MouseButtons.Right:
@@ -838,7 +845,44 @@ namespace MySFformat
             effect.VertexColorEnabled = true;
             base.Initialize();
             if (Program.RenderOptions != null) f.Hide();
-            else Window.AllowUserResizing = true;
+            else
+            {
+                Window.AllowUserResizing = true;
+                PositionViewer();
+            }
+        }
+
+        private void PositionViewer()
+        {
+            if (Program.RenderOptions != null) return;
+            var anchor = editorBounds ?? Screen.PrimaryScreen.WorkingArea;
+            var area = Screen.FromRectangle(anchor).WorkingArea;
+            // Use the actual outer window size (including menu/title bar), not the back buffer.
+            f.Size = new System.Drawing.Size(Math.Min(f.Width, area.Width), Math.Min(f.Height, area.Height));
+            int x = editorBounds.HasValue ? anchor.Left - f.Width - 8 : area.Left + (area.Width - f.Width) / 2;
+            int y = editorBounds.HasValue ? anchor.Top : area.Top + (area.Height - f.Height) / 2;
+            // If side-by-side does not fit, overlap near the editor instead of using another screen.
+            if (editorBounds.HasValue && x < area.Left) x = anchor.Left + 32;
+            x = Math.Max(area.Left, Math.Min(x, area.Right - f.Width));
+            y = Math.Max(area.Top, Math.Min(y, area.Bottom - f.Height));
+            f.Location = new System.Drawing.Point(x, y);
+        }
+
+        private bool HasViewerInputFocus()
+        {
+            // MonoGame's WinForms host does not reliably populate Form.ActiveForm.
+            // Check the OS foreground HWND, not application-wide activation alone.
+            return IsActive && GetForegroundWindow() == f.Handle && f.ContainsFocus && !contextMenuOpen &&
+                !f.Controls.OfType<MenuStrip>().Any(menu => menu.ContainsFocus ||
+                    menu.Items.OfType<ToolStripMenuItem>().Any(item => item.DropDown.Visible));
+        }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        private bool IsViewportPoint(System.Drawing.Point point)
+        {
+            return f.ClientRectangle.Contains(point) && f.GetChildAtPoint(point) == null;
         }
 
 
@@ -1349,6 +1393,25 @@ namespace MySFformat
 
             KeyboardState state = Keyboard.GetState();
             MouseState mState = Mouse.GetState();
+            // MonoGame polls global device state. Inactive windows must still advance the
+            // baseline, otherwise returning focus can apply a stale drag/scroll/key edge.
+            if (!HasViewerInputFocus())
+            {
+                rotateDragging = panDragging = inputWasFocused = false;
+                prevState = state;
+                prevMState = mState;
+                base.Update(gameTime);
+                return;
+            }
+            if (!inputWasFocused)
+            {
+                prevState = state;
+                prevMState = mState;
+                inputWasFocused = true;
+            }
+            bool mouseInViewport = IsViewportPoint(new System.Drawing.Point(mState.X, mState.Y));
+            if (mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Released) rotateDragging = false;
+            if (mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Released) panDragging = false;
 
             // --- 新增的代码 START ---
             // 如果菜单刚刚关闭
@@ -1365,8 +1428,8 @@ namespace MySFformat
             }
             // --- 新增的代码 END ---
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
-                Application.Exit();
+            // Escape / gamepad Back must not terminate the entire editor via global polling.
+            // Use the normal window close command instead.
 
             float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -1376,7 +1439,7 @@ namespace MySFformat
 
            
 
-            if (mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && IsActive)
+            if (rotateDragging && mouseInViewport && mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 float mdx = mState.X - prevMState.X;
                 float mdy = mState.Y - prevMState.Y;
@@ -1408,7 +1471,7 @@ namespace MySFformat
 
             }
 
-            if (mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed && IsActive)
+            if (panDragging && mouseInViewport && mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 float mdx = mState.X - prevMState.X;
                 float mdy = mState.Y - prevMState.Y;
@@ -1543,7 +1606,7 @@ namespace MySFformat
                 }
             }
 
-            if (mState.ScrollWheelValue - prevMState.ScrollWheelValue > 0)
+            if (mouseInViewport && mState.ScrollWheelValue - prevMState.ScrollWheelValue > 0)
             {
                 //mouseY -= (50 * delta);
                 System.Numerics.Vector3 p = new System.Numerics.Vector3(cameraX, cameraY, cameraZ);
@@ -1555,7 +1618,7 @@ namespace MySFformat
                 cameraZ = p.Z - 0.5f * (float)(p.Z / p.Length());
             }
 
-            if (mState.ScrollWheelValue - prevMState.ScrollWheelValue < 0)
+            if (mouseInViewport && mState.ScrollWheelValue - prevMState.ScrollWheelValue < 0)
             {
                 System.Numerics.Vector3 p = new System.Numerics.Vector3(cameraX, cameraY, cameraZ);
 

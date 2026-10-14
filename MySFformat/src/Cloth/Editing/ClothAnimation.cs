@@ -16,6 +16,7 @@ namespace MySFformat
         readonly TextBox animationSkeletonPath=new TextBox {Name="clothAnimationSkeleton",ReadOnly=true,Width=300};
         readonly TextBox animationFilePath=new TextBox {Name="clothAnimationFile",ReadOnly=true,Width=300};
         readonly Button animationPlay=new Button {Name="playClothAnimation",Text="Play HKX",AutoSize=true};
+        readonly Button animationPause=new Button {Name="pauseClothAnimation",Text="Pause HKX",AutoSize=true,Enabled=false};
         readonly CheckBox animationLink=new CheckBox {Name="linkClothAnimation",Text="Drive Native Cloth",Checked=true,AutoSize=true};
         readonly CheckBox animationLoop=new CheckBox {Name="loopClothAnimation",Text="Loop",Checked=true,AutoSize=true};
         readonly NumericUpDown animationSpeed=new NumericUpDown {Name="clothAnimationSpeed",Minimum=.05m,Maximum=4,DecimalPlaces=2,Value=1,Increment=.25m,Width=60};
@@ -48,15 +49,16 @@ namespace MySFformat
             var previous=new Button {Name="previousClothAnimationFrame",Text="◀",AutoSize=true};
             var next=new Button {Name="nextClothAnimationFrame",Text="▶",AutoSize=true};
             var rest=new Button {Name="clothAnimationRest",Text="Rest Pose",AutoSize=true};
-            playback.Controls.AddRange(new Control[]{animationPlay,stop,previous,next,animationFrame,new Label {Text="Speed",AutoSize=true,Padding=new Padding(0,6,0,0)},animationSpeed,animationLoop,animationLink,rest});
+            playback.Controls.AddRange(new Control[]{animationPlay,animationPause,stop,previous,next,animationFrame,new Label {Text="Speed",AutoSize=true,Padding=new Padding(0,6,0,0)},animationSpeed,animationLoop,animationLink,rest});
             page.Controls.Add(animationStatus);page.Controls.Add(animationTimeline);page.Controls.Add(playback);page.Controls.Add(files);
             animationStatus.Text="Load Cloth, then select the character skeleton.hkx and an animation HKX.\r\nDrive Native Cloth streams mapped bone matrices at each 1/60 physics substep. Seeking/looping resets native history; it does not replay from frame 0 to the selected frame.\r\nPreview only: no main Viewer animation, model edits, source writes or game launch.";
             tips.SetToolTip(skeleton,"Choose the character skeleton for animation decoding, not the equipment _c.hkx.\n选择解码动画用的角色骨架，不是装备_c.hkx。");
             tips.SetToolTip(loadAnimation,"Decode using the existing HavokToolset adapter, then map bones by exact name to the Cloth skeletons. Failed loads preserve the previous clip.\n复用现有HavokToolset解码，按精确骨名映射到布料骨架；失败保留旧动画。");
-            tips.SetToolTip(animationLink,"Send animated transform sets and inverse-transposes to the isolated native solver. Unmatched bones follow authored local transforms under their mapped parent. Uncheck for skeleton-only playback.\n将动画变换及逆转置传给独立求解器；未匹配骨骼按作者局部变换跟随父骨，取消则只播放骨架。");
-            tips.SetToolTip(animationTimeline,"Seek pauses animation and recreates native history if linked. Physics is restarted from authored initialization, not replayed through the preceding animation frames.\n跳帧会暂停动画并重建原生历史；从作者初始化开始，不回放此前全部动画帧。");
-            tips.SetToolTip(animationPlay,"Play/pause HKX. With Drive Native Cloth enabled this also starts/pauses Cloth; otherwise only the skeleton overlay plays.\n播放/暂停HKX；联动时同时启动/暂停Cloth，否则仅播放骨架叠加图。");
-            tips.SetToolTip(rest,"Keep the clip loaded, pause HKX and restore authored skeleton input; recreate active native history.\n保留动画、暂停播放、恢复作者骨架输入并重建当前解算历史。");
+            tips.SetToolTip(animationLink,"Drive Cloth with animation. Unmatched bones keep their local offsets. Uncheck to preview animation only.\n用动画驱动布料；未匹配骨骼保留局部偏移；取消则仅预览动画。");
+            tips.SetToolTip(animationTimeline,"Seek pauses playback and resets linked physics; previous frames are not replayed.\n跳帧会暂停播放并重置联动物理，不回放此前全部动画帧。");
+            tips.SetToolTip(animationPlay,"Play or resume HKX. Linked Cloth also starts.\n播放或继续HKX；联动Cloth也会启动。");
+            tips.SetToolTip(animationPause,"Pause at the current frame without resetting physics history. Linked Cloth pauses too.\n停在当前帧，不重置物理历史；联动Cloth也会暂停。");
+            tips.SetToolTip(rest,"Keep the clip loaded, pause HKX and restore Rest Pose; recreate active native history.\n保留动画、暂停播放、恢复初始姿态并重建当前解算历史。");
             tips.SetToolTip(animationSpeed,"Animation time multiplier. Physics always uses fixed 1/60 steps; speed changes sampled poses, not solver dt.\n动画时间倍率；物理步长始终1/60，仅改变采样姿态。");
             tips.SetToolTip(stop,"Pause and seek frame 0. Rest Pose is a separate operation.\n暂停并回到第0帧；恢复作者姿态请用Rest Pose。");
             tips.SetToolTip(previous,tips.GetToolTip(animationTimeline));tips.SetToolTip(next,tips.GetToolTip(animationTimeline));tips.SetToolTip(animationFrame,tips.GetToolTip(animationTimeline));
@@ -73,9 +75,10 @@ namespace MySFformat
                 {if(dialog.ShowDialog(this)==DialogResult.OK)await TryLoadClothAnimationAsync(animationSkeletonPath.Text,dialog.FileName);}
             };
             animationPlay.Click+=async(s,e)=>await PlayClothAnimationAsync();stop.Click+=async(s,e)=>await SeekClothAnimationAsync(0);
+            animationPause.Click+=(s,e)=>PauseClothAnimation();
             previous.Click+=async(s,e)=>await SeekClothAnimationAsync(ClothAnimationPlayback==null?0:ClothAnimationPlayback.Frame-1);
             next.Click+=async(s,e)=>await SeekClothAnimationAsync(ClothAnimationPlayback==null?0:ClothAnimationPlayback.Frame+1);
-            rest.Click+=async(s,e)=>{PauseClothAnimation();animationRest=true;canvas.AnimationBones=null;canvas.AnimationColliders=null;await RestartForAnimationDiscontinuityAsync(false);RefreshAnimationLabels();canvas.Invalidate();};
+            rest.Click+=async(s,e)=>{PauseClothAnimation();animationRest=true;canvas.AnimationBones=null;canvas.AnimationColliders=null;await RestartForAnimationDiscontinuityAsync(false);RefreshAnimationLabels();UpdateMeshPreview();canvas.Invalidate();};
             animationTimeline.ValueChanged+=async(s,e)=>{if(!animationUpdating)await SeekClothAnimationAsync(animationTimeline.Value);};
             animationFrame.ValueChanged+=async(s,e)=>{if(!animationUpdating)await SeekClothAnimationAsync((int)animationFrame.Value);};
             animationSpeed.ValueChanged+=(s,e)=>{if(ClothAnimationPlayback!=null)ClothAnimationPlayback.Speed=(float)animationSpeed.Value;};
@@ -154,7 +157,7 @@ namespace MySFformat
         public async Task PlayClothAnimationAsync()
         {
             if(ClothAnimationPlayback==null||animationLoading||animationRestarting||applyingAuthor)return;
-            if(ClothAnimationPlayback.Playing){PauseClothAnimation();return;}
+            if(ClothAnimationPlayback.Playing)return;
             animationRest=false;EnsureAnimationBindings();bool atEnd=ClothAnimationPlayback.Time>=ClothAnimationPlayback.Duration;ClothAnimationPlayback.Play();
             if(HasLinkedAnimation){if(atEnd&&previewSession!=null)await RestartForAnimationDiscontinuityAsync(true);else await StartClothPreviewAsync();if(previewSession==null){PauseClothAnimation();animationStatus.Text=previewState.Text;return;}}
             else{animationClock.Restart();animationTimer.Start();}
@@ -180,11 +183,13 @@ namespace MySFformat
                 if(restart){StopClothPreview();if(resume&&ClothAnimationPlayback!=null)ClothAnimationPlayback.Play();await StartClothPreviewAsync(environment);if(!resume&&previewSession!=null)PauseClothPreview();}
                 if(!IsDisposed){UpdateAnimationCanvas();RefreshAnimationLabels();}
             }
-            finally{animationRestarting=false;if(!IsDisposed)animationPlay.Enabled=!animationLoading;}
+            finally{animationRestarting=false;if(!IsDisposed){animationPlay.Enabled=!animationLoading;RefreshAnimationLabels();}}
         }
         void ResetClothAnimationForDocument()
         {
             animationLoadGeneration++;PauseAnimationClock();clothAnimation=null;ClothAnimationPlayback=null;animationBindings=null;animationBoundDocument=null;animationFilePath.Text="";canvas.AnimationBones=null;canvas.AnimationColliders=null;
+            animationPause.Enabled=false;
+            UpdateMeshPreview();
             if(!IsDisposed)animationStatus.Text="Cloth document changed. Load an animation for its skeleton.";
         }
         // 作者碰撞体已经处于参考世界坐标。显示动画姿态时，先消去参考骨变换，
@@ -218,7 +223,7 @@ namespace MySFformat
         }
         void UpdateAnimationCanvas()
         {
-            if(clothAnimation==null||animationRest||Document==null){canvas.AnimationBones=null;canvas.AnimationColliders=null;canvas.Invalidate();return;}
+            if(clothAnimation==null||animationRest||Document==null){canvas.AnimationBones=null;canvas.AnimationColliders=null;UpdateMeshPreview();canvas.Invalidate();return;}
             EnsureAnimationBindings();var pose=animationBindings[0].Sample(ClothAnimationPlayback.Time);canvas.AnimationBones=pose.Select(m=>new Vector3(m.M41,m.M42,m.M43)).ToArray();
             canvas.AnimationParents=ClothDocument.Numbers(ClothDocument.Value(animationSkeletons[0],"parentIndices")).Select(v=>v>=32768?(int)v-65536:(int)v).ToArray();
             canvas.AnimationColliders=null;
@@ -234,13 +239,14 @@ namespace MySFformat
                         End=Vector3.Transform(c.End,transform),RadiusA=c.RadiusA,RadiusB=c.RadiusB};
                 }).ToList();
             }
+            UpdateMeshPreview();
             canvas.Invalidate();
         }
         void RefreshAnimationLabels()
         {
             if(ClothAnimationPlayback==null||IsDisposed)return;animationUpdating=true;animationTimeline.Value=ClothAnimationPlayback.Frame;animationFrame.Value=ClothAnimationPlayback.Frame;animationUpdating=false;
-            animationPlay.Text=ClothAnimationPlayback.Playing?"Pause HKX":"Play HKX";
-            animationStatus.Text=string.Format("Frame {0}/{1} · {2:F3}/{3:F3} s · {4}\r\nMapped bones: {5}. Unmatched follow authored parent-relative transforms.\r\n{6}\r\nSeek/loop recreates history from authored initialization, not prior-frame replay. Range centres remain reference data; native colliders follow their transform sets. No main Viewer/game changes.",ClothAnimationPlayback.Frame,ClothAnimationPlayback.LastFrame,ClothAnimationPlayback.Time,ClothAnimationPlayback.Duration,animationRest?"Authored rest input":HasLinkedAnimation?"Native Cloth pose input":"Skeleton overlay only",string.Join(", ",animationBindings.Select(b=>b.MatchedCount+" matched / "+b.UnmatchedNames.Length+" unmatched")),string.Join(", ",animationBindings.SelectMany(b=>b.UnmatchedNames).Distinct().Take(12)));
+            animationPause.Enabled=ClothAnimationPlayback.Playing&&!animationRestarting&&!animationLoading;
+            animationStatus.Text=string.Format("Frame {0}/{1} · {2:F3}/{3:F3} s · {4}\r\nMapped bones: {5}. Unmatched bones keep their local offsets.\r\n{6}\r\nSeek/loop resets physics rather than replaying previous frames. Range circles show saved limits; colliders follow animation. No main Viewer/game changes.",ClothAnimationPlayback.Frame,ClothAnimationPlayback.LastFrame,ClothAnimationPlayback.Time,ClothAnimationPlayback.Duration,animationRest?"Rest Pose":HasLinkedAnimation?"Cloth linked":"Animation only",string.Join(", ",animationBindings.Select(b=>b.MatchedCount+" matched / "+b.UnmatchedNames.Length+" unmatched")),string.Join(", ",animationBindings.SelectMany(b=>b.UnmatchedNames).Distinct().Take(12)));
         }
         void DisposeClothAnimation(){animationLoadGeneration++;animationTimer.Stop();animationTimer.Dispose();}
     }

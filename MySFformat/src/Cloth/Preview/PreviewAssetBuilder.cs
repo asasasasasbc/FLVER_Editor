@@ -30,10 +30,16 @@ namespace MySFformat.Cloth.Preview
                 int sim=I(ops[id],"simClothIndex"),count=int.Parse((string)F(sims[sim],"particleDatas").Attribute("numelements"),C);
                 var preceding=sequence.TakeWhile(i=>i!=id).Select(i=>ops[i]).ToArray();var move=preceding.LastOrDefault(o=>(string)o.Attribute("class")=="hclMoveParticlesOperator"&&I(o,"simClothIndex")==sim);
                 if(move==null)throw new InvalidDataException("No initialization particle mapping");int input=I(move,"refBufferIdx");var pairs=F(move,"vertexParticlePairs").Elements("hkobject").ToArray();
-                if(pairs.Length==0||pairs.Any(p=>I(p,"vertexIndex")!=I(p,"particleIndex"))||I(buffers[input],"numVertices")<count)throw new InvalidDataException("Initialization is not an identity particle route");
+                if(input<0||input>=buffers.Length||pairs.Length==0||pairs.Any(p=>I(p,"particleIndex")<0||I(p,"particleIndex")>=count||I(p,"vertexIndex")<0||I(p,"vertexIndex")>=I(buffers[input],"numVertices")))throw new InvalidDataException("Invalid initialization particle mapping");
+                bool referencePose=pairs.Any(p=>I(p,"vertexIndex")!=I(p,"particleIndex"))||I(buffers[input],"numVertices")!=count;
                 var output=Enumerable.Range(0,buffers.Length).Where(i=>I(buffers[i],"type")==1&&I(buffers[i],"subType")==sim&&I(buffers[i],"numVertices")==count).ToArray();
-                if(output.Length!=1||!preceding.Any(o=>((string)o.Attribute("class")).Contains("SpaceSkin")&&I(o,"outputBufferIndex")==input))throw new InvalidDataException("No unique authored skinned initialization buffer");
-                result.Add(new PreviewInitialization{Operator=id,Simulation=sim,Input=input,Output=output[0],Count=count});
+                bool skinned=preceding.Any(o=>((string)o.Attribute("class")).Contains("SpaceSkin")&&I(o,"outputBufferIndex")==input);
+                bool deformed=preceding.Any(o=>(string)o.Attribute("class")=="hclMeshMeshDeformOperator"&&I(o,"outputBufferIdx")==input);
+                if(output.Length!=1||(!skinned&&!deformed))throw new InvalidDataException("No unique supported initialization buffer");
+                referencePose|=!skinned;
+                // 猎人套腰带等使用重排/精简 reference mesh，不能误当成连续粒子数组。
+                // 此时只在初始化阶段使用文件自己的 simClothPose，随后仍由原始 move/solver 求解。
+                result.Add(new PreviewInitialization{Operator=id,Simulation=sim,Input=input,Output=output[0],Count=count,UseReferencePose=referencePose});
             }
             if(result.Count!=sims.Length||result.Select(i=>i.Simulation).Distinct().Count()!=sims.Length)throw new InvalidDataException("Initialization does not cover all simulations");return result.ToArray();
         }

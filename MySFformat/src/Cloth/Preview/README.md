@@ -22,11 +22,30 @@ Pause retains the session; Reset recreates native history. Loading/editing sourc
 data, invalidating the FLVER snapshot or closing the form retires the owned host.
 Cancelled startup cannot resurrect a disposed/changed window.
 
-This version keeps the skeleton at its authored reference pose and only updates
-the Cloth particle/wireframe canvas. No main-Viewer deformation, skeleton
-animation or live-game monitoring is implied. GUI acceptance covered BB/DS3
-movement, pause/resume/domain selection/reset/close, minimum-size controls,
-cancelled startup, unsaved HKX/FLVER/CLM2 snapshots and preserved source hashes.
+The HKX Animation tab can stream mapped poses to the native host. The Cloth canvas
+also offers an off-by-default, bone-weight-skinned FLVER overlay with independent
+extra model loading. That shaded geometry layer is not native Cloth mesh output or
+game-material rendering, and no main-Viewer deformation/live-game input is implied.
+GUI acceptance covers focused BB/DS3 movement and animation checks, source protection
+and mesh-overlay/layout checks, not certification of every asset.
+
+### Hunter fixture initialization and metadata (2026-10-14)
+
+The original Hunter body packages contain compact/remapped reference meshes and
+dependent simulations (coat → chain, belt → dangling belt). The former identity-only
+CopyVertices initialization rejected them. For those audited routes, initialization
+seeds the native simulation's XYZ from its own saved simClothPose, retaining the native
+fourth component. The temporary zero-count copy bypasses only the initialization
+solver; the original move/deformation/solver operators are restored afterward.
+The same rest-pose reconstruction (0.0005 tolerance), history-copy, index and finite
+gates remain. This is initialization from file data, never a fabricated frame displacement.
+
+Private runtime schema normalization includes audited legacy BendLink and
+MeshMeshDeform classes absent from the narrow DS3 closure. Ordinary DS3 metadata
+is not expanded with those legacy classes. Hunter male additionally needed the
+PNT mesh deformer and corrected BB-only parent-tail offsets; see
+`tools/Cloth/hunter-schema-audit.md`. Both original female/male packages now show
+finite native movement in every simulation domain and play a real character HKX.
 
 The Preview Environment tab configures **preview-only environment**. Gravity override modifies
 only the temporary runtime HKX before loading, with codec readback validation.
@@ -195,7 +214,19 @@ fixtures, CLM2 presence, version rejection before native loading, refusal to
 overwrite an existing report, unchanged vendor DLL hashes, and no observed
 TCP/UDP endpoints on the owned child PID. No global network policy was changed.
 
-## Planned animation integration (not implemented)
+## Animation integration notes
+
+Current implementation streams per-substep mapped poses using protocol v4
+(`0x34565043`). HKX decoding and mapping reuse `HkxAnimationClip`/`HkxPoseBinding`.
+Play, a separate Pause button, Stop, seeking and looping are available in the
+Cloth window. Seek/loop recreates owned physics history, not preceding-frame replay.
+The older design notes below are not an implementation-completeness checklist.
+
+Client and host use separate 64 KiB read/write buffers on their duplex pipe.
+Every complete request/response is flushed before waiting on its peer. This preserves
+the protocol bytes, bounds/finite-value checks and solver/wind lifecycle while avoiding
+thousands of kernel I/O calls for float matrices. Focused BB measurements (60 steps)
+fell from 4460 ms to 245 ms end-to-end; GUI playback advanced 59 steps in about 1 s.
 
 Keep author inspection/editing in the existing independent Cloth window.
 Place playback-time physics controls/status in **HKX Animation**, sharing its

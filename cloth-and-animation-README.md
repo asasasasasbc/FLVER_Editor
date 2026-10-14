@@ -89,18 +89,41 @@ not a complete automatic conversion between games.
 
 ### Native Cloth playback in the Cloth window
 
+**Preview Environment → Render FLVER Meshes (Bone Weights)** is off by default.
+Enable it to overlay the current FLVER with its original bone-weight skinning.
+**Add FLVER…** loads independent models without replacing the editor's model or
+automatically enabling rendering; **Remove Selected** removes only the overlay.
+Loaded HKX clips map to each model by bone name. Unmatched models stay in rest pose
+with a warning. This is shaded, depth-sorted geometry, not game textures/MTD shaders
+or Cloth-deformed display meshes. Extra meshes do not add physics colliders.
+Particle/collider overlays remain separate.
+
+The HKX save/layout controls occupy a fixed second toolbar row even in wide windows;
+CLM2 actions remain available on their own following row.
+
+Original Hunter-set female and male body Cloth fixtures can now initialize and play,
+including real HKX input. Reduced/remapped reference meshes use their saved simulation
+pose at initialization instead of an invalid contiguous particle copy. This is not a
+claim that every unsupported Havok class or game asset is now supported.
+
 Optional native playback is now available on the playback toolbar row:
 **Play Cloth / Pause Cloth**, **Stop Cloth**, **Reset Cloth** (new native history)
 and **Reset View** (camera only); **HCT Runtime…** lives on the Preview Environment tab.
 Choose `hctPreviewPlugin.dll` with the standard file picker; the runtime root is
 detected automatically. The selected local path is remembered for this user.
 
-The Cloth canvas shows real simulated particles and wireframes at a constant
-authored skeleton pose. It does **not** animate the skeleton, deform the main
-Viewer model or read live-game forces. Parameters, range centers and collider
-wireframes remain reference data. Pause freezes stepping; Reset initializes a
-fresh owned host. Changing source/model data or closing the window stops the
-owned host and restores the rest view.
+The Cloth canvas shows real simulated particles and wireframes. In its **HKX Animation**
+tab, select the character `skeleton.hkx`, load an animation HKX, enable **Drive Native Cloth**
+and use **Play HKX**, **Pause HKX** or **Stop HKX**. Pause keeps the current frame and
+physics history; Play resumes; Stop returns to frame 0. Seeking and looping reset
+physics rather than replaying previous frames. Collider overlays follow animation;
+range circles and parameter tables still show saved data. This does not deform the
+main Viewer model or read live-game forces. Closing the window stops its owned host.
+
+Animation IPC uses buffered, batched pipe transfers instead of one system call per
+float; native physics and wind stepping are unchanged. A focused local BB test advanced
+59 physics steps in approximately one second of GUI playback; this is not a guarantee
+for every model, machine or animation.
 
 **Stop Cloth** ends the host without restarting and keeps the environment controls.
 The Preview Environment tab contains preview-only gravity XYZ, native wind direction XYZ,

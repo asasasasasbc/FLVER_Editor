@@ -86,17 +86,6 @@ namespace MySFformat
             targetFlver = b;
             resetPoses();
 
-            // --- Launch 3D Viewer Thread ---
-            new System.Threading.Thread(() =>
-            {
-                System.Threading.Thread.CurrentThread.IsBackground = true;
-                if (show3D)
-                {
-                    mono = new Mono3D();
-                    updateVertices();
-                    mono.Run();
-                }
-            }).Start();
             ShowEditorForm();
         }
 
@@ -243,6 +232,21 @@ namespace MySFformat
             // Bring to front and run
             f.Load += (s, e) => { f.Activate(); };
             nodeUIForm = f;
+            f.Shown += (s, e) =>
+            {
+                if (!show3D) return;
+                // Snapshot on the editor's UI thread; never read its Bounds from the viewer thread.
+                Rectangle editorBounds = f.Bounds;
+                var viewerThread = new System.Threading.Thread(() =>
+                {
+                    mono = new Mono3D(editorBounds);
+                    updateVertices();
+                    mono.Run();
+                });
+                viewerThread.IsBackground = true;
+                viewerThread.SetApartmentState(System.Threading.ApartmentState.STA);
+                viewerThread.Start();
+            };
             Application.Run(f);
         }
 

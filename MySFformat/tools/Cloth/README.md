@@ -6,6 +6,8 @@ These are required, reviewable source-distribution inputs, not Java runtime tool
 - `native-schema-ds3.xml`: embedded separate DS3 layout class closure.
 - `native-schema*-provenance.json`: upstream source and extraction hashes.
 - `LICENSE`: retained DexesTTP HKXPack MIT copyright/license.
+- `hunter-schema-audit.md`: supplemental 2026-10-14 PNT-deformer declaration,
+  BB parent-tail layout correction, binary evidence and targeted validation.
 
 The local C# port is informed by DexesTTP / JeNoVaViRuS hkxpack-souls.
 See the repository README and `cloth-and-animation-README.md` for credits and scope.

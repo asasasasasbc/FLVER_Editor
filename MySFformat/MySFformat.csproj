@@ -124,12 +124,27 @@
     <Compile Include="src\ClothDocument.cs" />
     <Compile Include="src\Cloth\Preview\ClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />
-    <Compile Include="src\Cloth\Editing\ClothEditing.cs" />
-    <Compile Include="src\Cloth\Editing\ClothSelection.cs" />
-    <Compile Include="src\Cloth\Editing\ClothAnimation.cs" />
-    <Compile Include="src\Cloth\Editing\ClothSelectionEditor.cs" />
-    <Compile Include="src\Cloth\Editing\ClothInspectorActions.cs" />
-    <Compile Include="src\Cloth\Editing\ClothCanvasRendering.cs" />
+    <Compile Include="src\Cloth\Editing\ClothEditing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothSelection.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothAnimation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothSelectionEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothInspectorActions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothCanvasRendering.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="src\Cloth\Editing\ClothMeshPreview.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="src\HkxPack\HkxPackfileCodec.cs" />
     <Compile Include="src\ClothCli.cs" />
     <Compile Include="src\HkxPack\HkxXmlEditForm.cs">
@@ -292,6 +307,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="tools\Cloth\LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\Cloth\hunter-schema-audit.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="tools\Cloth\native-schema.xml">

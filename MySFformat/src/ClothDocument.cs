@@ -11,6 +11,24 @@ using SoulsFormats;
 
 namespace MySFformat
 {
+    // 明确区分“需要手动选来源”与 HKX 损坏/解码失败；底层不创建任何 UI。
+    public sealed class ClothBinderSelectionException : IOException
+    {
+        public int ClothFileCount { get; private set; }
+
+        public ClothBinderSelectionException(string source, string[] files)
+            : base("This Binder contains " + files.Length + " _c.hkx file(s).\r\n" +
+                "Cloth requires exactly one unambiguous source. No HKX or CLM2 was automatically loaded.\r\n" +
+                "Unpack the Binder, then use Load Cloth and Load CLM2 to select matching files manually.\r\n\r\n" +
+                "此 Binder 包含 " + files.Length + " 个 _c.hkx，无法唯一确定布料来源。\r\n" +
+                "未自动加载任何 HKX 或 CLM2。请解包后用 Load Cloth 和 Load CLM2 手动选择配套文件。\r\n\r\n" +
+                source + (files.Length == 0 ? "" : "\r\n" + string.Join("\r\n", files.Take(8)) +
+                    (files.Length > 8 ? "\r\n…" : "")))
+        {
+            ClothFileCount = files.Length;
+        }
+    }
+
     // Serialized rest data only. This is deliberately not a replacement Havok solver.
     public sealed class ClothDomain
     {
@@ -60,7 +78,9 @@ namespace MySFformat
             if (BND4.Is(source))
             {
                 var files = BND4.Read(source).Files.Where(f => f.Name.EndsWith("_c.hkx", StringComparison.OrdinalIgnoreCase)).ToArray();
-                if (files.Length != 1) throw new InvalidDataException("Binder must contain exactly one _c.hkx. For multiple cloth files, unpack and select one explicitly.");
+                // 这是需要用户明确选择的情况，不是可自动猜测的第一份 Cloth。
+                // 在解码或读取 CLM2 前退出，让界面显示说明并保持原有数据。
+                if (files.Length != 1) throw new ClothBinderSelectionException(source, files.Select(f => f.Name).ToArray());
                 bytes=files[0].Bytes;
             }
             else bytes=File.ReadAllBytes(source);

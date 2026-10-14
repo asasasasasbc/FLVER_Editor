@@ -71,7 +71,7 @@ namespace MySFformat
         public ClothDocument Document { get; private set; }
         public ClothInspectorForm()
         {
-            // 顶部：文件/版本/显示；第二行保留 CLM2；第三行放物理和视角重置。
+            // 固定分行：文件/显示、HKX版本、CLM2、物理。不能依赖 FlowLayout 自动换行。
             Text="Cloth Inspector — Rest / Native Preview, Not Live Game";Width=1200;Height=850;MinimumSize=new Size(900,650);
             var top=new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, AutoSizeMode=AutoSizeMode.GrowAndShrink, WrapContents=true, Padding=new Padding(5) };
             top.Controls.Add(load);top.Controls.Add(verificationIndicator);top.Controls.Add(domains);
@@ -116,8 +116,8 @@ namespace MySFformat
             tips.SetToolTip(clmSource,"Loaded CLM2 source and unsaved-edit state. This is independent of the selected HKX/XML source.\n显示CLM2来源和未保存修改状态，与HKX/XML来源独立。");
             var fourth=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             fourth.Controls.AddRange(new Control[]{previewPlay,previewStop,previewReset,viewReset,previewRuntime,previewRuntimePath,previewState});
-            previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Native preview off · constant skeleton pose · source data unchanged";
-            tips.SetToolTip(previewPlay,"Run native Cloth in an isolated offline host, or pause it. This first version keeps the skeleton at its authored reference pose; no animation is connected.\n在独立离线宿主解算布料，或暂停；当前骨架保持作者参考姿态，尚未联动动画。");
+            previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Native preview off · source data unchanged";
+            tips.SetToolTip(previewPlay,"Play or pause native Cloth. Use the HKX Animation tab to link animation.\n播放或暂停原生布料；在HKX Animation页联动动画。");
             tips.SetToolTip(previewReset,"Stop the owned host, restore the rest view and start a fresh simulation from current in-memory data.\n停止本窗口宿主、恢复rest视图，再从当前内存数据重新初始化解算。");
             tips.SetToolTip(previewStop,"End this window's owned host and restore rest data without restarting; environment controls are retained.\n结束本窗口宿主、恢复rest数据，不重新启动；保留预览环境控件值。");
             tips.SetToolTip(previewRuntime,"Select hctPreviewPlugin.dll with the standard file picker; its parent runtime root is detected automatically. Six local HCT DLLs are required for native preview only.\n用标准文件选择窗口选择hctPreviewPlugin.dll，自动识别运行时根目录；仅原生解算预览需要6个本机HCT DLL。");
@@ -141,12 +141,11 @@ namespace MySFformat
             tips.SetToolTip(applyEnvironment,"Validate and apply preview-only settings; restart a running/paused host and preserve its play/pause state. No changes are saved to source files.\n验证并应用预览设置；重启当前宿主并保留播放/暂停状态，不保存到源文件。");
             tips.SetToolTip(defaultsEnvironment,"Restore file-authored gravity and disable preview wind, applying only to this preview.\n恢复文件作者重力，关闭预览风，仅影响本次预览。");
             applyEnvironment.Click+=async (s,e)=>await ApplyPreviewEnvironmentAsync();defaultsEnvironment.Click+=async (s,e)=>{gravityOverride.Checked=false;gravityX.Value=0;gravityY.Value=-9.81m;gravityZ.Value=0;windEnabled.Checked=false;windX.Value=1;windY.Value=windZ.Value=0;windSpeed.Value=3;windDrag.Value=1;await ApplyPreviewEnvironmentAsync();};
-            var tools=new TableLayoutPanel {Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1,RowCount=3};
-            tools.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));for(int i=0;i<3;i++)tools.RowStyles.Add(new RowStyle(SizeType.AutoSize));top.Dock=DockStyle.Fill;
+            var tools=new TableLayoutPanel {Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1,RowCount=4};
+            tools.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));for(int i=0;i<4;i++)tools.RowStyles.Add(new RowStyle(SizeType.AutoSize));top.Dock=DockStyle.Fill;
             top.Controls.Remove(factorLabel);top.Controls.Remove(factor);top.Controls.Remove(save);
-            foreach(Control control in third.Controls.Cast<Control>().ToArray()){third.Controls.Remove(control);top.Controls.Add(control);}
             nativeLabel.Visible=false;
-            tools.Controls.Add(top,0,0);tools.Controls.Add(second,0,1);tools.Controls.Add(fourth,0,2);
+            tools.Controls.Add(top,0,0);tools.Controls.Add(third,0,1);tools.Controls.Add(second,0,2);tools.Controls.Add(fourth,0,3);
             var split=new SplitContainer { Size=new Size(1150,640), Dock=DockStyle.Fill, SplitterDistance=540 };
             split.Panel1.Controls.Add(canvas);
             var tabs=new TabControl { Name="clothTabs",Dock=DockStyle.Fill,Multiline=true };
@@ -157,6 +156,7 @@ namespace MySFformat
             var environmentPage=new TabPage("Preview Environment") {AutoScroll=true};environmentRow.Dock=DockStyle.Top;environmentPage.Controls.Add(environmentRow);
             environmentRow.Controls.Add(new Label {AutoSize=true,MaximumSize=new Size(440,0),Text="Preview only. Wind uses native HCT stepping and is enabled by default. Apply to restart the active preview; Stop retains settings. Constraint ranges still limit movement.",Padding=new Padding(4)});
             fourth.Controls.Remove(previewRuntime);fourth.Controls.Remove(previewRuntimePath);environmentRow.Controls.Add(previewRuntime);environmentRow.Controls.Add(previewRuntimePath);tabs.TabPages.Add(environmentPage);
+            InitializeMeshPreview(environmentRow);
             var exportRow=new FlowLayoutPanel {Dock=DockStyle.Bottom,AutoSize=true};exportRow.Controls.AddRange(new Control[]{factorLabel,factor,save});raw.Controls.Add(exportRow);
             split.Panel2.Controls.Add(tabs);Controls.Add(split);Controls.Add(tools);Controls.Add(status);
             InitializeEditing(split,parameters);
@@ -170,7 +170,7 @@ namespace MySFformat
             tips.SetToolTip(factorLabel,tips.GetToolTip(factor));
             tips.SetToolTip(save,"Save a new author XML with scaled LocalRange in the selected domain. Never overwrites a source; not a playable HKX/Binder. Reload the copy to inspect it.\n另存所选域LocalRange缩放后的作者XML，不覆盖源文件；不能直接作为游戏HKX/Binder。重新载入副本即可查看修改。");
             tips.SetToolTip(viewReset,"Reset the viewport camera.\n重置视角。");
-            tips.SetToolTip(canvas,"Left select/brush, right rotate, middle pan, wheel zoom, F focus. Ctrl/Shift add, Alt remove. Native preview uses a constant authored skeleton.\n左键选择/刷选，右键旋转，中键平移，滚轮缩放，F聚焦；Ctrl/Shift添加、Alt移除；原生预览使用静态作者骨架。");
+            tips.SetToolTip(canvas,"Left select/brush, right rotate, middle pan, wheel zoom, F focus. Ctrl/Shift add, Alt remove.\n左键选择/刷选，右键旋转，中键平移，滚轮缩放，F聚焦；Ctrl/Shift添加、Alt移除。");
             tips.SetToolTip(summary,"Serialized parameters, solver schedule, bone subsets, and selected particle details. A bone subset is not per-particle skin weighting.\n查看文件参数、解算调度、骨集合和选中粒子详情；骨subset不是每个粒子的蒙皮权重。");
             tips.SetToolTip(particles,"Select a row to highlight its particle. Fixed state comes from invMass=0, not the fixedParticles array length.\n选择行高亮对应粒子；按invMass=0判定固定状态，而非fixedParticles数组长度。");
             tips.SetToolTip(collisions,"Supported collider endpoints/radii in skeleton rest space. Unsupported shapes remain available in Raw XML.\n查看支持的碰撞体rest端点/半径；未支持形状仍可在原始XML中检查。");
@@ -384,6 +384,7 @@ namespace MySFformat
             {
                 if (IsDisposed) return;
                 RefreshVerificationIndicator();
+                InvalidateMeshPreview();
                 if (previewSession == null && !previewPreparing) return;
                 StopClothPreview();
                 previewState.Text = "Preview stopped: FLVER edit/refresh invalidated its snapshot.";
@@ -441,13 +442,12 @@ namespace MySFformat
             if (previewSession == null) return;
 
             string playback = previewPlaying ? "playing" : "paused";
-            string skeleton = HasLinkedAnimation ? "Animated skeleton" : "Authored skeleton";
             string wind = appliedEnvironment.WindEnabled ?
                 appliedEnvironment.WindSpeed.ToString("G3", CultureInfo.InvariantCulture) : "off";
             previewState.Text = string.Format(CultureInfo.InvariantCulture,
-                "Native Cloth {0} · frame {1} · {2:F3} s · {3:F3} ms/batch · {4} · gravity {5} · wind {6}",
+                "Native Cloth {0} · frame {1} · {2:F3} s · {3:F3} ms/batch · gravity {4} · wind {5}",
                 playback, PreviewFrameNumber, PreviewFrameNumber / 60.0,
-                lastPreview == null ? 0 : lastPreview.SolveMilliseconds, skeleton,
+                lastPreview == null ? 0 : lastPreview.SolveMilliseconds,
                 appliedEnvironment.OverrideGravity ? "preview override" : "file", wind);
 
             string windDescription = appliedEnvironment.WindEnabled ?
@@ -456,7 +456,7 @@ namespace MySFformat
                     appliedEnvironment.WindX, appliedEnvironment.WindY, appliedEnvironment.WindZ,
                     appliedEnvironment.WindSpeed, appliedEnvironment.WindMaxDrag) : "Wind off";
             canvas.PreviewLabel = "NATIVE CLOTH · " + playback + " · frame " + PreviewFrameNumber +
-                "\n" + skeleton + " · " + windDescription + " · preview only";
+                "\n" + windDescription + " · preview only";
             canvas.Invalidate();
         }
         void ApplyPreviewPositions()
@@ -546,6 +546,17 @@ namespace MySFformat
                 status.Text="Auto-loaded: "+source+"\nSources unchanged. Edit author tables or Play Cloth for offline native preview; no live-game input.";
                 return true;
             }
+            catch (ClothBinderSelectionException ex)
+            {
+                if (!IsDisposed)
+                {
+                    // 没有 SetDocument，就不会触发配套 CLM2 加载；也不清空已有手动比较数据。
+                    status.Text = "Automatic loading skipped: " + ex.Message;
+                    MessageBox.Show(this, ex.Message, "Cloth — Manual Selection Required",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                return false;
+            }
             catch(Exception ex){if(!IsDisposed)status.Text="Cloth auto-load failed: "+ex.Message+"\nUse Load Cloth to choose a valid file. No source data was modified.";return false;}
             finally{if(!IsDisposed){load.Enabled=true;UseWaitCursor=false;}}
         }
@@ -632,7 +643,7 @@ namespace MySFformat
                 var masks=ClothDocument.Numbers(ClothDocument.Value(d.Sim,"staticCollisionMasks"));if(i<masks.Length)text.AppendLine("collisionMask: "+masks[i]);
             }
             text.AppendLine("\r\nNative C# BB / DS3 read/write. HKX Animation can drive the isolated Cloth solver; no live-game input.");
-            text.AppendLine("Range circles show maximumDistance at authored reference centres, not combined constraints.");
+            text.AppendLine("Range circles show saved maximumDistance limits, not combined constraints.");
             text.AppendLine("Orange colliders follow the displayed skeleton pose when animation is linked; their table remains author data.");
             text.AppendLine("Source files/current FLVER remain unchanged. Save HKX Copy writes a validated new file.");
             summary.Text = text.ToString();
@@ -711,6 +722,7 @@ namespace MySFformat
             }
             // 各绘制层的具体实现位于 ClothCanvasRendering，便于独立调整透明度与样式。
             var positions = DisplayPositions;
+            DrawFlverMeshes(graphics);
             DrawClothTriangles(graphics, positions);
             DrawClothColliders(graphics);
             DrawAnimationSkeleton(graphics);

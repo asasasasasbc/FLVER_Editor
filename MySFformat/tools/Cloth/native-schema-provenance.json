@@ -43,5 +43,12 @@
     "DS3 bd_m_3000"
   ],
   "purpose": "Local BB Cloth C# reader/writer schema closure; not a proprietary Havok SDK/runtime",
-  "corrections": "Same declared sizes/fixups/BB fields as the audited Jar. Source-derived metadata; preserve notices."
+  "corrections": "Historical baseline follows the audited Jar; supplemental Hunter PNT/BB parent-tail corrections are documented in hunter-schema-audit.md. Preserve notices.",
+  "baseline_note": "schema_sha256, classes and type counts above describe the original extraction, not the subsequently extended file.",
+  "extension_20261014": {
+    "classes": 91,
+    "added": "hclObjectSpaceMeshMeshDeformPNTOperator",
+    "corrected": "BB-only hclObjectSpaceMeshMeshDeformOperator and P child tail-padding layout",
+    "audit": "hunter-schema-audit.md"
+  }
 }
