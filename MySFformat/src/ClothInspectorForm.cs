@@ -749,7 +749,7 @@ namespace MySFformat
                 if (clothInspectorForm == null || clothInspectorForm.IsDisposed)
                     clothInspectorForm = new ClothInspectorForm();
                 var window = clothInspectorForm;
-                if (!window.Visible) window.Show(ui);
+                if (!window.Visible) EditorWindowPlacement.ShowCentered(window, ui);
                 window.BringToFront();
                 await window.TryAutoLoadForModelAsync(orgFileName);
             }));

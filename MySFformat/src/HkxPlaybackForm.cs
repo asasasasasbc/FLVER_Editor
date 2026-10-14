@@ -155,7 +155,7 @@ namespace MySFformat
                 if (ui.IsDisposed || targetFlver == null) return;
                 if (hkxPlaybackForm == null || hkxPlaybackForm.IsDisposed)
                     hkxPlaybackForm = new HkxPlaybackForm();
-                if (!hkxPlaybackForm.Visible) hkxPlaybackForm.Show(ui);
+                if (!hkxPlaybackForm.Visible) EditorWindowPlacement.ShowCentered(hkxPlaybackForm, ui);
             }));
         }
         public static string HkxToolsPath { get { return Path.Combine(Path.GetDirectoryName(typeof(HkxAnimationClip).Assembly.Location), "tools", "HavokToolset"); } }

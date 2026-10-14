@@ -4,6 +4,10 @@ FLVER Editor offers two separate workflows: skeletal **HKX animation playback**
 in the Viewer, and a dedicated **Cloth** window for serialized cloth inspection,
 editing and writeback. Animation playback does not run cloth physics.
 
+Both tool windows open centered over the main editor on its current monitor,
+with their bounds fitted to the screen's working area. Moving an already open
+window is not overridden when its tool command is clicked again.
+
 ## HKX animation playback
 
 1. Open a FLVER and its 3D Viewer, then open **HKX Animation**.

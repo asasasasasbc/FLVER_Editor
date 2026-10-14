@@ -89,6 +89,15 @@ namespace MySFformat
                 return;
             }
 
+            // Fail before bone override, layout insertion or any other model mutation.
+            if (!(settings.ImportAndOverrideBones && settings.ImportBonesOnly) &&
+                (targetFlver == null || targetFlver.Materials.Count == 0))
+            {
+                MessageBox.Show("The target FLVER has no material to use as an import template. Open a copy of a game equipment FLVER with a valid material first. No model changes were made.",
+                    "FBX import stopped", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             AssimpContext importer = new AssimpContext();
             // importer.SetConfig(new NormalSmoothingAngleConfig(66.0f));
 
@@ -181,7 +190,7 @@ namespace MySFformat
                 0, 0, 0, 1
             );
 
-            bool flipWinding = basisMatrix.GetDeterminant() > 0; 
+            bool flipWinding = ShouldFlipImportedWinding(basisMatrix.GetDeterminant(), settings.LegacyWinding);
 
             foreach (var mat in md.Materials)
             {
@@ -480,11 +489,31 @@ namespace MySFformat
                 }
 
                 mn.MaterialIndex = materialCount + m.MaterialIndex;
+                UpdateImportedMeshBounds(targetFlver, mn, settings.LegacyBoundingBox);
                 targetFlver.Meshes.Add(mn);
             }
 
             MessageBox.Show("Added a custom mesh! Please click modify to save it!");
             updateVertices();
+        }
+        internal static bool ShouldFlipImportedWinding(double determinant, bool legacy)
+        {
+            return legacy ? determinant > 0 : determinant < 0;
+        }
+        internal static void UpdateImportedMeshBounds(FLVER2 model, FLVER2.Mesh mesh, bool legacy)
+        {
+            if (legacy || mesh.Vertices.Count == 0) return;
+            Vector3 min = mesh.Vertices[0].Position, max = min;
+            foreach (var vertex in mesh.Vertices)
+            {
+                min = Vector3.Min(min, vertex.Position);
+                max = Vector3.Max(max, vertex.Position);
+            }
+            mesh.BoundingBox.Min = min;
+            mesh.BoundingBox.Max = max;
+            // Preserve existing geometry/header coverage rather than shrinking it.
+            model.Header.BoundingBoxMin = Vector3.Min(model.Header.BoundingBoxMin, min);
+            model.Header.BoundingBoxMax = Vector3.Max(model.Header.BoundingBoxMax, max);
         }
     }
 }

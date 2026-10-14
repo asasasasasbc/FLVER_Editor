@@ -11,8 +11,29 @@ using MySFformat.Cloth.Preview;
 
 namespace MySFformat
 {
+    internal sealed class ClothAnimationPathSettings
+    {
+        public string SkeletonPath {get;set;} = "";
+        public string AnimationPath {get;set;} = "";
+        internal static string SettingsFilePath {get{return Path.Combine(Path.GetDirectoryName(typeof(ClothInspectorForm).Assembly.Location),"cloth_animation_settings.json");}}
+        internal static ClothAnimationPathSettings Load()
+        {
+            try
+            {
+                if(File.Exists(SettingsFilePath))return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<ClothAnimationPathSettings>(File.ReadAllText(SettingsFilePath))??new ClothAnimationPathSettings();
+            }
+            catch(Exception ex){Console.WriteLine("Failed to load Cloth animation paths: "+ex.Message);}
+            return new ClothAnimationPathSettings();
+        }
+        internal void Save()
+        {
+            try{File.WriteAllText(SettingsFilePath,new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(this));}
+            catch(Exception ex){Console.WriteLine("Failed to save Cloth animation paths: "+ex.Message);}
+        }
+    }
     public sealed partial class ClothInspectorForm
     {
+        readonly ClothAnimationPathSettings animationPathSettings=ClothAnimationPathSettings.Load();
         readonly TextBox animationSkeletonPath=new TextBox {Name="clothAnimationSkeleton",ReadOnly=true,Width=300};
         readonly TextBox animationFilePath=new TextBox {Name="clothAnimationFile",ReadOnly=true,Width=300};
         readonly Button animationPlay=new Button {Name="playClothAnimation",Text="Play HKX",AutoSize=true};
@@ -64,15 +85,22 @@ namespace MySFformat
             tips.SetToolTip(previous,tips.GetToolTip(animationTimeline));tips.SetToolTip(next,tips.GetToolTip(animationTimeline));tips.SetToolTip(animationFrame,tips.GetToolTip(animationTimeline));
             tips.SetToolTip(animationLoop,"Looping recreates native history to avoid carrying velocity across the end-to-start discontinuity.\n循环时重建历史，避免末帧到首帧跳变携带旧速度。");
             string defaultSkeleton=Path.Combine(HkxPlaybackForm.BloodborneRoot,@"c0000-anibnd-dcx\chr\c0000\hkx\skeleton.hkx");
-            if(File.Exists(defaultSkeleton))animationSkeletonPath.Text=defaultSkeleton;
+            if(!string.IsNullOrWhiteSpace(animationPathSettings.SkeletonPath))animationSkeletonPath.Text=animationPathSettings.SkeletonPath;
+            else if(File.Exists(defaultSkeleton))animationSkeletonPath.Text=defaultSkeleton;
+            animationFilePath.Text=animationPathSettings.AnimationPath??"";
             skeleton.Click+=async(s,e)=>{
-                using(var dialog=new OpenFileDialog {Title="Select character skeleton.hkx",Filter="HKX skeleton|*.hkx",FileName="skeleton.hkx",AutoUpgradeEnabled=true})
-                {if(dialog.ShowDialog(this)!=DialogResult.OK)return;if(clothAnimation==null)animationSkeletonPath.Text=dialog.FileName;else await TryLoadClothAnimationAsync(dialog.FileName,animationFilePath.Text);}
+                using(var dialog=new OpenFileDialog {Title="Select character skeleton.hkx",Filter="HKX skeleton|*.hkx",AutoUpgradeEnabled=true})
+                {
+                    RestoreAnimationDialogPath(dialog,animationSkeletonPath.Text,"skeleton.hkx");
+                    if(dialog.ShowDialog(this)!=DialogResult.OK)return;
+                    if(clothAnimation==null){animationSkeletonPath.Text=dialog.FileName;animationPathSettings.SkeletonPath=dialog.FileName;animationPathSettings.Save();}
+                    else await TryLoadClothAnimationAsync(dialog.FileName,animationFilePath.Text);
+                }
             };
             loadAnimation.Click+=async(s,e)=>{
                 if(!File.Exists(animationSkeletonPath.Text)){animationStatus.Text="Choose a character skeleton.hkx first.";return;}
                 using(var dialog=new OpenFileDialog {Title="Select animation HKX (not Cloth)",Filter="HKX animation|*.hkx",AutoUpgradeEnabled=true})
-                {if(dialog.ShowDialog(this)==DialogResult.OK)await TryLoadClothAnimationAsync(animationSkeletonPath.Text,dialog.FileName);}
+                {RestoreAnimationDialogPath(dialog,animationFilePath.Text,"");if(dialog.ShowDialog(this)==DialogResult.OK)await TryLoadClothAnimationAsync(animationSkeletonPath.Text,dialog.FileName);}
             };
             animationPlay.Click+=async(s,e)=>await PlayClothAnimationAsync();stop.Click+=async(s,e)=>await SeekClothAnimationAsync(0);
             animationPause.Click+=(s,e)=>PauseClothAnimation();
@@ -90,6 +118,18 @@ namespace MySFformat
                 catch(Exception ex){PauseClothAnimation();animationStatus.Text="Animation paused: "+ex.Message;}
             };
         }
+        static void RestoreAnimationDialogPath(OpenFileDialog dialog,string path,string fallback)
+        {
+            dialog.FileName=fallback;
+            if(string.IsNullOrWhiteSpace(path))return;
+            try
+            {
+                string full=Path.GetFullPath(path);string directory=Path.GetDirectoryName(full);
+                if(Directory.Exists(directory))dialog.InitialDirectory=directory;
+                dialog.FileName=Path.GetFileName(full);
+            }
+            catch(ArgumentException){}catch(NotSupportedException){}catch(PathTooLongException){}
+        }
         async Task TryLoadClothAnimationAsync(string skeleton,string animation)
         {try{await LoadClothAnimationAsync(skeleton,animation);}catch(Exception ex){if(!IsDisposed)animationStatus.Text="Animation load failed (previous clip retained): "+ex.GetBaseException().Message;}}
         public async Task LoadClothAnimationAsync(string skeleton,string animation)
@@ -102,6 +142,7 @@ namespace MySFformat
                 var clip=await Task.Run(()=>HkxAnimationClip.Load(skeleton,animation,Program.HkxToolsPath));
                 if(IsDisposed||generation!=animationLoadGeneration||!ReferenceEquals(document,Document))return;
                 SetClothAnimationClip(clip);animationSkeletonPath.Text=Path.GetFullPath(skeleton);animationFilePath.Text=Path.GetFullPath(animation);
+                animationPathSettings.SkeletonPath=animationSkeletonPath.Text;animationPathSettings.AnimationPath=animationFilePath.Text;animationPathSettings.Save();
                 await RestartForAnimationDiscontinuityAsync(false);
             }
             finally{animationLoading=false;if(!IsDisposed)animationPlay.Enabled=true;}
@@ -187,7 +228,7 @@ namespace MySFformat
         }
         void ResetClothAnimationForDocument()
         {
-            animationLoadGeneration++;PauseAnimationClock();clothAnimation=null;ClothAnimationPlayback=null;animationBindings=null;animationBoundDocument=null;animationFilePath.Text="";canvas.AnimationBones=null;canvas.AnimationColliders=null;
+            animationLoadGeneration++;PauseAnimationClock();clothAnimation=null;ClothAnimationPlayback=null;animationBindings=null;animationBoundDocument=null;canvas.AnimationBones=null;canvas.AnimationColliders=null;
             animationPause.Enabled=false;
             UpdateMeshPreview();
             if(!IsDisposed)animationStatus.Text="Cloth document changed. Load an animation for its skeleton.";

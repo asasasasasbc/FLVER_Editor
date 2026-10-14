@@ -30,6 +30,8 @@ namespace MySFformat
         public bool blenderTan { get; set; } = false;
 
         public bool InverseTangentW { get; set; } = false;
+        public bool LegacyWinding { get; set; } = false;
+        public bool LegacyBoundingBox { get; set; } = false;
 
         // Other Options
         public bool SetTexture { get; set; } = true;

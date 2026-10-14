@@ -22,6 +22,9 @@ namespace MySFformat
         private CheckBox chkMirrorTertiary;
         private CheckBox chkBlenderTan;
         private CheckBox chkInverseTan;
+        private CheckBox chkLegacyWinding;
+        private CheckBox chkLegacyBoundingBox;
+        private readonly ToolTip importTips = new ToolTip();
         private CheckBox chkSetTexture;
         private CheckBox chkSetLOD;
         private CheckBox chkImportBones;
@@ -34,27 +37,23 @@ namespace MySFformat
         private Dictionary<FbxImportSettings.Axis, RadioButton> secondaryAxisRadios;
 
         private string axisHelp = @"This defines how vertex coordinates from the FBX are mapped.
-Primary Axis maps to the output X-axis.
-Secondary Axis maps to the output Y-axis.
-The third axis is calculated automatically.
-Recommended for FBX exported directly from Flver Editor or Blender 4 Armature skeleton export: 
-Primary: X, Secondary: Y, Mirror Z Axis: Yes
-(Check CustomBoneExample/RecommendExportSettings.jpg for custom bone exporting settings)
-For static, no armature FBX exported from Blender：
-Primary: -Z, Secondary: X, Mirror Z Axis: Yes
-If you REALLY want old-FLVER Editor's switch YZ axis values function, try:
+Primary selects the output direction of the input X-axis.
+Secondary selects the output direction of the input Y-axis.
+The input Z-axis direction is derived from their cross product.
+Mirror Tertiary (Z) Axis flips that derived direction.
+These options operate on mesh-local coordinates read from the FBX,
+not on Blender's Forward / Up export labels. Settings depend on the file.
+Example: Primary X, Secondary -Z, Mirror off gives output (x, z, -y).
+To swap Y and Z without changing their signs:
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
 ---
-定义了FBX中的顶点坐标如何被映射,是以前Flver编辑器导入模型切换YZ轴的升级功能。
-主轴（Primary Axis）映射到Flver的X轴。
-次轴（Secondary Axis）映射到Flver的Y轴。
-第三轴将自动计算。
-Flver编辑器默认FBX导出，或者是Blender4带骨架导出的情况建议如下：
-Primary: X, Secondary: Y, Mirror Z Axis: Yes
-(如需要自定骨架导入，请查看 CustomBoneExample/RecommendExportSettings.jpg 了解建议的导出设置。)
-Blender4.X静态物体，无Armature骨架的情况：
-Primary: -Z, Secondary: X, Mirror Z Axis: Yes
-如果你需要旧版的Flver编辑器导入模型切换YZ轴功能，建议配置如下：
+定义从FBX读取的顶点坐标如何转换。
+Primary选择输入X轴在输出坐标系中的方向。
+Secondary选择输入Y轴在输出坐标系中的方向。
+输入Z轴的方向由前两个方向的叉乘推导；Mirror反转该方向。
+这些选项作用于FBX网格局部坐标，不是Blender导出的Forward/Up标签；具体设置取决于文件。
+例：Primary X、Secondary -Z、Mirror不勾选，输出为(x, z, -y)。
+如果只交换Y和Z而不改变符号：
 Primary: X, Secondary: Z, Mirror Z Axis: Yes
 ";
         private string boneHelp = @"The bone conversion file (.ini) maps bone names from 
@@ -80,6 +79,11 @@ FLVER_Bone_Name_2
             InitializeComponent();
             PopulateControlsFromSettings();
         }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) importTips.Dispose();
+            base.Dispose(disposing);
+        }
 
         private void InitializeComponent()
         {
@@ -87,7 +91,7 @@ FLVER_Bone_Name_2
             this.Text = "Import FBX Options";
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterParent;
-            this.ClientSize = new Size(500, 575);
+            this.ClientSize = new Size(650, 645);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
@@ -124,24 +128,30 @@ FLVER_Bone_Name_2
             yPos += 25;
 
             // Radio Button Groups for Axis
-            grpPrimaryAxis = new GroupBox { Text = "Primary (maps to X)", Location = new Point(xMargin, yPos), Size = new Size(470, 50) };
-            grpSecondaryAxis = new GroupBox { Text = "Secondary (maps to Y)", Location = new Point(xMargin, yPos + 60), Size = new Size(470, 50) };
+            grpPrimaryAxis = new GroupBox { Text = "Primary (Input X -> Output Dir)", Location = new Point(xMargin, yPos), Size = new Size(470, 50) };
+            grpSecondaryAxis = new GroupBox { Text = "Secondary (Input Y -> Output Dir)", Location = new Point(xMargin, yPos + 60), Size = new Size(470, 50) };
             primaryAxisRadios = CreateAxisRadioButtons(grpPrimaryAxis);
             secondaryAxisRadios = CreateAxisRadioButtons(grpSecondaryAxis);
             this.Controls.Add(grpPrimaryAxis);
             this.Controls.Add(grpSecondaryAxis);
             yPos += 125;
             // ** New Tertiary Mirror Checkbox **
-            chkMirrorTertiary = new CheckBox { Text = "Mirror Tertiary (Z) Axis", Location = new Point(xMargin + 10, yPos), AutoSize = true };
+            chkMirrorTertiary = new CheckBox { Text = "Mirror Tertiary (Z) Axis (Flip Derived Input-Z Direction)", Location = new Point(xMargin + 10, yPos), AutoSize = true };
             this.Controls.Add(chkMirrorTertiary);
             yPos += 35;
 
+            chkLegacyWinding = new CheckBox { Text = "Legacy winding flip (Not recommended)", Location = new Point(xMargin + 10, yPos), AutoSize = true };
+            this.Controls.Add(chkLegacyWinding);
+            importTips.SetToolTip(chkLegacyWinding,"Use the old determinant > 0 flip rule instead of the corrected determinant < 0 rule. Only for reproducing old imports.\n使用旧的行列式>0翻面规则，而非修正后的<0规则；仅用于复现旧导入，不推荐开启。");
+            yPos += 35;
+
             chkBlenderTan = new CheckBox { 
-                Text = "Blender Tangents (Experimental, may fix blender exported FBX tangents issue)", 
+                Text = "Blender Tangents (Experimental, may fix blender exported FBX tangents issue) (Not recommended)",
                 Location = new Point(xMargin + 10, yPos), 
                 AutoSize = true
             };
             this.Controls.Add(chkBlenderTan);
+            importTips.SetToolTip(chkBlenderTan,"Legacy experimental tangent/bitangent swap and tangent inversion. Keep off for the tutorial FBX.\n保留旧实验性的切线/副切线交换与切线反转；教程FBX应关闭此项。");
             yPos += 35;
 
             chkInverseTan = new CheckBox
@@ -154,6 +164,10 @@ FLVER_Bone_Name_2
             yPos += 35;
 
             // Other Options
+            chkLegacyBoundingBox = new CheckBox { Text = "Legacy default bounding box (Not recommended)", Location = new Point(xMargin, yPos), AutoSize = true };
+            this.Controls.Add(chkLegacyBoundingBox);
+            importTips.SetToolTip(chkLegacyBoundingBox,"Use the old fixed mesh bounds (-1,-1,-1) to (1,1,1) and leave header bounds unchanged. Off: calculate mesh bounds from imported positions and expand header bounds.\n使用旧的固定网格包围盒(-1,-1,-1)到(1,1,1)，不更新文件头包围盒；关闭时按导入顶点计算网格包围盒并扩展文件头范围。");
+            yPos += 35;
             chkSetTexture = new CheckBox { Text = "Auto set texture paths", Location = new Point(xMargin, yPos), AutoSize = true };
             yPos += 30;
             chkSetLOD = new CheckBox { Text = "Set LOD levels (for viewing far away)", Location = new Point(xMargin, yPos), AutoSize = true };
@@ -216,6 +230,8 @@ FLVER_Bone_Name_2
             chkMirrorTertiary.Checked = Settings.MirrorTertiaryAxis; // Populate new checkbox
             chkBlenderTan.Checked = Settings.blenderTan;
             chkInverseTan.Checked = Settings.InverseTangentW;
+            chkLegacyWinding.Checked = Settings.LegacyWinding;
+            chkLegacyBoundingBox.Checked = Settings.LegacyBoundingBox;
 
             chkSetTexture.Checked = Settings.SetTexture;
             chkSetLOD.Checked = Settings.SetLOD;
@@ -244,6 +260,8 @@ FLVER_Bone_Name_2
             Settings.MirrorTertiaryAxis = chkMirrorTertiary.Checked; // Save new checkbox state
             Settings.blenderTan = chkBlenderTan.Checked;
             Settings.InverseTangentW =chkInverseTan.Checked;
+            Settings.LegacyWinding = chkLegacyWinding.Checked;
+            Settings.LegacyBoundingBox = chkLegacyBoundingBox.Checked;
 
             Settings.SetTexture = chkSetTexture.Checked;
             Settings.SetLOD = chkSetLOD.Checked;
