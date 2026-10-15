@@ -277,6 +277,11 @@ namespace MySFformat
 "修改骨骼的bounding box问题。";
             legacyMenu.DropDownItems.Add(bbbFixItem);
 
+            var bbBoundsCalcItem = new ToolStripMenuItem("BB_BoneBoundingBOX_Calc", null, (s, e) => BB_BoneBoundingBOX_Calc_Click());
+            bbBoundsCalcItem.ToolTipText = "Bloodborne: calculate finite bone-local bounds from referenced bind-pose vertices. Can fix meshes disappearing at certain camera angles/positions due to invalid node bounds. Updates memory only; save/export a copy.\n" +
+                "血源：按有效蒙皮顶点计算骨骼局部包围盒，可修复节点范围无效导致模型随视角/位置突然消失。只更新内存，需另存测试；不修改整体/mesh范围、贴图、几何、权重或布料。";
+            legacyMenu.DropDownItems.Add(bbBoundsCalcItem);
+
             var erPort = new ToolStripMenuItem("NR -> ER port", null, (s, e) => {
                 portNrEr();
             });

@@ -25,6 +25,30 @@ and `--hkx-frame`; see [CLI render help](CLI_RENDER_HELP.md).
 
 ## Local Bloodborne Cloth Inspector (2026-10-12)
 
+### Cloth Setup Wizard (experimental)
+
+**Cloth Setup Wizard**, to the left of **Load Cloth**, creates a new Bloodborne
+single-bone / single-domain setup from the current FLVER snapshot. No existing
+Cloth HKX, Java, Python or proprietary runtime is required for generation.
+
+1. Select a connected mesh with one base FaceSet; LOD/motion blur copies are excluded.
+2. Select its single support bone (global FLVER index 0..255). Keep existing
+   uniform weight-1 binding, or explicitly assign that bone in the output copy.
+3. Use **Fix Top Y Rows**, or select particles and **Fix Selected / Release Selected**.
+   At least one fixed and one dynamic particle are required.
+4. Set basic mass, gravity, damping, radius, range and normalized link strengths.
+5. Review the new display node, cloned `_al_Cloth.mtd` material and two-buffer
+   output layout. Texture compatibility is the user's responsibility.
+6. **Generate / Validate**, then **Save New Folder**. Choose a parent directory;
+   a new timestamped folder contains `Setup_Cloth.flver`, `_c.hkx`, `_c.clm2`,
+   author XML and a report. Open the generated FLVER to inspect/preview that set.
+
+Other meshes and existing nodes are retained. Duplicate display positions map to
+simulation particles; multi-bone input is rejected unless single-bone assignment
+is explicitly chosen. The prototype has no body collisions or Binder packaging,
+does not extend existing multi-domain Cloth, and never starts the game. Empty
+CLM2 records cover the complete mesh list; readback is not game certification.
+
 The **Cloth** button sits alongside Material, Mesh and Dummy. It opens an
 independent window. UI labels are English; tooltips are English/Chinese.
 

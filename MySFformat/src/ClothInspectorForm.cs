@@ -74,7 +74,10 @@ namespace MySFformat
             // 固定分行：文件/显示、HKX版本、CLM2、物理。不能依赖 FlowLayout 自动换行。
             Text="Cloth Inspector — Rest / Native Preview, Not Live Game";Width=1200;Height=850;MinimumSize=new Size(900,650);
             var top=new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, AutoSizeMode=AutoSizeMode.GrowAndShrink, WrapContents=true, Padding=new Padding(5) };
-            top.Controls.Add(load);top.Controls.Add(verificationIndicator);top.Controls.Add(domains);
+            var setup=new Button{Name="clothSetupWizard",Text="Cloth Setup Wizard",AutoSize=true};
+            top.Controls.Add(setup);top.Controls.Add(load);top.Controls.Add(verificationIndicator);top.Controls.Add(domains);
+            tips.SetToolTip(setup,"Create an experimental Bloodborne single-bone Cloth setup from a FLVER snapshot; save a new FLVER/HKX/CLM2 set. No collision, source changes or game launch.\n从FLVER快照生成实验性血源单骨布料设置，另存FLVER/HKX/CLM2；无人体碰撞，不改源文件，不启动游戏。");
+            setup.Click+=(s,e)=>{try{if(applyingAuthor||previewPreparing)throw new InvalidOperationException("Wait for the current Cloth operation to finish.");using(var wizard=new ClothSetupWizardForm(Program.targetFlver))wizard.ShowDialog(this);}catch(Exception ex){MessageBox.Show(this,ex.Message,"Cloth Setup Wizard",MessageBoxButtons.OK,MessageBoxIcon.Warning);}};
             var factorLabel=new Label { Text="Export range scale", AutoSize=true, Padding=new Padding(0,7,0,0) };top.Controls.Add(factorLabel);top.Controls.Add(factor);
             var save=new Button { Name="saveRangeCopy",Text="Save Range XML Copy…",AutoSize=true };top.Controls.Add(save);
             foreach(var spec in new[]{"Particles","Colliders","Range Sphere"})

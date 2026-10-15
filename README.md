@@ -338,6 +338,10 @@ Components in the right panel:
 		After import, you need to click [Modify] to save your result.
 		You may also need to rotate the mesh to fix the axis problem.
 
+### Bloodborne node bounding boxes
+
+In the Nodes window, **Advanced → BB_BoneBoundingBOX_Calc** recalculates Bloodborne bone-local bounding boxes from mesh vertices to address models disappearing at certain camera angles or positions due to invalid node bounds. It leaves geometry, weights, materials and Cloth unchanged, and offers saving a new FLVER copy.
+
 ### Credits and third-party components
 
 | Contributor / project | Role | Source / license |

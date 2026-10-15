@@ -154,6 +154,10 @@
     <Compile Include="src\Clm2\Clm2EditForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="src\Cloth\Setup\ClothSetupXml.cs" />
+    <Compile Include="src\Cloth\Setup\ClothSetupBuilder.cs" />
+    <Compile Include="src\Cloth\Setup\ClothSetupWizardForm.cs" />
+    <Compile Include="src\Cloth\Setup\ClothSetupFolderPicker.cs" />
     <Compile Include="src\ClothInspectorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -186,6 +190,8 @@
     </Compile>
     <Compile Include="src\ProgramMeshUI.cs" />
     <Compile Include="src\ProgramNodesUI.cs" />
+    <Compile Include="src\BloodborneBoneBounds.cs" />
+    <Compile Include="src\ProgramBloodborneBounds.cs" />
     <Compile Include="src\ProgramUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="src\Transform3D.cs" />
