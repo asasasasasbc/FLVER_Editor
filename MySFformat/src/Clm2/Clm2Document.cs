@@ -99,7 +99,7 @@ namespace MySFformat
             else
             {
                 lines.Add("HKX simulation domains: "+cloth.Domains.Count+". This is NOT the CLM2 mesh-count field.");
-                lines.Add("HKX native header layout: "+cloth.NativeLayout+". Layout rules are not a definitive game identifier.");
+                lines.Add(cloth.IsTagfile?"ER Cloth TAG0 / SDK 20180100: read-only author data; compatibility physics is not the ER runtime.":"HKX native header layout: "+cloth.NativeLayout+". Layout rules are not a definitive game identifier.");
                 foreach(var domain in cloth.Domains)
                 {
                     int n=domain.Positions.Length;var data=ClothDocument.Field(domain.Sim,"particleDatas");

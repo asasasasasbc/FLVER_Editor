@@ -34,7 +34,7 @@ namespace MySFformat.Cloth.Preview
                 bool referencePose=pairs.Any(p=>I(p,"vertexIndex")!=I(p,"particleIndex"))||I(buffers[input],"numVertices")!=count;
                 var output=Enumerable.Range(0,buffers.Length).Where(i=>I(buffers[i],"type")==1&&I(buffers[i],"subType")==sim&&I(buffers[i],"numVertices")==count).ToArray();
                 bool skinned=preceding.Any(o=>((string)o.Attribute("class")).Contains("SpaceSkin")&&I(o,"outputBufferIndex")==input);
-                bool deformed=preceding.Any(o=>(string)o.Attribute("class")=="hclMeshMeshDeformOperator"&&I(o,"outputBufferIdx")==input);
+                bool deformed=preceding.Any(o=>((string)o.Attribute("class")).Contains("MeshMeshDeform")&&I(o,"outputBufferIdx")==input);
                 if(output.Length!=1||(!skinned&&!deformed))throw new InvalidDataException("No unique supported initialization buffer");
                 referencePose|=!skinned;
                 // 猎人套腰带等使用重排/精简 reference mesh，不能误当成连续粒子数组。

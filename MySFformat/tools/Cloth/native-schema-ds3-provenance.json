@@ -4,7 +4,7 @@
   "jar_sha256": "aece0eaa7492dc57b30c982096f24935cd292ab81dc7230c77d190967ee57c0c",
   "schema_sha256": "15ff3f41c3dcb803c7b4dfb1c64393ad2a50b3ae7bad14a1160c7013939003aa",
   "classes": 81,
-  "baseline_note": "schema_sha256 and classes describe the historical extraction. The 2026-10-14 PNT extension brings the current closure to 82 classes; see hunter-schema-audit.md. Existing DS3 parent offsets are unchanged.",
+  "baseline_note": "schema_sha256 and classes describe the historical extraction. The 2026-10-14 PNT extension brought the closure to 82 classes; see hunter-schema-audit.md. Further equipment additions are recorded in equipment-schema-provenance.json and equipment-schema-audit.md. Existing DS3 parent offsets are unchanged.",
   "layout": "8,1,0,1",
   "offset_differences": [
     {

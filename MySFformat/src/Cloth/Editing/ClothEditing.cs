@@ -19,6 +19,11 @@ namespace MySFformat
         readonly Label editState=new Label {Name="clothEditState",AutoSize=true,Padding=new Padding(3,7,0,0)};
         readonly Stack<ClothDocument> undoDocuments=new Stack<ClothDocument>(),redoDocuments=new Stack<ClothDocument>();
         XDocument stagedXml;
+        XDocument indexedStagedXml;
+        Dictionary<string,XElement> stagedObjects;
+        XDocument indexedRangeXml;
+        ClothDomain indexedRangeDomain;
+        Dictionary<int,XElement[]> stagedRanges;
         bool editingDirty,populatingEditing,syncingSelection,changingDomain,applyingAuthor,previewEnvironmentDirty;
         int editingDomain=-1;
         static readonly CultureInfo EditCulture=CultureInfo.InvariantCulture;
@@ -107,7 +112,15 @@ namespace MySFformat
             if(editingDirty&&editingDomain>=0&&domains.SelectedIndex!=editingDomain){changingDomain=true;domains.SelectedIndex=editingDomain;changingDomain=false;editState.Text="Apply or discard pending edits before switching domain";return false;}
             return true;
         }
-        XElement StagedObject(XElement original){return stagedXml.Descendants("hksection").Elements("hkobject").Single(o=>(string)o.Attribute("name")== (string)original.Attribute("name"));}
+        XElement StagedObject(XElement original)
+        {
+            if(!ReferenceEquals(indexedStagedXml,stagedXml))
+            {
+                stagedObjects=stagedXml.Descendants("hksection").Elements("hkobject").ToDictionary(o=>(string)o.Attribute("name"));
+                indexedStagedXml=stagedXml;
+            }
+            return stagedObjects[(string)original.Attribute("name")];
+        }
         void PopulateEditing()
         {
             populatingEditing=true;
@@ -119,7 +132,8 @@ namespace MySFformat
                 int recordIndex=0;
                 foreach(var c in d.Constraints)foreach(var p in c.Elements().Where(p=>p.Elements().Any()))
                 {
-                    int index=0;foreach(var r in p.Elements())constraints.Rows[recordIndex++].Tag=ClothDocument.Field(StagedObject(c),(string)p.Attribute("name")).Elements().ElementAt(index++);
+                    var stagedRows=ClothDocument.Field(StagedObject(c),(string)p.Attribute("name")).Elements().ToArray();
+                    foreach(var r in stagedRows)constraints.Rows[recordIndex++].Tag=r;
                 }
                 foreach(DataGridViewRow r in particles.Rows)
                 {
@@ -136,7 +150,7 @@ namespace MySFformat
                     var original=Document.Objects[reference];if((string)original.Attribute("class")!="hclSimulateOperator")continue;
                     if(ClothDocument.Numbers(ClothDocument.Value(original,"simClothIndex")).Single()!=Array.IndexOf(ClothDocument.Value(d.Owner,"simClothDatas").Split((char[])null,StringSplitOptions.RemoveEmptyEntries),(string)d.Sim.Attribute("name")))continue;
                     var op=StagedObject(original);
-                    foreach(string key in new[]{"subSteps","numberOfSolveIterations","adaptConstraintStiffness"})AddParameter("Solver "+ClothDocument.Value(op,"name"),ClothDocument.Field(op,key));
+                    foreach(string key in new[]{"subSteps","numberOfSolveIterations","adaptConstraintStiffness"})AddParameter("Solver "+ClothDocument.Value(op,"name"),ClothDocument.Field(ClothDocument.SolverConfig(op),key));
                 }
                 foreach(var constraint in d.Constraints)
                 {
@@ -172,7 +186,14 @@ namespace MySFformat
         }
         IEnumerable<XElement> RangeRows(ClothDomain d,int particle)
         {
-            return d.Constraints.Where(c=>(string)c.Attribute("class")=="hclLocalRangeConstraintSet").SelectMany(c=>ClothDocument.Field(StagedObject(c),"localConstraints").Elements()).Where(r=>int.Parse(ClothDocument.Value(r,"particleIndex"),EditCulture)==particle);
+            if(!ReferenceEquals(indexedRangeXml,stagedXml)||!ReferenceEquals(indexedRangeDomain,d))
+            {
+                stagedRanges=d.Constraints.Where(c=>(string)c.Attribute("class")=="hclLocalRangeConstraintSet")
+                    .SelectMany(c=>ClothDocument.Field(StagedObject(c),"localConstraints").Elements())
+                    .GroupBy(r=>int.Parse(ClothDocument.Value(r,"particleIndex"),EditCulture)).ToDictionary(g=>g.Key,g=>g.ToArray());
+                indexedRangeXml=stagedXml;indexedRangeDomain=d;
+            }
+            XElement[] rows;return stagedRanges.TryGetValue(particle,out rows)?rows:Enumerable.Empty<XElement>();
         }
         static double PositiveNumber(object value,bool zeroAllowed)
         {
@@ -275,18 +296,23 @@ namespace MySFformat
         }
         void UpdateEditState()
         {
+            bool readOnly=Document!=null&&Document.IsTagfile;
             bool pending=editingDirty||selectedValueDirty;
             applyAuthor.Enabled=pending&&!applyingAuthor;undoAuthor.Enabled=!pending&&!applyingAuthor&&undoDocuments.Count>0;redoAuthor.Enabled=!pending&&!applyingAuthor&&redoDocuments.Count>0;
             load.Enabled=!pending&&!applyingAuthor;domains.Enabled=!pending&&!applyingAuthor;
-            nativeLayout.Enabled=!pending&&!applyingAuthor;authorParameters.Enabled=particles.Enabled=constraintParameters.Enabled=!applyingAuthor;
-            foreach(string name in new[]{"editHkx","saveHkx","saveRangeCopy","modifyClothSelection","discardClothChanges"})foreach(var control in Controls.Find(name,true))control.Enabled=!applyingAuthor&&(!editingDirty||name=="modifyClothSelection"||name=="discardClothChanges");
+            nativeLayout.Enabled=!readOnly&&!pending&&!applyingAuthor;authorParameters.Enabled=particles.Enabled=constraintParameters.Enabled=!applyingAuthor;
+            particles.ReadOnly=authorParameters.ReadOnly=constraintParameters.ReadOnly=readOnly;
+            foreach(string name in new[]{"editHkx","saveHkx","saveRangeCopy","modifyClothSelection","discardClothChanges"})foreach(var control in Controls.Find(name,true))control.Enabled=!readOnly&&!applyingAuthor&&(!editingDirty||name=="modifyClothSelection"||name=="discardClothChanges");
             editState.Text=canvas.SelectedParticles.Count+" selected · "+(pending?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"No author changes")+(previewEnvironmentDirty?" · Environment pending — Apply Environment":"");
-            selectedParticleEditor.Enabled=!applyingAuthor;
+            if(readOnly)editState.Text="ER TAG0 20180100 · read-only inspection / preview · no ER HKX export";
+            if(readOnly)applyAuthor.Enabled=undoAuthor.Enabled=redoAuthor.Enabled=false;
+            selectedParticleEditor.Enabled=!readOnly&&!applyingAuthor;
             RefreshSelectionEditor();
         }
         public async Task ApplyAuthorChangesAsync()
         {
             if(applyingAuthor||Document==null)return;
+            if(Document.IsTagfile)throw new NotSupportedException("ER TAG0 author editing/export is not implemented.");
             if(!ValidateChildren()||!particles.EndEdit()||!authorParameters.EndEdit()||!constraintParameters.EndEdit())return;
             if(!editingDirty)return;
             applyingAuthor=true;UpdateEditState();
@@ -324,6 +350,7 @@ namespace MySFformat
         }
         public void StageSelectedParticleValues(string field,double value,bool multiply=false)
         {
+            if(Document!=null&&Document.IsTagfile)throw new NotSupportedException("ER TAG0 author data is read-only.");
             PositiveNumber(value,field!="mass");if(canvas.SelectedParticles.Count==0)throw new InvalidOperationException("Select particles first.");
             var backup=new XDocument(stagedXml);bool wasDirty=editingDirty;
             try

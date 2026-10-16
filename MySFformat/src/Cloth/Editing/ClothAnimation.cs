@@ -173,8 +173,9 @@ namespace MySFformat
             var bindings=skeletons.Select(s=>CreateAnimationBinding(clothAnimation,s)).ToArray();animationSkeletons=skeletons;animationBindings=bindings;animationBoundDocument=Document;
             ReadAnimationReference(skeletons[0]);
         }
-        void ValidateAnimationSession(ClothPreviewSession session)
+        void ValidateAnimationSession(IClothPreviewSession session)
         {
+            if(HasLinkedAnimation&&!session.SupportsAnimation)throw new NotSupportedException("OpenPhysicsHKX currently supports rest-pose physics only. Uncheck Drive Native Cloth or use Native HCT for animation.");
             if(!HasLinkedAnimation)return;EnsureAnimationBindings();var names=session.SkeletonNames;var bones=session.SkeletonBones;
             if(names.Length!=animationSkeletons.Length)throw new InvalidDataException("Animated skeleton count mismatch");
             for(int s=0;s<names.Length;s++)if(names[s]!=ClothDocument.Value(animationSkeletons[s],"name")||!bones[s].SequenceEqual(ClothDocument.Field(animationSkeletons[s],"bones").Elements().Select(b=>ClothDocument.Value(b,"name"))))throw new InvalidDataException("Animated skeleton order/name mismatch");

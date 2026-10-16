@@ -117,6 +117,66 @@ not a complete automatic conversion between games.
 
 ### Native Cloth playback in the Cloth window
 
+#### Elden Ring equipment (Havok 2018 TAG0)
+
+ER `_c.hkx` files and primary equipment binders can be loaded directly. TAG0 SDK
+20180100 is read natively in C#; the Inspector supports particles, constraints,
+colliders, topology and raw data inspection. ER HKX author editing/export and
+layout switching are disabled: a 2014 packfile is not a game-compatible ER file.
+
+For physics, load the matching FLVER, then select **Preview Environment → Physics
+backend → Native HCT (ER compatibility)**, choose the existing local HCT runtime,
+**Apply Environment**, and **Play Cloth**. This is an explicitly selected **2018
+→ 2014 CPU physics approximation**, not the ER solver. The warning remains in
+preview status. The ordinary Native HCT option does not silently convert ER data;
+OpenPhysicsHKX does not yet implement ER operator bindings.
+
+The compatibility path retains physical operators, constraint sets, reference
+indices, skin weights and authored solver configuration. It uses 2014 bending
+and a serial operator schedule. Unsupported active features are refused, not
+omitted or replaced with rest bindings. In particular, equipment using 5–8 skin
+influences is not approximated by truncating weights. The current mesh overlay
+remains bone-weight visualization, not an ER cloth-deformed display mesh.
+
+Local ER validation: 670 standard primary armor binders, 395 Cloth TAG0 loaded;
+390 compatibility projections passed 2014 packing/full semantic readback. Five
+body variants (female 1425/1426/1427, male 1425/1426) are refused because their
+deformers use more than four skin influences. Ten representative assets passed
+120 HCT compatibility frames; this is not 395-asset native simulation or gameplay
+validation. See `tools/Cloth/er-tagfile-audit.md` for format and validation scope.
+
+#### Bloodborne / Dark Souls III and shared controls
+
+**Preview Environment → Physics backend** offers **Native HCT** and the bundled
+**OpenPhysicsHKX** CPU solver. OpenPhysicsHKX needs no runtime folder or vendor DLL.
+The Editor references the prebuilt `MySFformat/OpenPhysicsHKX.Core.dll`, not a
+vendored source project. To update Core, build its independent source repository,
+replace that DLL, then rebuild the Editor. See `MySFformat/lib/OpenPhysicsHKX/SOURCE.md`.
+Select it and **Apply Environment**, then **Play Cloth**. Native HCT remains the
+default. OpenPhysicsHKX is static rest-pose preview with basic capsule collisions,
+not native wind, friction, collision-mask filtering or animated/display-mesh output.
+
+BendLink and Transition have experimental approximate implementations, identified
+in preview status. Other unknown constraints are refused unless **Allow unmodeled
+constraints to be omitted** is explicitly enabled; omitted classes remain listed.
+Rest-binding fallback has been removed. Unsupported compact/remapped references,
+dependent buffers (including parts of the original Hunter set), and variable
+dynamic radii are refused rather than replaced with independent particle-rest
+targets or maximum radii. Use Native HCT for these bindings and animation.
+The common BB/DS3 reader now includes equipment Gather, Volume/VolumeMx,
+BoneSpace P/PN/PNT and ObjectSpace PN deformers, legacy BendLink/MeshMeshDeform,
+and the DS3 sphere layout. Missing or mismatched schemas still fail closed;
+they are reader limitations, not proof that the original runtime rejects an asset.
+Schema read/write support does not implement the corresponding managed kernels
+or reference-buffer graph. See `tools/Cloth/equipment-schema-audit.md` for layout notes.
+Local primary-equipment validation: 1017 binders, 369 Cloth HKX (BB 156 / DS3 213),
+all loading and in-memory semantic roundtrips passed; 16 representative assets
+also passed 120 native HCT frames. LOD/weapon/face/hair archives and gameplay were
+not covered by this equipment census.
+
+The Inspector now indexes staged XML objects/ranges and fills grids in batches;
+selection, pending edits, Apply and Undo/Redo retain their original semantics.
+
 **Preview Environment → Render FLVER Meshes (Bone Weights)** is off by default.
 Enable it to overlay the current FLVER with its original bone-weight skinning.
 **Add FLVER…** loads independent models without replacing the editor's model or
@@ -283,7 +343,8 @@ The isolated HCT bootstrap probe has passed using a local six-DLL subset,
 without loading vendor DLLs from the original installation or global GAC.
 Constant-pose native Cloth stepping and Cloth-window playback pass for DS3
 `BD_M_3000` and BB Clorinde v10, with CLM2 loaded and source files protected.
-Animated input and main-Viewer mesh integration are not yet implemented.
+Animated input is available for Native HCT. Cloth-deformed main-Viewer mesh
+integration is not implemented; the optional Cloth-window mesh layer uses bone weights.
 User-supplied HCT remains proprietary;
 no vendor DLLs are included in the editor/source distribution.
 

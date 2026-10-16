@@ -44,7 +44,9 @@ namespace MySFformat.Cloth.Preview
         static void Main(string[] args)
         {
             if(args.Length!=4)throw new ArgumentException("Expected BB input/output and DS3 input/output");
-            string[] names={"hclBendLinkConstraintSet","hclBendLinkConstraintSetLink","hclMeshMeshDeformOperator","hclMeshMeshDeformOperatorTriangleVertexPair"};
+            // The legacy scalar volume constraint exists in BB clothing. Its arrays
+            // and vector-aligned PODs have identical reviewed offsets in runtime ABI.
+            string[] names={"hclBendLinkConstraintSet","hclBendLinkConstraintSetLink","hclMeshMeshDeformOperator","hclMeshMeshDeformOperatorTriangleVertexPair","hclVolumeConstraint","hclVolumeConstraintApplyData","hclVolumeConstraintFrameData"};
             var compatibility=XDocument.Load(args[0]).Root.Elements("class").Where(c=>names.Contains((string)c.Attribute("name"))).ToArray();
             if(compatibility.Length!=names.Length)throw new InvalidOperationException("Missing audited preview compatibility schema");
             Merge(args[0],args[1]);Merge(args[2],args[3],compatibility);

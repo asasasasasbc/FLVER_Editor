@@ -183,7 +183,7 @@ namespace MySFformat
 
         void OnNativeLayoutChanged(object sender, EventArgs args)
         {
-            if (updatingLayout || Document == null) return;
+            if (updatingLayout || Document == null || Document.IsTagfile) return;
             StopClothPreview();
             // 先保存旧文档，确保切换包头版本可以撤销；不把它当可靠的游戏 ID。
             undoDocuments.Push(ClothDocument.FromXml(Document.Xml, Document.Source, Document.Edited));

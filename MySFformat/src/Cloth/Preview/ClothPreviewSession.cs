@@ -20,7 +20,7 @@ namespace MySFformat.Cloth.Preview
         public Dictionary<string,Vector3[]> Domains;
     }
     // Editor-side client only. HCT/native code is never loaded into the editor.
-    public sealed class ClothPreviewSession : IDisposable
+    public sealed class ClothPreviewSession : IClothPreviewSession
     {
         readonly NamedPipeServerStream pipe;
         readonly string[] names;
@@ -35,7 +35,11 @@ namespace MySFformat.Cloth.Preview
         BinaryReader reader;BinaryWriter writer;
         int disposed,sequence,stepping;
         readonly PreviewEnvironment environment;
+        readonly string notice;
         public string WorkDirectory {get;private set;}
+        public string DisplayName {get{return string.IsNullOrEmpty(notice)?"Native HCT":"Native HCT (ER compatibility)";}}
+        public bool SupportsAnimation {get{return true;}}
+        public string Notice {get{return notice;}}
         public int ProcessId {get{return process.Id;}}
         public string[] DomainNames {get{return (string[])names.Clone();}}
         public string[] SkeletonNames {get{return (string[])skeletonNames.Clone();}}
@@ -72,6 +76,14 @@ namespace MySFformat.Cloth.Preview
         }
         static ClothPreviewSession Create(string xml,byte[] flver,byte[] clm2,string runtime,CancellationToken cancel,IProgress<string> progress,PreviewEnvironment environment)
         {
+            string notice="";
+            var source=System.Xml.Linq.XDocument.Parse(xml);
+            if((string)source.Root.Attribute("sourceFormat")=="TAG0-20180100")
+            {
+                if(environment.Backend!="Native HCT (ER compatibility)")throw new NotSupportedException("ER Cloth is Havok 2018. Select Native HCT (ER compatibility) to explicitly opt into a 2014 CPU physics approximation; this is not the ER runtime.");
+                xml=HkxTagfilePreviewAdapter.Create(source).ToString();
+                notice="ER 2018 → HCT 2014 approximation · 2014 bending · NOT ER runtime";
+            }
             ValidateRuntime(runtime);cancel.ThrowIfCancellationRequested();
             string helper=Path.Combine(HelpersDirectory,"HctPreviewProbe.exe"),builder=Path.Combine(HelpersDirectory,"PreviewAssetBuilder.exe"),schema=Path.Combine(HelpersDirectory,"schema-bb.xml");
             foreach(string path in new[]{helper,builder,schema})if(!File.Exists(path))throw new FileNotFoundException("Preview helper is missing; rebuild/deploy the editor: "+path);
@@ -92,10 +104,11 @@ namespace MySFformat.Cloth.Preview
                 }
             }
             cancel.ThrowIfCancellationRequested();if(progress!=null)progress.Report("Starting isolated native Cloth (offline network guard)…");
-            return new ClothPreviewSession(helper,Path.GetFullPath(runtime),assets,work,cancel,environment);
+            return new ClothPreviewSession(helper,Path.GetFullPath(runtime),assets,work,cancel,environment,notice);
         }
-        ClothPreviewSession(string helper,string runtime,string assets,string work,CancellationToken cancel,PreviewEnvironment settings)
+        ClothPreviewSession(string helper,string runtime,string assets,string work,CancellationToken cancel,PreviewEnvironment settings,string notice)
         {
+            this.notice=notice;
             environment=settings.Clone();
             WorkDirectory=work;log=Path.Combine(work,"host.log");string pipeName="FLVER.ClothPreview."+Guid.NewGuid().ToString("N");
             var security=new PipeSecurity();security.SetAccessRuleProtection(true,false);security.AddAccessRule(new PipeAccessRule(WindowsIdentity.GetCurrent().User,PipeAccessRights.FullControl,AccessControlType.Allow));

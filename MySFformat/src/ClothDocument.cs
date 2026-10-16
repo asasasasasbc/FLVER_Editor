@@ -53,9 +53,11 @@ namespace MySFformat
         static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
         public XDocument Xml { get; private set; }
         public bool Edited { get; private set; }
-        public string NativeLayout {get{return (string)Xml.Root.Attribute("nativeLayout")??"8,1,1,1";}}
+        public bool IsTagfile {get{return (string)Xml.Root.Attribute("sourceFormat")=="TAG0-20180100";}}
+        public string NativeLayout {get{return IsTagfile?"TAG0-20180100":(string)Xml.Root.Attribute("nativeLayout")??"8,1,1,1";}}
         public void SetNativeLayout(string layout)
         {
+            if(IsTagfile)throw new NotSupportedException("ER TAG0 is read-only; changing a packfile header does not convert it.");
             if(layout!="8,1,1,1"&&layout!="8,1,0,1")throw new ArgumentException("Unsupported native header layout.");
             Xml.Root.SetAttributeValue("nativeLayout",layout);Edited=true;
         }
@@ -64,6 +66,12 @@ namespace MySFformat
         public List<ClothDomain> Domains { get; private set; }
         public static XElement Field(XElement o, string name) { return o.Elements("hkparam").First(p => (string)p.Attribute("name") == name); }
         public static string Value(XElement o, string name) { return Field(o, name).Value.Trim(); }
+        public static XElement SolverConfig(XElement op)
+        {
+            var configs=op.Elements("hkparam").SingleOrDefault(p=>(string)p.Attribute("name")=="simulateOpConfigs");
+            if(configs==null)return op;
+            var first=configs.Elements("hkobject").FirstOrDefault();if(first==null)throw new InvalidDataException("Simulation operator has no configuration.");return first;
+        }
         public static double[] Numbers(string s) { return Regex.Matches(s, @"[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?").Cast<Match>().Select(m => double.Parse(m.Value, Invariant)).ToArray(); }
         static string[] Refs(XElement o, string name) { return Value(o, name).Split((char[])null, StringSplitOptions.RemoveEmptyEntries); }
         static Vector3 Vector(double[] values, int i) { return new Vector3((float)values[i], (float)values[i + 1], (float)values[i + 2]); }
@@ -144,7 +152,9 @@ namespace MySFformat
                 {
                     int index=int.Parse(Value(op,"simClothIndex"),Invariant);if(index<0||index>=ownerSimRefs.Length)throw new InvalidDataException("SimulateOperator domain index invalid.");
                     var target=Objects[ownerSimRefs[index]];int constraints=Refs(target,"staticConstraintSets").Length;
-                    if(Numbers(Value(op,"constraintExecution")).Any(i=>i< -1||i>=constraints))throw new InvalidDataException("Constraint execution index outside constraint list.");
+                    var configs=op.Elements("hkparam").SingleOrDefault(p=>(string)p.Attribute("name")=="simulateOpConfigs");
+                    foreach(var config in configs==null?new[]{op}:configs.Elements("hkobject"))
+                        if(Numbers(Value(config,"constraintExecution")).Any(i=>i< -1||i>=constraints))throw new InvalidDataException("Constraint execution index outside constraint list.");
                 }
                 foreach (var c in d.Constraints.Where(c=>(string)c.Attribute("class")=="hclLocalRangeConstraintSet"))
                     foreach (var row in Field(c,"localConstraints").Elements())
@@ -154,13 +164,27 @@ namespace MySFformat
                     }
                 var map=Field(sim,"collidableTransformMap").Elements().Single();
                 var refs=Refs(sim,"perInstanceCollidables");var indices=Numbers(Value(map,"transformIndices"));var offsets=Numbers(Value(map,"offsets"));
-                if(indices.Length!=refs.Length || offsets.Length!=refs.Length*16)throw new InvalidDataException("Collider binding dimensions do not match.");
+                // -1 with empty map arrays means no transform-set binding. Such a
+                // collider retains its authored hclCollidable.transform (DS3 6650).
+                // Do not invent a bone or silently accept a partial bound map.
+                int transformSet=int.Parse(Value(map,"transformSetIndex"),Invariant);
+                bool unbound=transformSet==-1&&indices.Length==0&&offsets.Length==0;
+                if(!unbound&&(transformSet<0||indices.Length!=refs.Length||offsets.Length!=refs.Length*16))throw new InvalidDataException("Collider binding dimensions do not match.");
                 for(int i=0;i<refs.Length;i++)
                 {
                     var collider=Objects[refs[i]];var shape=Objects[Value(collider,"shape")];string cls=(string)shape.Attribute("class");
-                    int bone=(int)indices[i];if(bone<0||bone>=bones.Length)throw new InvalidDataException("Collider bone index is invalid.");
-                    var transform=Matrix(offsets,i*16)*world[bone];
-                    var visual=new ClothCollider {Bone=bones[bone],Shape=cls};
+                    Matrix4x4 transform;string boneName;
+                    if(unbound)
+                    {
+                        var authored=Numbers(Value(collider,"transform"));if(authored.Length!=16)throw new InvalidDataException("Authored collider transform dimensions do not match.");
+                        transform=Matrix(authored,0);boneName="(unbound)";
+                    }
+                    else
+                    {
+                        int bone=(int)indices[i];if(bone<0||bone>=bones.Length)throw new InvalidDataException("Collider bone index is invalid.");
+                        transform=Matrix(offsets,i*16)*world[bone];boneName=bones[bone];
+                    }
+                    var visual=new ClothCollider {Bone=boneName,Shape=cls};
                     if(cls=="hclCapsuleShape" || cls=="hclTaperedCapsuleShape")
                     {
                         visual.Start=Vector3.Transform(Vector(Numbers(Value(shape,cls=="hclCapsuleShape"?"start":"small")),0),transform);

@@ -9,7 +9,7 @@ Users can view and edit models, materials, dummy points inside the FLVER file an
 
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
 
-For HKX animation playback and the dedicated Bloodborne / Dark Souls III Cloth tools, see [Cloth and Animation](cloth-and-animation-README.md).
+For HKX animation playback, Bloodborne / Dark Souls III Cloth editing, and Elden Ring TAG0 inspection / compatibility physics preview, see [Cloth and Animation](cloth-and-animation-README.md).
 
 If you just want the .exe executable program, please download the release version at here: https://github.com/asasasasasbc/FLVER_Editor/releases
 
@@ -351,11 +351,14 @@ In the Nodes window, **Advanced → BB_BoneBoundingBOX_Calc** recalculates Blood
 | TKGP / SoulsFormats and SoulsFormatsNEXT contributors | Known CLM2 structure and binary read/write; entry semantics remain unknown | [CLM2 source](https://github.com/soulsmods/SoulsFormatsNEXT/blob/master/SoulsFormats/Formats/CLM2.cs), GPL-3.0 |
 | DexesTTP | Original HKXPack; architecture informing the native C# port; copyright notice retained | [HKXPack](https://github.com/Dexesttp/hkxpack), MIT |
 | JeNoVaViRuS | hkxpack-souls; reference for the native C# implementation and schema extraction | [hkxpack-souls](https://github.com/JeNoVaViRuS/hkxpack-souls), MIT |
+| The12thAvenger / HKLib contributors | Havok 2018 TAG0 format reference and independent validation oracle; HKLib runtime is not bundled | [HKLib](https://github.com/The12thAvenger/HKLib), MIT; notice in `MySFformat/tools/Cloth/LICENSE-HKLib.txt` |
+| OpenPhysicsHKX contributors | Bundled experimental managed CPU Cloth preview DLL | [OpenPhysicsHKX source](https://github.com/asasasasasbc/OpenPhysicsHKX); MIT license and binary revision: `MySFformat/lib/OpenPhysicsHKX/` |
 | PredatorCZ | HavokLib / HavokToolset used by the animation decoder | [HavokLib](https://github.com/PredatorCZ/HavokLib), GPL-3.0 |
 | DSAnimStudio contributors / KamiyamaShiki0704 | Initialization reference for the experimental isolated HCT preview host; not bundled Havok runtime code | [DSAnimStudio feature branch](https://github.com/KamiyamaShiki0704/DSAnimStudio/tree/feat/root-motion-bullet-physics-fx-preview), GPL-3.0 |
 | Dropoff, Zullie the Witch, 莫, and previously credited contributors | Existing editor contributions and reference-workflow credits | Prior credits remain in this README and application |
 
-The Cloth codec is a **local C# implementation informed by hkxpack-souls**.
+The 2014 Cloth codec is a **local C# implementation informed by hkxpack-souls**;
+the 2018 TAG0 reader is informed by HKLib's format implementation.
 Implementation: `MySFformat/src/HkxPack/`; schemas and retained MIT notice:
 `MySFformat/tools/Cloth/`. Local implementation and corrections are not
 attributed to upstream authors. Preserve applicable third-party notices and

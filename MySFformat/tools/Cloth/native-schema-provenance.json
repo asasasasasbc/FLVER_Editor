@@ -44,7 +44,7 @@
   ],
   "purpose": "Local BB Cloth C# reader/writer schema closure; not a proprietary Havok SDK/runtime",
   "corrections": "Historical baseline follows the audited Jar; supplemental Hunter PNT/BB parent-tail corrections are documented in hunter-schema-audit.md. Preserve notices.",
-  "baseline_note": "schema_sha256, classes and type counts above describe the original extraction, not the subsequently extended file.",
+  "baseline_note": "schema_sha256, classes and type counts above describe the original extraction, not the subsequently extended file. Additional equipment classes are tracked separately in equipment-schema-provenance.json and equipment-schema-audit.md.",
   "extension_20261014": {
     "classes": 91,
     "added": "hclObjectSpaceMeshMeshDeformPNTOperator",

@@ -5,6 +5,9 @@ namespace MySFformat.Cloth.Preview
     // Preview-only settings. Never applied to the editor's author document.
     public sealed class PreviewEnvironment
     {
+        // String keeps this DTO usable by the separately compiled native helpers.
+        public string Backend="Native HCT";
+        public bool AllowUnmodeledConstraints;
         public bool OverrideGravity;
         public float GravityX=0,GravityY=-9.81f,GravityZ=0;
         public bool WindEnabled;

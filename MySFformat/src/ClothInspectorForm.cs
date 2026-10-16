@@ -50,12 +50,15 @@ namespace MySFformat
         readonly NumericUpDown windSpeed = EnvironmentNumber("previewWindSpeed", 0, 50, 3);
         readonly NumericUpDown windDrag = EnvironmentNumber("previewWindDrag", 0, 100, 1);
         PreviewEnvironment appliedEnvironment;
+        readonly ComboBox previewBackend=new ComboBox {Name="clothPreviewBackend",DropDownStyle=ComboBoxStyle.DropDownList,Width=255};
+        readonly Label previewBackendNote=new Label {Name="clothPreviewBackendNote",AutoSize=true,MaximumSize=new Size(440,0),Padding=new Padding(4)};
+        readonly CheckBox allowUnmodeledConstraints=new CheckBox {Name="allowUnmodeledClothConstraints",Text="Allow unmodeled constraints to be omitted (approximate)",AutoSize=true};
         readonly Button previewRuntime=new Button {Name="chooseClothRuntime",Text="HCT Runtime…",AutoSize=true};
         readonly TextBox previewRuntimePath=new TextBox {Name="clothRuntimePath",ReadOnly=true,Width=280};
         readonly Label previewState=new Label {Name="clothPreviewState",AutoSize=true,MaximumSize=new Size(900,0),Padding=new Padding(4,7,0,0)};
         readonly System.Windows.Forms.Timer previewTimer=new System.Windows.Forms.Timer {Interval=16};
         readonly System.Diagnostics.Stopwatch previewClock=new System.Diagnostics.Stopwatch();
-        ClothPreviewSession previewSession;
+        IClothPreviewSession previewSession;
         Task<ClothPreviewFrame> pendingPreview;
         ClothPreviewFrame lastPreview;
         CancellationTokenSource previewCancellation;
@@ -97,7 +100,7 @@ namespace MySFformat
             var third=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             var editHkx=new Button {Name="editHkx",Text="Edit HKX XML…",AutoSize=true};
             var saveHkx=new Button {Name="saveHkx",Text="Save HKX Copy…",AutoSize=true};
-            var nativeLabel=new Label {Text="Native C# · BB / DS3 · Full readback gate · No Java",AutoSize=true,Padding=new Padding(4,7,0,0)};
+            var nativeLabel=new Label {Text="Native C# · BB/DS3 read-write · ER TAG0 read-only",AutoSize=true,Padding=new Padding(4,7,0,0)};
             nativeLayout.Items.AddRange(new object[]{"8,1,1,1 (BB sample layout)","8,1,0,1 (DS3 sample layout)"});nativeLayout.SelectedIndex=0;
             third.Controls.AddRange(new Control[]{editHkx,saveHkx,nativeLayoutLabel,nativeLayout,nativeLabel});
             tips.SetToolTip(editHkx,"Open an advanced full-XML editor on a clone, changes memory only, press save HKX Copy to save to the harddrive.\n在克隆上弹窗编辑完整XML；只修改内存，记得点Save存硬盘。");
@@ -120,7 +123,7 @@ namespace MySFformat
             var fourth=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             fourth.Controls.AddRange(new Control[]{previewPlay,previewStop,previewReset,viewReset,previewRuntime,previewRuntimePath,previewState});
             previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Native preview off · source data unchanged";
-            tips.SetToolTip(previewPlay,"Play or pause native Cloth. Use the HKX Animation tab to link animation.\n播放或暂停原生布料；在HKX Animation页联动动画。");
+            tips.SetToolTip(previewPlay,"Play or pause the selected physics backend. HKX animation driving currently requires Native HCT.\n播放或暂停所选物理后端；HKX动画驱动当前需要Native HCT。");
             tips.SetToolTip(previewReset,"Stop the owned host, restore the rest view and start a fresh simulation from current in-memory data.\n停止本窗口宿主、恢复rest视图，再从当前内存数据重新初始化解算。");
             tips.SetToolTip(previewStop,"End this window's owned host and restore rest data without restarting; environment controls are retained.\n结束本窗口宿主、恢复rest数据，不重新启动；保留预览环境控件值。");
             tips.SetToolTip(previewRuntime,"Select hctPreviewPlugin.dll with the standard file picker; its parent runtime root is detected automatically. Six local HCT DLLs are required for native preview only.\n用标准文件选择窗口选择hctPreviewPlugin.dll，自动识别运行时根目录；仅原生解算预览需要6个本机HCT DLL。");
@@ -133,6 +136,11 @@ namespace MySFformat
             previewTimer.Tick+=(s,e)=>PreviewTick();
             // 环境和 HKX 动画使用独立 tab，不把更多参数堆到主工具栏。
             var environmentRow=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
+            previewBackend.Items.AddRange(new object[]{"Native HCT","OpenPhysicsHKX (built-in, experimental)"});previewBackend.SelectedIndex=0;
+            environmentRow.Controls.Add(new Label {Text="Physics backend",AutoSize=true,Padding=new Padding(2,5,0,0)});environmentRow.Controls.Add(previewBackend);environmentRow.SetFlowBreak(previewBackend,true);
+            environmentRow.Controls.Add(allowUnmodeledConstraints);environmentRow.SetFlowBreak(allowUnmodeledConstraints,true);
+            tips.SetToolTip(allowUnmodeledConstraints,"Explicitly allow an incomplete managed solve by omitting unsupported constraint classes. Their names remain visible in preview status. Does not enable animation, wind or unsupported buffer mappings. Off by default.\n明确允许托管求解省略未支持约束，仅作不完整近似预览；状态持续列出省略类。不会启用动画、风或未支持缓冲映射，默认关闭。");
+            tips.SetToolTip(previewBackend,"Native HCT uses a user-provided runtime. OpenPhysicsHKX uses the bundled C# DLL; no runtime folder is needed. Select and Apply Environment. Unsupported assets fail explicitly.\nHCT需要自备运行时；OpenPhysicsHKX使用自带C# DLL，无需选择目录。选择后点Apply Environment；不支持的资源会明确提示。");
             Action<string,Control> environmentField=(label,control)=>{environmentRow.Controls.Add(new Label {Text=label,AutoSize=true,Padding=new Padding(2,5,0,0)});environmentRow.Controls.Add(control);};
             environmentRow.Controls.Add(gravityOverride);environmentField("Gx",gravityX);environmentField("Gy",gravityY);environmentField("Gz",gravityZ);environmentRow.Controls.Add(windEnabled);environmentField("Wx",windX);environmentField("Wy",windY);environmentField("Wz",windZ);environmentField("Speed",windSpeed);environmentField("Max drag",windDrag);
             var applyEnvironment=new Button {Name="applyClothEnvironment",Text="Apply Environment",AutoSize=true};var defaultsEnvironment=new Button {Name="defaultClothEnvironment",Text="File Gravity / Wind Off",AutoSize=true};environmentRow.Controls.Add(applyEnvironment);environmentRow.Controls.Add(defaultsEnvironment);
@@ -157,7 +165,7 @@ namespace MySFformat
             {var page=new TabPage(item.Item1);page.Controls.Add(item.Item2);tabs.TabPages.Add(page);}
             var raw=new TabPage("Objects / Raw XML");var rawSplit=new SplitContainer {Size=new Size(550,600),Dock=DockStyle.Fill,Orientation=Orientation.Horizontal,SplitterDistance=220};rawSplit.Panel1.Controls.Add(objects);rawSplit.Panel2.Controls.Add(xml);raw.Controls.Add(rawSplit);tabs.TabPages.Add(raw);
             var environmentPage=new TabPage("Preview Environment") {AutoScroll=true};environmentRow.Dock=DockStyle.Top;environmentPage.Controls.Add(environmentRow);
-            environmentRow.Controls.Add(new Label {AutoSize=true,MaximumSize=new Size(440,0),Text="Preview only. Wind uses native HCT stepping and is enabled by default. Apply to restart the active preview; Stop retains settings. Constraint ranges still limit movement.",Padding=new Padding(4)});
+            environmentRow.Controls.Add(previewBackendNote);
             fourth.Controls.Remove(previewRuntime);fourth.Controls.Remove(previewRuntimePath);environmentRow.Controls.Add(previewRuntime);environmentRow.Controls.Add(previewRuntimePath);tabs.TabPages.Add(environmentPage);
             InitializeMeshPreview(environmentRow);
             var exportRow=new FlowLayoutPanel {Dock=DockStyle.Bottom,AutoSize=true};exportRow.Controls.AddRange(new Control[]{factorLabel,factor,save});raw.Controls.Add(exportRow);
@@ -165,6 +173,9 @@ namespace MySFformat
             InitializeEditing(split,parameters);
             InitializeSelectionEditor(split);
             InitializeClothAnimation(tabs);
+            previewBackend.SelectedIndexChanged+=(s,e)=>{RefreshBackendControls();if(!populatingEditing){previewEnvironmentDirty=true;UpdateEditState();}};
+            allowUnmodeledConstraints.CheckedChanged+=(s,e)=>{if(!populatingEditing){previewEnvironmentDirty=true;UpdateEditState();}};
+            RefreshBackendControls();
             // 底部状态文本只占两行左右，长消息可滚动，不挤占布料视图。
             status.Text="Load BB / DS3 _c.hkx, parts Binder, or XML. Yellow: fixed (invMass=0); cyan: dynamic; orange: colliders.\nDrag to rotate, wheel to zoom, click a particle for its range sphere. Serialized rest data cannot confirm or rule out game-world wind.";
             tips.SetToolTip(load,"Load BB / DS3 cloth HKX, parts Binder, or XML using the native C# codec. \n使用纯C#编解码器载入BB/DS3布料HKX、装备Binder或XML。");
@@ -212,7 +223,32 @@ namespace MySFformat
         static NumericUpDown EnvironmentNumber(string name,decimal minimum,decimal maximum,decimal value){return new NumericUpDown{Name=name,Minimum=minimum,Maximum=maximum,Value=value,DecimalPlaces=2,Increment=.1m,Width=62};}
         public PreviewEnvironment ReadPreviewEnvironment()
         {
-            var settings=new PreviewEnvironment{OverrideGravity=gravityOverride.Checked,GravityX=(float)gravityX.Value,GravityY=(float)gravityY.Value,GravityZ=(float)gravityZ.Value,WindEnabled=windEnabled.Checked,WindX=(float)windX.Value,WindY=(float)windY.Value,WindZ=(float)windZ.Value,WindSpeed=(float)windSpeed.Value,WindMaxDrag=(float)windDrag.Value};settings.Validate();return settings;
+            var settings=new PreviewEnvironment{Backend=previewBackend.SelectedIndex==2?"Native HCT (ER compatibility)":previewBackend.SelectedIndex==1?"OpenPhysicsHKX":"Native HCT",AllowUnmodeledConstraints=allowUnmodeledConstraints.Checked,OverrideGravity=gravityOverride.Checked,GravityX=(float)gravityX.Value,GravityY=(float)gravityY.Value,GravityZ=(float)gravityZ.Value,WindEnabled=previewBackend.SelectedIndex!=1&&windEnabled.Checked,WindX=(float)windX.Value,WindY=(float)windY.Value,WindZ=(float)windZ.Value,WindSpeed=(float)windSpeed.Value,WindMaxDrag=(float)windDrag.Value};settings.Validate();return settings;
+        }
+        public void ConfigurePreviewBackend(string backend)
+        {
+            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&backend!="Native HCT (ER compatibility)")throw new ArgumentException("Unknown physics backend.");
+            if(backend=="Native HCT (ER compatibility)"&&(Document==null||!Document.IsTagfile))throw new InvalidOperationException("Load an ER TAG0 Cloth document first.");
+            previewBackend.SelectedIndex=backend=="Native HCT (ER compatibility)"?2:backend=="OpenPhysicsHKX"?1:0;
+        }
+        void RefreshBackendControls()
+        {
+            bool managed=previewBackend.SelectedIndex==1;
+            previewRuntime.Enabled=previewRuntimePath.Enabled=!managed;
+            allowUnmodeledConstraints.Enabled=managed;
+            foreach(var control in new Control[]{windEnabled,windX,windY,windZ,windSpeed,windDrag})control.Enabled=!managed;
+            foreach(var control in Controls.Find("testClothWind",true))control.Enabled=!managed;
+            previewBackendNote.Text=managed?
+                "Bundled CPU solver; no runtime folder. BendLink/Transition are approximate. Static rest pose and basic capsules only; no animation, wind, friction or collision-mask filtering. Unsupported bindings are refused.":
+                "Native HCT uses the optional local runtime. Wind is enabled by default. Apply Environment restarts the active backend; Stop retains settings.";
+            tips.SetToolTip(previewBackendNote,managed?
+                "No vendor DLL is loaded. Particle previews only; no native display-mesh output.\n无需厂商DLL；仅粒子预览，无原生变形显示网格。当前是rest近似，无动画/风/摩擦和碰撞掩码筛选；未支持约束明确拒绝。":
+                 "Native HCT physics runs in an isolated helper process.\nHCT原生物理在独立宿主进程运行。");
+            if(previewBackend.SelectedIndex==2)
+            {
+                previewBackendNote.Text="ER 2018 → HCT 2014 CPU compatibility approximation, NOT the ER runtime. Preserves mapped operators and constraints; uses 2014 bending. Active unsupported features are refused. No game-compatible ER HKX export.";
+                tips.SetToolTip(previewBackendNote,"Explicit cross-version physics preview; not ER runtime equivalence. No rest-binding substitution.\n显式跨版本物理近似预览，不是法环原版解算器；不使用rest绑定替代，不支持的活动特性会拒绝。");
+            }
         }
         public async Task ApplyPreviewEnvironmentAsync()
         {
@@ -286,7 +322,11 @@ namespace MySFformat
             try
             {
                 if (Document == null) throw new InvalidOperationException("Load Cloth first.");
-                if (Program.targetFlver == null) throw new InvalidOperationException("Load the matching FLVER first.");
+                var environment = forcedEnvironment == null ? ReadPreviewEnvironment() : forcedEnvironment.Clone();
+                bool managed=environment.Backend=="OpenPhysicsHKX";
+                if(environment.Backend!="Native HCT"&&environment.Backend!="Native HCT (ER compatibility)"&&!managed)throw new InvalidOperationException("Unknown preview backend.");
+                if(managed&&HasLinkedAnimation)throw new NotSupportedException("OpenPhysicsHKX currently supports rest-pose physics only. Uncheck Drive Native Cloth or select Native HCT.");
+                if (!managed&&Program.targetFlver == null) throw new InvalidOperationException("Load the matching FLVER first.");
                 if (Clm2 == null) AutoLoadClm2Companion();
 
                 // 先快照内存数据，builder/宿主只消费副本；导出文件和原模型不变。
@@ -294,18 +334,18 @@ namespace MySFformat
                 var clm = Clm2 == null ? null : Clm2.Clone();
                 var model = Program.targetFlver;
                 string runtime = previewRuntimePath.Text;
-                ClothPreviewSession.ValidateRuntime(runtime);
+                if(!managed)ClothPreviewSession.ValidateRuntime(runtime);
                 previewModel = model;
                 var expected = Document.Domains.ToDictionary(d => d.Name, d => d.Positions.Length);
-                byte[] geometry = model.Write();
-                byte[] seams = clm == null ? null : clm.Serialize();
+                byte[] geometry = managed?null:model.Write();
+                byte[] seams = managed||clm==null?null:clm.Serialize();
                 var progress = new Progress<string>(message =>
                 {
                     if (!IsDisposed && generation == previewGeneration) previewState.Text = message;
                 });
-                var environment = forcedEnvironment == null ? ReadPreviewEnvironment() : forcedEnvironment.Clone();
-                var session = await ClothPreviewSession.CreateAsync(document.ToString(), geometry, seams,
-                    runtime, cancel, progress, environment);
+                IClothPreviewSession session;
+                if(managed)session=await ManagedClothPreviewSession.CreateAsync(document,environment,cancel,progress);
+                else session=await ClothPreviewSession.CreateAsync(document.ToString(), geometry, seams,runtime,cancel,progress,environment);
 
                 // 关闭、重载或更换模型后，旧的异步启动结果必须回收，不能重新接管窗口。
                 if (IsDisposed || generation != previewGeneration || cancel.IsCancellationRequested ||
@@ -317,7 +357,7 @@ namespace MySFformat
                 if (!session.DomainNames.OrderBy(s => s).SequenceEqual(expected.Keys.OrderBy(s => s)))
                 {
                     await Task.Run(() => session.Dispose());
-                    throw new InvalidDataException("Native preview domain names do not match the loaded document.");
+                    throw new InvalidDataException("Preview domain names do not match the loaded document.");
                 }
                 ClothPreviewFrame animatedInitial = null;
                 try
@@ -356,7 +396,7 @@ namespace MySFformat
                 if (!IsDisposed && generation == previewGeneration)
                 {
                     StopClothPreview();
-                    previewState.Text = "Native preview unavailable: " + ex.GetBaseException().Message;
+                    previewState.Text = "Cloth preview unavailable: " + ex.GetBaseException().Message;
                 }
             }
             finally
@@ -436,7 +476,7 @@ namespace MySFformat
             canvas.Invalidate();
             previewPlay.Enabled = true;
             previewPlay.Text = "Play Cloth";
-            previewState.Text = "Native preview off · rest data restored · sources unchanged";
+            previewState.Text = "Cloth preview off · rest data restored · sources unchanged";
         }
         void RefreshPreviewState()
         {
@@ -448,18 +488,19 @@ namespace MySFformat
             string wind = appliedEnvironment.WindEnabled ?
                 appliedEnvironment.WindSpeed.ToString("G3", CultureInfo.InvariantCulture) : "off";
             previewState.Text = string.Format(CultureInfo.InvariantCulture,
-                "Native Cloth {0} · frame {1} · {2:F3} s · {3:F3} ms/batch · gravity {4} · wind {5}",
+                previewSession.DisplayName+" {0} · frame {1} · {2:F3} s · {3:F3} ms/batch · gravity {4} · wind {5}",
                 playback, PreviewFrameNumber, PreviewFrameNumber / 60.0,
                 lastPreview == null ? 0 : lastPreview.SolveMilliseconds,
-                appliedEnvironment.OverrideGravity ? "preview override" : "file", wind);
+                appliedEnvironment.OverrideGravity ? "preview override" : "file", wind)+
+                (string.IsNullOrEmpty(previewSession.Notice)?"":" · "+previewSession.Notice);
 
             string windDescription = appliedEnvironment.WindEnabled ?
                 string.Format(CultureInfo.InvariantCulture,
                     "Wind ({0:G3}, {1:G3}, {2:G3}) speed {3:G3} drag {4:G3}",
                     appliedEnvironment.WindX, appliedEnvironment.WindY, appliedEnvironment.WindZ,
                     appliedEnvironment.WindSpeed, appliedEnvironment.WindMaxDrag) : "Wind off";
-            canvas.PreviewLabel = "NATIVE CLOTH · " + playback + " · frame " + PreviewFrameNumber +
-                "\n" + windDescription + " · preview only";
+            canvas.PreviewLabel = previewSession.DisplayName.ToUpperInvariant()+" · " + playback + " · frame " + PreviewFrameNumber +
+                "\n" + windDescription + " · preview only"+(string.IsNullOrEmpty(previewSession.Notice)?"":"\n"+previewSession.Notice);
             canvas.Invalidate();
         }
         void ApplyPreviewPositions()
@@ -508,7 +549,7 @@ namespace MySFformat
             catch (Exception ex)
             {
                 StopClothPreview();
-                previewState.Text = "Native preview stopped: " + ex.GetBaseException().Message;
+                previewState.Text = "Cloth preview stopped: " + ex.GetBaseException().Message;
             }
         }
         public void SaveClm2Copy(string path){if(Clm2==null)throw new InvalidOperationException("Load CLM2 first.");Clm2.SaveCopy(path);}
@@ -576,13 +617,25 @@ namespace MySFformat
             ResetSelectionEditor();
             ResetClothAnimationForDocument();
             Document=document;AutoLoadClm2Companion();domains.Items.Clear();domains.Items.AddRange(document.Domains.Cast<object>().ToArray());domains.SelectedIndex=0;
-            updatingLayout=true;nativeLayout.SelectedIndex=document.NativeLayout=="8,1,0,1"?1:0;updatingLayout=false;
+            updatingLayout=true;
+            if(document.IsTagfile&&nativeLayout.Items.Count==2)nativeLayout.Items.Add("TAG0 20180100 (ER, read-only)");
+            if(!document.IsTagfile&&nativeLayout.Items.Count>2)nativeLayout.Items.RemoveAt(2);
+            nativeLayout.SelectedIndex=document.IsTagfile?2:document.NativeLayout=="8,1,0,1"?1:0;updatingLayout=false;
+            if(document.IsTagfile&&previewBackend.Items.Count==2)previewBackend.Items.Add("Native HCT (ER compatibility)");
+            if(!document.IsTagfile&&previewBackend.Items.Count>2){if(previewBackend.SelectedIndex==2)previewBackend.SelectedIndex=0;previewBackend.Items.RemoveAt(2);}
+            RefreshBackendControls();
             Text="Cloth Inspector — "+Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"")+" (Rest / Native Preview, Not Live Game)";
         }
         void ShowDomain()
         {
             if(Document==null||domains.SelectedIndex<0)return;
             populatingEditing=true;
+            var grids=new[]{particles,collisions,constraints,authorParameters,constraintParameters};
+            var sizes=grids.Select(g=>g.AutoSizeColumnsMode).ToArray();
+            foreach(var grid in grids){grid.SuspendLayout();grid.AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.None;}
+            objects.BeginUpdate();
+            try
+            {
             if(!editingDirty)stagedXml=new System.Xml.Linq.XDocument(Document.Xml);
             var domain=Document.Domains[domains.SelectedIndex];canvas.Domain=domain;canvas.Selected=-1;canvas.ResetView();
             canvas.SelectedParticles.Clear();
@@ -598,23 +651,32 @@ namespace MySFformat
             particles.Columns.Clear();foreach(var name in new[]{"Particle ID","Fixed","mass","invMass","radius","friction","maximumDistance","collisionMask"})particles.Columns.Add(name,name);
             var masks=ClothDocument.Numbers(ClothDocument.Value(domain.Sim,"staticCollisionMasks"));
             var rows=ClothDocument.Field(domain.Sim,"particleDatas").Elements().ToArray();
-            for(int i=0;i<rows.Length;i++)particles.Rows.Add(i,domain.Fixed[i],ClothDocument.Value(rows[i],"mass"),ClothDocument.Value(rows[i],"invMass"),ClothDocument.Value(rows[i],"radius"),ClothDocument.Value(rows[i],"friction"),domain.Ranges[i],i<masks.Length?masks[i].ToString(CultureInfo.InvariantCulture):"Unknown");
+            AddDomainRows(particles,rows.Select((row,i)=>new object[]{i,domain.Fixed[i],ClothDocument.Value(row,"mass"),ClothDocument.Value(row,"invMass"),ClothDocument.Value(row,"radius"),ClothDocument.Value(row,"friction"),domain.Ranges[i],i<masks.Length?masks[i].ToString(CultureInfo.InvariantCulture):"Unknown"}));
             particles.ClearSelection();
             collisions.Columns.Clear();foreach(var name in new[]{"Bone","Shape","Endpoint A (rest)","Endpoint B (rest)","Radius A","Radius B"})collisions.Columns.Add(name,name);
-            foreach(var c in domain.Colliders)collisions.Rows.Add(c.Bone,c.Shape,c.Start,c.End,c.RadiusA,c.RadiusB);
+            AddDomainRows(collisions,domain.Colliders.Select(c=>new object[]{c.Bone,c.Shape,c.Start,c.End,c.RadiusA,c.RadiusB}));
             constraints.Columns.Clear();foreach(var name in new[]{"Constraint Class","Name","Record","Fields"})constraints.Columns.Add(name,name);
-            foreach(var c in domain.Constraints)
-            foreach(var p in c.Elements().Where(p=>p.Elements().Any()))
-            {int i=0;foreach(var row in p.Elements()){int index=constraints.Rows.Add((string)c.Attribute("class"),ClothDocument.Value(c,"name"),i,string.Join("; ",row.Elements().Select(v=>(string)v.Attribute("name")+"="+v.Value.Trim())));constraints.Rows[index].Tag=ClothDocument.Field(StagedObject(c),(string)p.Attribute("name")).Elements().ElementAt(i++);}}
+            AddDomainRows(constraints,domain.Constraints.SelectMany(c=>c.Elements().Where(p=>p.Elements().Any()).SelectMany(p=>p.Elements().Select((row,i)=>new object[]{(string)c.Attribute("class"),ClothDocument.Value(c,"name"),i,string.Join("; ",row.Elements().Select(v=>(string)v.Attribute("name")+"="+v.Value.Trim()))}))));
             populatingEditing=false;PopulateEditing();
             RefreshVerificationIndicator();
+            }
+            finally
+            {
+                populatingEditing=false;objects.EndUpdate();
+                for(int i=0;i<grids.Length;i++){grids[i].AutoSizeColumnsMode=sizes[i];grids[i].ResumeLayout();}
+            }
+        }
+        static void AddDomainRows(DataGridView grid,System.Collections.Generic.IEnumerable<object[]> values)
+        {
+            var rows=values.Select(v=>{var row=new DataGridViewRow();row.CreateCells(grid,v);return row;}).ToArray();
+            if(rows.Length>0)grid.Rows.AddRange(rows);
         }
         void ShowDomainSummary()
         {
             if(Document==null||domains.SelectedIndex<0)return;
             var d=Document.Domains[domains.SelectedIndex];var text=new StringBuilder();
             text.AppendLine("Source: "+Document.Source).AppendLine(d.Name);
-            text.AppendLine("Havok64 2014.1 native header layout: "+Document.NativeLayout+" (not a game-ID guarantee)");
+            text.AppendLine(Document.IsTagfile?"Havok 2018 TAG0 / SDK 20180100 — read-only author data":"Havok64 2014.1 native header layout: "+Document.NativeLayout+" (not a game-ID guarantee)");
             text.AppendLine("Particles: "+d.Positions.Length+"; fixed (invMass=0): "+d.Fixed.Count(x=>x)+"; triangles: "+d.Triangles.Length/3);
             text.AppendLine("fixedParticles array count: "+ClothDocument.Field(d.Sim,"fixedParticles").Attribute("numelements").Value);
             text.AppendLine("Visualized collider shapes: "+d.Colliders.Count+" / "+ClothDocument.Field(d.Sim,"perInstanceCollidables").Attribute("numelements").Value+"; unsupported shapes: see Raw XML.");

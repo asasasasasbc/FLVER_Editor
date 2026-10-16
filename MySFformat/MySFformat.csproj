@@ -9,6 +9,8 @@
     <RootNamespace>MySFformat</RootNamespace>
     <AssemblyName>MySFformat</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+    <PlatformTarget>x64</PlatformTarget>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -31,7 +33,7 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -122,6 +124,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\ClothDocument.cs" />
+    <Compile Include="src\Cloth\Preview\IClothPreviewSession.cs" />
+    <Compile Include="src\Cloth\Preview\ManagedClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\ClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />
     <Compile Include="src\Cloth\Editing\ClothEditing.cs">
@@ -146,6 +150,8 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="src\HkxPack\HkxPackfileCodec.cs" />
+    <Compile Include="src\HkxPack\HkxTagfileReader.cs" />
+    <Compile Include="src\HkxPack\HkxTagfilePreviewAdapter.cs" />
     <Compile Include="src\ClothCli.cs" />
     <Compile Include="src\HkxPack\HkxXmlEditForm.cs">
       <SubType>Form</SubType>
@@ -319,7 +325,30 @@
     <Content Include="tools\Cloth\hunter-schema-audit.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="tools\Cloth\equipment-schema-audit.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\Cloth\equipment-schema-provenance.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\Cloth\LICENSE-HKLib.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\Cloth\er-tagfile-audit.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="tools\Cloth\native-schema.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="OpenPhysicsHKX.Core">
+      <HintPath>OpenPhysicsHKX.Core.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Content Include="lib\OpenPhysicsHKX\LICENSE">
+      <Link>licenses\OpenPhysicsHKX-LICENSE.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

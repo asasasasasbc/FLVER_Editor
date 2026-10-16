@@ -326,7 +326,7 @@
     <member name="localUnpackedPs" offset="184" ctype="hclObjectSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
   </members>
 </class><class name="hclObjectSpaceMeshMeshDeformPNTOperator" version="1" signature="0xe20c4d3e" size="200" parent="hclObjectSpaceMeshMeshDeformOperator">
-  <!-- HkxPack-Plus classxml hclObjectSpaceMeshMeshDeformPNTOperator_1; 2014 ABI, two aligned hkArray fields. -->
+  <!-- HkxPack-Plus classxml hclObjectSpaceMeshMeshDeformPNTOperator_1; original Hunter male binary signature/readback gate. -->
   <members>
     <member name="localPNTs" offset="168" ctype="hclObjectSpaceDeformerLocalBlockPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
     <member name="localUnpackedPNTs" offset="184" ctype="hclObjectSpaceDeformerLocalBlockUnpackedPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
@@ -692,5 +692,246 @@
     <member name="name" offset="0" vtype="TYPE_STRINGPTR" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
     <member name="startBoneIndex" offset="8" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
     <member name="numBones" offset="10" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceMeshMeshDeformPNTOperator" version="1" signature="0x3d533d8b" size="184" parent="hclBoneSpaceMeshMeshDeformOperator">
+  <members>
+    <member name="localPNTs" offset="152" ctype="hclBoneSpaceDeformerLocalBlockPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNTs" offset="168" ctype="hclBoneSpaceDeformerLocalBlockUnpackedPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockUnpackedPNT" version="1" signature="0x522b62b" size="768">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localTangent" offset="512" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockPNT" version="1" signature="0xa943d812" size="512">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+    <member name="localTangent" offset="384" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceMeshMeshDeformOperator" version="1" signature="0xa658dc0f" size="152" parent="hclOperator">
+  <enums>
+    <enum name="ScaleNormalBehaviour" flags="00000000">
+      <enumitem name="SCALE_NORMAL_IGNORE" value="0" />
+      <enumitem name="SCALE_NORMAL_APPLY" value="1" />
+      <enumitem name="SCALE_NORMAL_INVERT" value="2" />
+    </enum>
+  </enums>
+  <members>
+    <member name="inputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="scaleNormalBehaviour" offset="40" etype="ScaleNormalBehaviour" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputTrianglesSubset" offset="48" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="boneSpaceDeformer" offset="64" ctype="hclBoneSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformer" version="1" signature="0x694fac94" size="88">
+  <enums>
+    <enum name="ControlByte" flags="00000000">
+      <enumitem name="FOUR_BLEND" value="0" />
+      <enumitem name="THREE_BLEND" value="1" />
+      <enumitem name="TWO_BLEND" value="2" />
+      <enumitem name="ONE_BLEND" value="3" />
+      <enumitem name="NEXT_SPU_BATCH" value="4" />
+    </enum>
+  </enums>
+  <members>
+    <member name="fourBlendEntries" offset="0" ctype="hclBoneSpaceDeformerFourBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="threeBlendEntries" offset="16" ctype="hclBoneSpaceDeformerThreeBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="twoBlendEntries" offset="32" ctype="hclBoneSpaceDeformerTwoBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="oneBlendEntries" offset="48" ctype="hclBoneSpaceDeformerOneBlendEntryBlock" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="controlBytes" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT8" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startVertexIndex" offset="80" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="endVertexIndex" offset="82" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="batchSizeSpu" offset="84" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partialWrite" offset="86" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerOneBlendEntryBlock" version="1" signature="0xc1c287ad" size="64">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerTwoBlendEntryBlock" version="1" signature="0x5d34fa72" size="48">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="8" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="16" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerThreeBlendEntryBlock" version="1" signature="0xcb5ad1e2" size="48">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="5" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="10" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="15" flags="FLAGS_NONE" default="0" />
+    <member name="padding" offset="40" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="8" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerFourBlendEntryBlock" version="1" signature="0x1d1108c8" size="48">
+  <members>
+    <member name="vertexIndices" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="4" flags="FLAGS_NONE" default="0" />
+    <member name="boneIndices" offset="8" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="padding" offset="40" vtype="TYPE_UINT8" vsubtype="TYPE_VOID" arrsize="8" flags="SERIALIZE_IGNORED" default="0" />
+  </members>
+</class><class name="hclBoneSpaceMeshMeshDeformPNOperator" version="1" signature="0x2a74c429" size="184" parent="hclBoneSpaceMeshMeshDeformOperator">
+  <members>
+    <member name="localPNs" offset="152" ctype="hclBoneSpaceDeformerLocalBlockPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNs" offset="168" ctype="hclBoneSpaceDeformerLocalBlockUnpackedPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockUnpackedPN" version="1" signature="0xbbef768c" size="512">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockPN" version="1" signature="0x7360bfdb" size="384">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="256" vtype="TYPE_INT16" vsubtype="TYPE_VOID" arrsize="64" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclVolumeConstraintMx" version="1" signature="0x37582f2" size="96" parent="hclConstraintSet">
+  <members>
+    <member name="frameBatchDatas" offset="32" ctype="hclVolumeConstraintMxFrameBatchData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="frameSingleDatas" offset="48" ctype="hclVolumeConstraintMxFrameSingleData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="applyBatchDatas" offset="64" ctype="hclVolumeConstraintMxApplyBatchData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="applySingleDatas" offset="80" ctype="hclVolumeConstraintMxApplySingleData" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclVolumeConstraintMxApplySingleData" version="1" signature="0x2dd9d0d9" size="32">
+  <members>
+    <member name="frameVector" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleIndex" offset="16" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="20" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclVolumeConstraintMxApplyBatchData" version="1" signature="0x982866a8" size="352">
+  <members>
+    <member name="frameVector" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="particleIndex" offset="256" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="stiffness" offset="288" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclVolumeConstraintMxFrameSingleData" version="1" signature="0xaaea3337" size="32">
+  <members>
+    <member name="frameVector" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleIndex" offset="16" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="weight" offset="20" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclVolumeConstraintMxFrameBatchData" version="1" signature="0xd5bf326b" size="352">
+  <members>
+    <member name="frameVector" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="particleIndex" offset="256" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+    <member name="weight" offset="288" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclGatherAllVerticesOperator" version="1" signature="0xda737296" size="64" parent="hclOperator">
+  <members>
+    <member name="vertexInputFromVertexOutput" offset="32" vtype="TYPE_ARRAY" vsubtype="TYPE_INT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputBufferIdx" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="52" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="gatherNormals" offset="56" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partialGather" offset="57" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSphereShape" version="1" signature="0xd779f2c5" size="48" parent="hclShape">
+  <members>
+    <member name="sphere" offset="32" ctype="hkSphere" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hkSphere" version="1" signature="0x143dff99" size="16">
+  <members>
+    <member name="pos" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceMeshMeshDeformPNOperator" version="1" signature="0x16bdb41a" size="200" parent="hclObjectSpaceMeshMeshDeformOperator">
+  <members>
+    <member name="localPNs" offset="168" ctype="hclObjectSpaceDeformerLocalBlockPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNs" offset="184" ctype="hclObjectSpaceDeformerLocalBlockUnpackedPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclMeshMeshDeformOperator" version="1" signature="0xff4f25c3" size="104" parent="hclOperator">
+  <enums>
+    <enum name="ScaleNormalBehaviour" flags="00000000">
+      <enumitem name="SCALE_NORMAL_IGNORE" value="0" />
+      <enumitem name="SCALE_NORMAL_APPLY" value="1" />
+      <enumitem name="SCALE_NORMAL_INVERT" value="2" />
+    </enum>
+  </enums>
+  <members>
+    <member name="inputTrianglesSubset" offset="32" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleVertexPairs" offset="48" ctype="hclMeshMeshDeformOperatorTriangleVertexPair" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleVertexStartForVertex" offset="64" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputBufferIdx" offset="80" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="84" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="startVertex" offset="88" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="endVertex" offset="90" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="scaleNormalBehaviour" offset="92" etype="ScaleNormalBehaviour" vtype="TYPE_ENUM" vsubtype="TYPE_UINT32" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="deformNormals" offset="96" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="partialDeform" offset="97" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclMeshMeshDeformOperatorTriangleVertexPair" version="1" signature="0x53b3b40d" size="48">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localNormal" offset="16" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleIndex" offset="32" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="weight" offset="36" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBendLinkConstraintSet" version="1" signature="0x26824757" size="48" parent="hclConstraintSet">
+  <members>
+    <member name="links" offset="32" ctype="hclBendLinkConstraintSetLink" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBendLinkConstraintSetLink" version="1" signature="0x30c24e3d" size="20">
+  <members>
+    <member name="particleA" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="particleB" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bendMinLength" offset="4" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stretchMaxLength" offset="8" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="bendStiffness" offset="12" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="stretchStiffness" offset="16" vtype="TYPE_REAL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceMeshMeshDeformPOperator" version="1" signature="0xc9311cbd" size="184" parent="hclBoneSpaceMeshMeshDeformOperator">
+  <members>
+    <member name="localPs" offset="152" ctype="hclBoneSpaceDeformerLocalBlockP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPs" offset="168" ctype="hclBoneSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockUnpackedP" version="1" signature="0xf11d6383" size="256">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceDeformerLocalBlockP" version="1" signature="0xf11d6383" size="256">
+  <members>
+    <member name="localPosition" offset="0" vtype="TYPE_VECTOR4" vsubtype="TYPE_VOID" arrsize="16" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimpleMeshBoneDeformOperator" version="1" signature="0x80d9769f" size="72" parent="hclOperator">
+  <members>
+    <member name="inputBufferIdx" offset="32" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputTransformSetIdx" offset="36" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleBonePairs" offset="40" ctype="hclSimpleMeshBoneDeformOperatorTriangleBonePair" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localBoneTransforms" offset="56" vtype="TYPE_ARRAY" vsubtype="TYPE_MATRIX4" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclSimpleMeshBoneDeformOperatorTriangleBonePair" version="1" signature="0xa6d8c675" size="4">
+  <members>
+    <member name="boneOffset" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="triangleOffset" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclGatherSomeVerticesOperator" version="1" signature="0x85597cf0" size="64" parent="hclOperator">
+  <members>
+    <member name="vertexPairs" offset="32" ctype="hclGatherSomeVerticesOperatorVertexPair" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="inputBufferIdx" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIdx" offset="52" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="gatherNormals" offset="56" vtype="TYPE_BOOL" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclGatherSomeVerticesOperatorVertexPair" version="1" signature="0x1c3606cc" size="4">
+  <members>
+    <member name="indexInput" offset="0" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="indexOutput" offset="2" vtype="TYPE_UINT16" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceSkinPNTOperator" version="1" signature="0x8dd039bf" size="176" parent="hclBoneSpaceSkinOperator">
+  <members>
+    <member name="localPNTs" offset="144" ctype="hclBoneSpaceDeformerLocalBlockPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNTs" offset="160" ctype="hclBoneSpaceDeformerLocalBlockUnpackedPNT" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceSkinOperator" version="1" signature="0xcd8191c6" size="144" parent="hclOperator">
+  <members>
+    <member name="transformSubset" offset="32" vtype="TYPE_ARRAY" vsubtype="TYPE_UINT16" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="outputBufferIndex" offset="48" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="transformSetIndex" offset="52" vtype="TYPE_UINT32" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="boneSpaceDeformer" offset="56" ctype="hclBoneSpaceDeformer" vtype="TYPE_STRUCT" vsubtype="TYPE_VOID" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclBoneSpaceSkinPNOperator" version="1" signature="0x7dd2c2a1" size="176" parent="hclBoneSpaceSkinOperator">
+  <members>
+    <member name="localPNs" offset="144" ctype="hclBoneSpaceDeformerLocalBlockPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPNs" offset="160" ctype="hclBoneSpaceDeformerLocalBlockUnpackedPN" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+  </members>
+</class><class name="hclObjectSpaceSkinPOperator" version="1" signature="0xb5705b89" size="192" parent="hclObjectSpaceSkinOperator">
+  <members>
+    <member name="localPs" offset="160" ctype="hclObjectSpaceDeformerLocalBlockP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
+    <member name="localUnpackedPs" offset="176" ctype="hclObjectSpaceDeformerLocalBlockUnpackedP" vtype="TYPE_ARRAY" vsubtype="TYPE_STRUCT" arrsize="0" flags="FLAGS_NONE" default="0" />
   </members>
 </class></ds3-cloth-schema>

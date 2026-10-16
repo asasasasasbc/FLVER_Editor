@@ -1,0 +1,395 @@
+{
+  "source": "https://github.com/JeNoVaViRuS/hkxpack-souls",
+  "archiveSha256": "4f5d31126755c08a028b9911ade46fdcadad6c0f7842a226328289a5af422f11",
+  "profiles": {
+    "BB": [
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPNTOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPNTOperator_1.xml",
+        "sourceSha256": "7846b8f78e4753d7eb8722a589232913472810f01395a76b0deb9c5b491e83ce",
+        "size": 176,
+        "signature": "0x3d533d8b"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedPNT",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedPNT_1_1.xml",
+        "sourceSha256": "27c4dbad60d73e8911bf5f4f8de75c035a989ae6a1ef2be8b0462b2fa0a86b24",
+        "size": 768,
+        "signature": "0x522b62b"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockPNT",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockPNT_1.xml",
+        "sourceSha256": "ec63a6216be10ab947ba56bfb720fae743d9c031cf6ffb4b00baae48625bc3dc",
+        "size": 512,
+        "signature": "0xa943d812"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformOperator_1.xml",
+        "sourceSha256": "3c255ab825d51022eae6e496571363f64dbd07011cc4648dfa835caf704f1c39",
+        "size": 144,
+        "signature": "0xa658dc0f"
+      },
+      {
+        "class": "hclBoneSpaceDeformer",
+        "sourceFile": "classxml/hclBoneSpaceDeformer_1_1.xml",
+        "sourceSha256": "a6fcdbf44c73d60613fdd92d152fd5ab41fecabeca7bc7312bc9c4906cd970c2",
+        "size": 88,
+        "signature": "0x694fac94"
+      },
+      {
+        "class": "hclBoneSpaceDeformerOneBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerOneBlendEntryBlock_1.xml",
+        "sourceSha256": "2841217dfb602b87a1ae5c8cd30c90d05f4dd41ef873b392bf483db52f6d5fff",
+        "size": 64,
+        "signature": "0xc1c287ad"
+      },
+      {
+        "class": "hclBoneSpaceDeformerTwoBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerTwoBlendEntryBlock_1.xml",
+        "sourceSha256": "5dcd5147d11752c0b7bfc95c8b0d02385020081e5dd3713fc39fc68ad21f3d84",
+        "size": 48,
+        "signature": "0x5d34fa72"
+      },
+      {
+        "class": "hclBoneSpaceDeformerThreeBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerThreeBlendEntryBlock_1.xml",
+        "sourceSha256": "99b8401bca591d2897edcec67e0a50740c98f1ed71f900e813f03705684535be",
+        "size": 48,
+        "signature": "0xcb5ad1e2"
+      },
+      {
+        "class": "hclBoneSpaceDeformerFourBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerFourBlendEntryBlock_1.xml",
+        "sourceSha256": "787e0f4c3bee8dd5fa8f38d2ac6158c936592d9a896743fc267a6b83804e5170",
+        "size": 48,
+        "signature": "0x1d1108c8"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPNOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPNOperator_1.xml",
+        "sourceSha256": "296913d666cf2580aa45d7272032c2f201973fdd5a8fb47df38d3fac4a5558dc",
+        "size": 176,
+        "signature": "0x2a74c429"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedPN",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedPN_1_1.xml",
+        "sourceSha256": "1a69e1cc9914143eccb85557c27c45400b802998dd17528b6ecf3c22cfa62194",
+        "size": 512,
+        "signature": "0xbbef768c"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockPN",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockPN_1.xml",
+        "sourceSha256": "68a14a730e90671dc45220425032cc7b8bc5a6db2da603de4f79e662255e1289",
+        "size": 384,
+        "signature": "0x7360bfdb"
+      },
+      {
+        "class": "hclVolumeConstraint",
+        "sourceFile": "classxml/hclVolumeConstraint_1_1.xml",
+        "sourceSha256": "7a8114978dcae6e78944389cc696cd3f96b61a6b83c0f1f09767f30681d6a292",
+        "size": 64,
+        "signature": "0x5478425e"
+      },
+      {
+        "class": "hclVolumeConstraintApplyData",
+        "sourceFile": "classxml/hclVolumeConstraintApplyData_1.xml",
+        "sourceSha256": "ca156c5fb99077fd620c48f372e9478d4d6e3a91aa4d9790ee041b0340b92cab",
+        "size": 32,
+        "signature": "0x2dd9d0d9"
+      },
+      {
+        "class": "hclVolumeConstraintFrameData",
+        "sourceFile": "classxml/hclVolumeConstraintFrameData_1.xml",
+        "sourceSha256": "11ea86e02384ff02030989acce32d5cecf50766715c80d7e0c83595e6dba6921",
+        "size": 32,
+        "signature": "0xaaea3337"
+      },
+      {
+        "class": "hclObjectSpaceMeshMeshDeformPNOperator",
+        "sourceFile": "classxml/hclObjectSpaceMeshMeshDeformPNOperator_1.xml",
+        "sourceSha256": "35f1f19325a8d4a5491f54b686ccbef2c4d7274ba5627e3e8338c1e1394c62d8",
+        "size": 192,
+        "signature": "0x16bdb41a"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPOperator_1.xml",
+        "sourceSha256": "b6ccbc31c3e68ddb98846ae9ffd28c9c64444f60640f3e0b590d2d6d91da700f",
+        "size": 176,
+        "signature": "0xc9311cbd"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedP",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedP_1_1.xml",
+        "sourceSha256": "5f692625c2a9850f1f82c1b9160caa3d7b6f159728a158a06c377b910929338f",
+        "size": 256,
+        "signature": "0xf11d6383"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockP",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockP_1.xml",
+        "sourceSha256": "18015b28bef7d03ceb5d7f94a8a41099af5e871e0705bbcd196f47fab179fe96",
+        "size": 256,
+        "signature": "0xf11d6383"
+      }
+    ],
+    "DS3": [
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPNTOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPNTOperator_1.xml",
+        "sourceSha256": "7846b8f78e4753d7eb8722a589232913472810f01395a76b0deb9c5b491e83ce",
+        "size": 184,
+        "signature": "0x3d533d8b"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedPNT",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedPNT_1_1.xml",
+        "sourceSha256": "27c4dbad60d73e8911bf5f4f8de75c035a989ae6a1ef2be8b0462b2fa0a86b24",
+        "size": 768,
+        "signature": "0x522b62b"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockPNT",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockPNT_1.xml",
+        "sourceSha256": "ec63a6216be10ab947ba56bfb720fae743d9c031cf6ffb4b00baae48625bc3dc",
+        "size": 512,
+        "signature": "0xa943d812"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformOperator_1.xml",
+        "sourceSha256": "3c255ab825d51022eae6e496571363f64dbd07011cc4648dfa835caf704f1c39",
+        "size": 152,
+        "signature": "0xa658dc0f"
+      },
+      {
+        "class": "hclBoneSpaceDeformer",
+        "sourceFile": "classxml/hclBoneSpaceDeformer_1_1.xml",
+        "sourceSha256": "a6fcdbf44c73d60613fdd92d152fd5ab41fecabeca7bc7312bc9c4906cd970c2",
+        "size": 88,
+        "signature": "0x694fac94"
+      },
+      {
+        "class": "hclBoneSpaceDeformerOneBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerOneBlendEntryBlock_1.xml",
+        "sourceSha256": "2841217dfb602b87a1ae5c8cd30c90d05f4dd41ef873b392bf483db52f6d5fff",
+        "size": 64,
+        "signature": "0xc1c287ad"
+      },
+      {
+        "class": "hclBoneSpaceDeformerTwoBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerTwoBlendEntryBlock_1.xml",
+        "sourceSha256": "5dcd5147d11752c0b7bfc95c8b0d02385020081e5dd3713fc39fc68ad21f3d84",
+        "size": 48,
+        "signature": "0x5d34fa72"
+      },
+      {
+        "class": "hclBoneSpaceDeformerThreeBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerThreeBlendEntryBlock_1.xml",
+        "sourceSha256": "99b8401bca591d2897edcec67e0a50740c98f1ed71f900e813f03705684535be",
+        "size": 48,
+        "signature": "0xcb5ad1e2"
+      },
+      {
+        "class": "hclBoneSpaceDeformerFourBlendEntryBlock",
+        "sourceFile": "classxml/hclBoneSpaceDeformerFourBlendEntryBlock_1.xml",
+        "sourceSha256": "787e0f4c3bee8dd5fa8f38d2ac6158c936592d9a896743fc267a6b83804e5170",
+        "size": 48,
+        "signature": "0x1d1108c8"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPNOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPNOperator_1.xml",
+        "sourceSha256": "296913d666cf2580aa45d7272032c2f201973fdd5a8fb47df38d3fac4a5558dc",
+        "size": 184,
+        "signature": "0x2a74c429"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedPN",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedPN_1_1.xml",
+        "sourceSha256": "1a69e1cc9914143eccb85557c27c45400b802998dd17528b6ecf3c22cfa62194",
+        "size": 512,
+        "signature": "0xbbef768c"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockPN",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockPN_1.xml",
+        "sourceSha256": "68a14a730e90671dc45220425032cc7b8bc5a6db2da603de4f79e662255e1289",
+        "size": 384,
+        "signature": "0x7360bfdb"
+      },
+      {
+        "class": "hclVolumeConstraintMx",
+        "sourceFile": "classxml/hclVolumeConstraintMx_1_1.xml",
+        "sourceSha256": "70342e97d3b122a149942b56614088f4354a560f0fc3300bff42f24361f16a1d",
+        "size": 96,
+        "signature": "0x37582f2"
+      },
+      {
+        "class": "hclVolumeConstraintMxApplySingleData",
+        "sourceFile": "classxml/hclVolumeConstraintMxApplySingleData_1.xml",
+        "sourceSha256": "d88a1aa2176f6387ac85a412715dd1b60175d276ef411567dac1a76b821a2f99",
+        "size": 32,
+        "signature": "0x2dd9d0d9"
+      },
+      {
+        "class": "hclVolumeConstraintMxApplyBatchData",
+        "sourceFile": "classxml/hclVolumeConstraintMxApplyBatchData_1.xml",
+        "sourceSha256": "38a2d49ee8e440f93befc0674377e4293dfbf318b6c8cdb46d71daac8d942505",
+        "size": 352,
+        "signature": "0x982866a8"
+      },
+      {
+        "class": "hclVolumeConstraintMxFrameSingleData",
+        "sourceFile": "classxml/hclVolumeConstraintMxFrameSingleData_1.xml",
+        "sourceSha256": "03f68ae0beb5e6982d4d8f28fbbb74728b0b703842473509ecf6d7e203ab5c0f",
+        "size": 32,
+        "signature": "0xaaea3337"
+      },
+      {
+        "class": "hclVolumeConstraintMxFrameBatchData",
+        "sourceFile": "classxml/hclVolumeConstraintMxFrameBatchData_1.xml",
+        "sourceSha256": "6822d33b4778b28eba3c8eaeea7be02626fa89fd41230062a83925678b910e7d",
+        "size": 352,
+        "signature": "0xd5bf326b"
+      },
+      {
+        "class": "hclGatherAllVerticesOperator",
+        "sourceFile": "classxml/hclGatherAllVerticesOperator_1.xml",
+        "sourceSha256": "84a2f357494452328983307a2080c5c207b9254b827e1f2823bcf4f95f572862",
+        "size": 64,
+        "signature": "0xda737296"
+      },
+      {
+        "class": "hclSphereShape",
+        "sourceFile": "classxml/hclSphereShape_1.xml",
+        "sourceSha256": "fcd16d3d74d61767969194c590924c79b0f66656b30fb29929196462becb8633",
+        "size": 48,
+        "signature": "0xd779f2c5"
+      },
+      {
+        "class": "hkSphere",
+        "sourceFile": "classxml/hkSphere_1.xml",
+        "sourceSha256": "bab5bd9fde7472a41f2dc869d07efea7e6088ce7f66a79fdad7f8bc3d3258aad",
+        "size": 16,
+        "signature": "0x143dff99"
+      },
+      {
+        "class": "hclObjectSpaceMeshMeshDeformPNOperator",
+        "sourceFile": "classxml/hclObjectSpaceMeshMeshDeformPNOperator_1.xml",
+        "sourceSha256": "35f1f19325a8d4a5491f54b686ccbef2c4d7274ba5627e3e8338c1e1394c62d8",
+        "size": 200,
+        "signature": "0x16bdb41a"
+      },
+      {
+        "class": "hclMeshMeshDeformOperator",
+        "sourceFile": "classxml/hclMeshMeshDeformOperator_1.xml",
+        "sourceSha256": "70022c361534d74ae2c609360605f5d593be1cf219de77fee0ab2f68c0d3a377",
+        "size": 104,
+        "signature": "0xff4f25c3"
+      },
+      {
+        "class": "hclMeshMeshDeformOperatorTriangleVertexPair",
+        "sourceFile": "classxml/hclMeshMeshDeformOperatorTriangleVertexPair_1.xml",
+        "sourceSha256": "6a66f93122abea079c1f0aff5186df3106ff53e52673587f4afd39032b0d8308",
+        "size": 48,
+        "signature": "0x53b3b40d"
+      },
+      {
+        "class": "hclBendLinkConstraintSet",
+        "sourceFile": "classxml/hclBendLinkConstraintSet_1.xml",
+        "sourceSha256": "36f566e80910c85b0f186c46f602b08c2ded94d0df23a671139bb766a34285d6",
+        "size": 48,
+        "signature": "0x26824757"
+      },
+      {
+        "class": "hclBendLinkConstraintSetLink",
+        "sourceFile": "classxml/hclBendLinkConstraintSetLink_1.xml",
+        "sourceSha256": "7c41ed2323a0786a985bb3401652c5b172797c1ed96ea64278be5925c44c9dcc",
+        "size": 20,
+        "signature": "0x30c24e3d"
+      },
+      {
+        "class": "hclBoneSpaceMeshMeshDeformPOperator",
+        "sourceFile": "classxml/hclBoneSpaceMeshMeshDeformPOperator_1.xml",
+        "sourceSha256": "b6ccbc31c3e68ddb98846ae9ffd28c9c64444f60640f3e0b590d2d6d91da700f",
+        "size": 184,
+        "signature": "0xc9311cbd"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockUnpackedP",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockUnpackedP_1_1.xml",
+        "sourceSha256": "5f692625c2a9850f1f82c1b9160caa3d7b6f159728a158a06c377b910929338f",
+        "size": 256,
+        "signature": "0xf11d6383"
+      },
+      {
+        "class": "hclBoneSpaceDeformerLocalBlockP",
+        "sourceFile": "classxml/hclBoneSpaceDeformerLocalBlockP_1.xml",
+        "sourceSha256": "18015b28bef7d03ceb5d7f94a8a41099af5e871e0705bbcd196f47fab179fe96",
+        "size": 256,
+        "signature": "0xf11d6383"
+      },
+      {
+        "class": "hclSimpleMeshBoneDeformOperator",
+        "sourceFile": "classxml/hclSimpleMeshBoneDeformOperator_1.xml",
+        "sourceSha256": "16149930a8d571e0c60c2c03f9b6cf78ab58e3b3d59822d0e76d2f05eae1a6be",
+        "size": 72,
+        "signature": "0x80d9769f"
+      },
+      {
+        "class": "hclSimpleMeshBoneDeformOperatorTriangleBonePair",
+        "sourceFile": "classxml/hclSimpleMeshBoneDeformOperatorTriangleBonePair_1.xml",
+        "sourceSha256": "a557eb5c83aae71eb93ae1df24796f540719c7b9fc4cb1c882de9847ca4171f4",
+        "size": 4,
+        "signature": "0xa6d8c675"
+      },
+      {
+        "class": "hclGatherSomeVerticesOperator",
+        "sourceFile": "classxml/hclGatherSomeVerticesOperator_1.xml",
+        "sourceSha256": "d2e5040d93932a4fdcf3d4ee98fe1c0783fe625b0e23843bdc16ed9114115c3c",
+        "size": 64,
+        "signature": "0x85597cf0"
+      },
+      {
+        "class": "hclGatherSomeVerticesOperatorVertexPair",
+        "sourceFile": "classxml/hclGatherSomeVerticesOperatorVertexPair_1.xml",
+        "sourceSha256": "ca6c8a435f6017a0b4ef4db71cd9c80787585c7fc35be2fae898621ce3fc9b8c",
+        "size": 4,
+        "signature": "0x1c3606cc"
+      },
+      {
+        "class": "hclBoneSpaceSkinPNTOperator",
+        "sourceFile": "classxml/hclBoneSpaceSkinPNTOperator_1.xml",
+        "sourceSha256": "718f43ea34eb8be03691b760d66241b8e1971bd56a2811a9473ec23c1a479b16",
+        "size": 176,
+        "signature": "0x8dd039bf"
+      },
+      {
+        "class": "hclBoneSpaceSkinOperator",
+        "sourceFile": "classxml/hclBoneSpaceSkinOperator_1.xml",
+        "sourceSha256": "b01e62e5555491a7d48935c2d128fe34db4986a00f71fa59fd4b5b30f6d47adc",
+        "size": 144,
+        "signature": "0xcd8191c6"
+      },
+      {
+        "class": "hclBoneSpaceSkinPNOperator",
+        "sourceFile": "classxml/hclBoneSpaceSkinPNOperator_1.xml",
+        "sourceSha256": "da14cacdb0761dfb538e8313ce81e6415e5cac3dee606da92249b25c1f9c7023",
+        "size": 176,
+        "signature": "0x7dd2c2a1"
+      },
+      {
+        "class": "hclObjectSpaceSkinPOperator",
+        "sourceFile": "classxml/hclObjectSpaceSkinPOperator_1.xml",
+        "sourceSha256": "7bacef0d84c8f51a13e3ea19a45395db2c0d434d6ee075b47c3b28a08b0c657e",
+        "size": 192,
+        "signature": "0xb5705b89"
+      }
+    ]
+  }
+}
