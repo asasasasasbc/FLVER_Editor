@@ -122,7 +122,7 @@ namespace MySFformat
             var fourth=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             fourth.Controls.AddRange(new Control[]{previewPlay,previewStop,previewReset,viewReset,previewRuntime,previewRuntimePath,previewState});
             previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Cloth preview off";
-            tips.SetToolTip(previewPlay,"Play or pause the selected physics backend. HKX animation driving currently requires Native HCT.\n播放或暂停所选物理后端；HKX动画驱动当前需要Native HCT。");
+            tips.SetToolTip(previewPlay,"Play or pause the selected solver. Both solvers accept linked HKX animation.\n播放或暂停当前解算器；两种解算器均可联动HKX动画。");
             tips.SetToolTip(previewReset,"Stop the owned host, restore the rest view and start a fresh simulation from current in-memory data.\n停止本窗口宿主、恢复rest视图，再从当前内存数据重新初始化解算。");
             tips.SetToolTip(previewStop,"End this window's owned host and restore rest data without restarting; environment controls are retained.\n结束本窗口宿主、恢复rest数据，不重新启动；保留预览环境控件值。");
             tips.SetToolTip(previewRuntime,"Select hctPreviewPlugin.dll with the standard file picker; its parent runtime root is detected automatically. Six local HCT DLLs are required for native preview only.\n用标准文件选择窗口选择hctPreviewPlugin.dll，自动识别运行时根目录；仅原生解算预览需要6个本机HCT DLL。");
@@ -136,9 +136,9 @@ namespace MySFformat
             // 环境和 HKX 动画使用独立 tab，不把更多参数堆到主工具栏。
             var environmentRow=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             previewBackend.Items.AddRange(new object[]{"Native HCT","OpenPhysicsHKX (built-in, experimental)"});previewBackend.SelectedIndex=0;
-            environmentRow.Controls.Add(new Label {Text="Physics backend",AutoSize=true,Padding=new Padding(2,5,0,0)});environmentRow.Controls.Add(previewBackend);environmentRow.SetFlowBreak(previewBackend,true);
+            environmentRow.Controls.Add(new Label {Name="clothSolverLabel",Text="Solver",AutoSize=true,Padding=new Padding(2,5,0,0)});environmentRow.Controls.Add(previewBackend);environmentRow.SetFlowBreak(previewBackend,true);
             environmentRow.Controls.Add(allowUnmodeledConstraints);environmentRow.SetFlowBreak(allowUnmodeledConstraints,true);
-            tips.SetToolTip(allowUnmodeledConstraints,"Explicitly allow an incomplete managed solve by omitting unsupported constraint classes. Their names remain visible in preview status. Does not enable animation, wind or unsupported buffer mappings. Off by default.\n明确允许托管求解省略未支持约束，仅作不完整近似预览；状态持续列出省略类。不会启用动画、风或未支持缓冲映射，默认关闭。");
+            tips.SetToolTip(allowUnmodeledConstraints,"Allow OpenPhysicsHKX to skip unsupported constraint classes; names remain in status. Does not enable wind or unsupported mappings. Off by default.\n允许OpenPhysicsHKX跳过未支持约束，状态持续列名；不启用风或未支持映射，默认关闭。");
             tips.SetToolTip(previewBackend,"Native HCT uses a user-provided runtime. OpenPhysicsHKX uses the bundled C# DLL; no runtime folder is needed. Select and Apply Environment. Unsupported assets fail explicitly.\nHCT需要自备运行时；OpenPhysicsHKX使用自带C# DLL，无需选择目录。选择后点Apply Environment；不支持的资源会明确提示。");
             Action<string,Control> environmentField=(label,control)=>{environmentRow.Controls.Add(new Label {Text=label,AutoSize=true,Padding=new Padding(2,5,0,0)});environmentRow.Controls.Add(control);};
             environmentRow.Controls.Add(gravityOverride);environmentField("Gx",gravityX);environmentField("Gy",gravityY);environmentField("Gz",gravityZ);environmentRow.Controls.Add(windEnabled);environmentField("Wx",windX);environmentField("Wy",windY);environmentField("Wz",windZ);environmentField("Speed",windSpeed);environmentField("Max drag",windDrag);
@@ -146,10 +146,10 @@ namespace MySFformat
             var testWind=new Button {Name="testClothWind",Text="Wind Test (+X)",AutoSize=true};environmentRow.Controls.Add(testWind);
             testWind.Click+=(s,e)=>{windEnabled.Checked=true;windX.Value=1;windY.Value=windZ.Value=0;windSpeed.Value=20;windDrag.Value=5;editState.Text="Wind test preset pending · click Apply Environment, then Play if stopped";};
             tips.SetToolTip(testWind,"Stage a stronger diagnostic wind (X+, speed 20, max drag 5). Click Apply Environment. Not a game preset; constraints may limit motion.\n准备较强诊断风（+X，速度20、最大阻力5），再点Apply Environment；不是游戏预设，运动仍受约束限制。");
-            foreach(var control in new Control[]{gravityOverride,gravityX,gravityY,gravityZ})tips.SetToolTip(control,"Preview gravity XYZ in authored coordinates. Only a temporary runtime HKX copy changes; author XML/HKX and export settings do not. Apply restarts the owned host.\n作者坐标系下的预览重力XYZ；只修改临时运行副本，不改作者XML/HKX或导出配置。Apply会重启本窗口宿主。");
+            foreach(var control in new Control[]{gravityOverride,gravityX,gravityY,gravityZ})tips.SetToolTip(control,"Override gravity XYZ in model coordinates for this preview. File Settings and exports are unchanged; Apply restarts the simulation.\n在模型坐标系下临时覆盖预览重力；不改文件设置和导出内容，Apply会重启模拟。");
             foreach(var control in new Control[]{windEnabled,windX,windY,windZ,windSpeed,windDrag})tips.SetToolTip(control,"Use native HCT wind controls: normalized XYZ direction, constant min=max speed, native maximum drag. Requires native wind/cloth participation; no fabricated particle offsets. Preview only.\n使用HCT原生风接口：归一化XYZ方向、min=max恒定风速及原生最大阻力；仍受布料风参与配置影响，不伪造粒子偏移，仅影响预览。");
             tips.SetToolTip(applyEnvironment,"Validate and apply preview-only settings; restart a running/paused host and preserve its play/pause state. No changes are saved to source files.\n验证并应用预览设置；重启当前宿主并保留播放/暂停状态，不保存到源文件。");
-            tips.SetToolTip(defaultsEnvironment,"Restore file-authored gravity and disable preview wind, applying only to this preview.\n恢复文件作者重力，关闭预览风，仅影响本次预览。");
+            tips.SetToolTip(defaultsEnvironment,"Use gravity from File Settings and disable preview wind.\n使用文件设置中的重力，关闭预览风。");
             applyEnvironment.Click+=async (s,e)=>await ApplyPreviewEnvironmentAsync();defaultsEnvironment.Click+=async (s,e)=>{gravityOverride.Checked=false;gravityX.Value=0;gravityY.Value=-9.81m;gravityZ.Value=0;windEnabled.Checked=false;windX.Value=1;windY.Value=windZ.Value=0;windSpeed.Value=3;windDrag.Value=1;await ApplyPreviewEnvironmentAsync();};
             var tools=new TableLayoutPanel {Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1,RowCount=4};
             tools.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));for(int i=0;i<4;i++)tools.RowStyles.Add(new RowStyle(SizeType.AutoSize));top.Dock=DockStyle.Fill;
@@ -159,7 +159,7 @@ namespace MySFformat
             var split=new SplitContainer { Size=new Size(1150,640), Dock=DockStyle.Fill, SplitterDistance=540 };
             split.Panel1.Controls.Add(canvas);
             var tabs=new TabControl { Name="clothTabs",Dock=DockStyle.Fill,Multiline=true };
-            var parameters=new TabPage("Parameters / Binding");parameters.Controls.Add(summary);tabs.TabPages.Add(parameters);
+            var parameters=new TabPage("File Settings / Binding");parameters.Controls.Add(summary);tabs.TabPages.Add(parameters);
             foreach(var item in new[]{Tuple.Create("Particles / Range",particles),Tuple.Create("Colliders",collisions),Tuple.Create("Constraints",constraints)})
             {var page=new TabPage(item.Item1);page.Controls.Add(item.Item2);tabs.TabPages.Add(page);}
             var raw=new TabPage("Objects / Raw XML");var rawSplit=new SplitContainer {Size=new Size(550,600),Dock=DockStyle.Fill,Orientation=Orientation.Horizontal,SplitterDistance=220};rawSplit.Panel1.Controls.Add(objects);rawSplit.Panel2.Controls.Add(xml);raw.Controls.Add(rawSplit);tabs.TabPages.Add(raw);
@@ -181,7 +181,7 @@ namespace MySFformat
             tips.SetToolTip(domains,"Choose one simulation domain; only this domain is affected by range export.\n选择模拟域；范围导出只修改当前选择的域。");
             tips.SetToolTip(factor,"Scale LocalRange distances on export only (0.10–4.00). Original data and current view do not change.\n只在导出时缩放LocalRange距离（0.10–4.00）；不修改源数据或当前视图。");
             tips.SetToolTip(factorLabel,tips.GetToolTip(factor));
-            tips.SetToolTip(save,"Save a new author XML with scaled LocalRange in the selected domain. Never overwrites a source; not a playable HKX/Binder. Reload the copy to inspect it.\n另存所选域LocalRange缩放后的作者XML，不覆盖源文件；不能直接作为游戏HKX/Binder。重新载入副本即可查看修改。");
+            tips.SetToolTip(save,"Save an XML copy with scaled LocalRange in the selected domain. Does not overwrite the source; reload the copy to inspect it.\n另存所选域LocalRange缩放后的XML副本，不覆盖源文件；重新载入副本即可查看修改。");
             tips.SetToolTip(viewReset,"Reset the viewport camera.\n重置视角。");
             tips.SetToolTip(canvas,"Left drag rotates; middle or Shift+left drag pans; right selects/brushes; wheel zooms; F focuses. Ctrl/Shift+right adds, Alt+right removes.\n左键拖动旋转，中键或Shift+左键拖动平移，右键选择/刷选，滚轮缩放，F聚焦；Ctrl/Shift+右键添加、Alt+右键移除。");
             tips.SetToolTip(summary,"Serialized parameters, solver schedule, bone subsets, and selected particle details. A bone subset is not per-particle skin weighting.\n查看文件参数、解算调度、骨集合和选中粒子详情；骨subset不是每个粒子的蒙皮权重。");
@@ -224,7 +224,7 @@ namespace MySFformat
         }
         public void ConfigurePreviewBackend(string backend)
         {
-            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&backend!="Native HCT (ER compatibility)"&&backend!="Native HCT (Sekiro compatibility)")throw new ArgumentException("Unknown physics backend.");
+            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&backend!="Native HCT (ER compatibility)"&&backend!="Native HCT (Sekiro compatibility)")throw new ArgumentException("Unknown solver.");
             if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&(Document==null||!Document.IsTagfile||Document.TagfileBackend!=backend))throw new InvalidOperationException("Load the matching Sekiro/ER TAG0 Cloth document first.");
             previewBackend.SelectedIndex=backend=="OpenPhysicsHKX"?1:previewBackend.Items.IndexOf(backend);
         }
@@ -236,10 +236,10 @@ namespace MySFformat
             foreach(var control in new Control[]{windEnabled,windX,windY,windZ,windSpeed,windDrag})control.Enabled=!managed;
             foreach(var control in Controls.Find("testClothWind",true))control.Enabled=!managed;
             previewBackendNote.Text=managed?
-                "Bundled CPU solver; no runtime folder. Authored multi-buffer/serial cloth graph with dynamic MeshMeshDeform approximation. BendLink/Transition/VolumeMx are approximate. Rest skeleton and basic capsules; no character animation, wind, friction or collision-mask filtering. Unsupported producers are refused.":
-                "Native HCT uses the optional local runtime. Wind is enabled by default. Apply Environment restarts the active backend; Stop retains settings.";
+                "Built-in C# solver. HKX animation updates reference meshes, fixed points and capsule colliders at 60 Hz. BendLink, Transition, VolumeMx and mesh-to-mesh deformation use approximations. Wind, friction, collision-mask filtering and animated collider scaling are not supported.":
+                "Native HCT uses the optional local runtime. Wind is enabled by default. Apply Environment restarts the active solver; Stop retains settings.";
             tips.SetToolTip(previewBackendNote,managed?
-                "No vendor DLL is loaded. Particle previews only; no native display-mesh output.\n无需厂商DLL；仅粒子预览，无原生变形显示网格。当前是rest近似，无动画/风/摩擦和碰撞掩码筛选；未支持约束明确拒绝。":
+                "OpenPhysicsHKX runs through the bundled C# Core DLL. HKX animation updates reference meshes, fixed points and colliders; no HCT runtime is needed.\nOpenPhysicsHKX使用自带C# Core DLL，HKX动画驱动参考网格、固定点和碰撞体，无需HCT运行时。":
                  "Native HCT physics runs in an isolated helper process.\nHCT原生物理在独立宿主进程运行。");
             if(previewBackend.SelectedIndex==2)
             {
@@ -322,8 +322,7 @@ namespace MySFformat
                 if (Document == null) throw new InvalidOperationException("Load Cloth first.");
                 var environment = forcedEnvironment == null ? ReadPreviewEnvironment() : forcedEnvironment.Clone();
                 bool managed=environment.Backend=="OpenPhysicsHKX";
-                if(environment.Backend!="Native HCT"&&environment.Backend!="Native HCT (ER compatibility)"&&environment.Backend!="Native HCT (Sekiro compatibility)"&&!managed)throw new InvalidOperationException("Unknown preview backend.");
-                if(managed&&HasLinkedAnimation)throw new NotSupportedException("OpenPhysicsHKX currently supports rest-pose physics only. Uncheck Drive Native Cloth or select Native HCT.");
+                if(environment.Backend!="Native HCT"&&environment.Backend!="Native HCT (ER compatibility)"&&environment.Backend!="Native HCT (Sekiro compatibility)"&&!managed)throw new InvalidOperationException("Unknown solver.");
                 if (!managed&&Program.targetFlver == null) throw new InvalidOperationException("Load the matching FLVER first.");
                 if (Clm2 == null) AutoLoadClm2Companion();
 
@@ -509,6 +508,8 @@ namespace MySFformat
                 positions.Length != canvas.Domain.Positions.Length)
                 throw new InvalidDataException("Native preview particle topology mismatch");
             canvas.SimulationPositions = positions;
+            System.Collections.Generic.List<ClothCollider> colliders;
+            if(lastPreview.Colliders!=null&&lastPreview.Colliders.TryGetValue(canvas.Domain.Name,out colliders))canvas.AnimationColliders=colliders;
             canvas.Invalidate();
         }
         void PreviewTick()

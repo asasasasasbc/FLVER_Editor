@@ -21,15 +21,18 @@ namespace MySFformat.Cloth.Preview
         readonly string[] names;
         ClothSession[] solvers;
         ManagedClothGraph[] graphs;
+        readonly ManagedAnimationBinding animation;
+        readonly ClothCollider[][] colliderMetadata;
+        ManagedAnimationBinding.Frame lastAnimationFrame;
         int stepping,frame;
         bool disposed,faulted;
         public string Notice {get;private set;}
         public string DisplayName {get{return "OpenPhysicsHKX";}}
-        public bool SupportsAnimation {get{return false;}}
+        public bool SupportsAnimation {get{return animation.Supported;}}
         public int ProcessId {get{return 0;}}
         public string[] DomainNames {get{return (string[])names.Clone();}}
-        public string[] SkeletonNames {get{return new string[0];}}
-        public string[][] SkeletonBones {get{return new string[0][];}}
+        public string[] SkeletonNames {get{return animation.Names;}}
+        public string[][] SkeletonBones {get{return animation.Bones;}}
 
         public static Task<IClothPreviewSession> CreateAsync(XDocument snapshot,PreviewEnvironment environment,CancellationToken cancel,IProgress<string> progress)
         {
@@ -38,7 +41,7 @@ namespace MySFformat.Cloth.Preview
             return Task.Run<IClothPreviewSession>(()=>
             {
                 cancel.ThrowIfCancellationRequested();
-                if(progress!=null)progress.Report("Preparing bundled OpenPhysicsHKX (rest-pose CPU)…");
+                if(progress!=null)progress.Report("Preparing bundled OpenPhysicsHKX…");
                 string sourceNotice="";var input=snapshot;
                 if(HkxTagfileReader.IsTagfileDocument(snapshot))
                 {
@@ -54,19 +57,20 @@ namespace MySFformat.Cloth.Preview
                 var bindings=graphs.SelectMany(g=>g.Initial).ToDictionary(p=>p.Key,p=>p.Value);
                 var definitions=document.Domains.Select((d,i)=>Describe(document,d,i,settings,cancel,bindings)).ToArray();
                 cancel.ThrowIfCancellationRequested();
-                return new ManagedClothPreviewSession(document.Domains.Select(d=>d.Name).ToArray(),definitions,unknown,sourceNotice,bindings,graphs);
+                return new ManagedClothPreviewSession(document,definitions,unknown,sourceNotice,bindings,graphs);
             },cancel);
         }
-        ManagedClothPreviewSession(string[] names,ClothDefinition[] definitions,string[] omitted,string sourceNotice,Dictionary<int,ManagedReferenceBinding> bindings,ManagedClothGraph[] graphs)
+        ManagedClothPreviewSession(ClothDocument document,ClothDefinition[] definitions,string[] omitted,string sourceNotice,Dictionary<int,ManagedReferenceBinding> bindings,ManagedClothGraph[] graphs)
         {
-            this.names=names;
-            if(names.Distinct().Count()!=names.Length)throw new InvalidDataException("Ambiguous managed preview domain names.");
+            names=document.Domains.Select(d=>d.Name).ToArray();animation=new ManagedAnimationBinding(document);
+            colliderMetadata=document.Domains.Select(d=>d.Colliders.ToArray()).ToArray();
+            if(names.Distinct().Count()!=names.Length)throw new InvalidDataException("OpenPhysicsHKX domain names must be unique.");
             this.graphs=graphs;
             solvers=definitions.Select(d=>new ClothSession(new[]{d},new SolverOptions {LinkForm="raw",RespectFixedStretchAnchors=true,AllowApproximateConstraints=true})).ToArray();
             foreach(var pair in bindings)solvers[pair.Key].SetFrameInputs(new[]{new ClothFrameInput{ClothId=pair.Key,FixedTargets=pair.Value.FixedTargets}});
-            var notices=new List<string>{"rest-pose approximation"};
-            if(graphs.Any(g=>g.HasSkin))notices.Add("evaluated rest-skeleton Skin references");
-            notices.Add("authored serial buffer graph / independent reference IDs");
+            var notices=new List<string>{"rest-pose physics / animation-ready"};
+            if(graphs.Any(g=>g.HasSkin))notices.Add("reference meshes follow skeleton poses");
+            notices.Add("file-defined operation order / separate reference buffers");
             if(graphs.Any(g=>g.HasDeformation))notices.Add("dynamic triangle-frame MeshMeshDeform approximation");
             if(!string.IsNullOrEmpty(sourceNotice))notices.Add(sourceNotice);
             var approximate=solvers.SelectMany(s=>s.ApproximateConstraintClasses).Distinct().ToArray();if(approximate.Length>0)notices.Add("approximate: "+string.Join(", ",approximate));
@@ -103,9 +107,13 @@ namespace MySFformat.Cloth.Preview
                 AdaptConstraintStiffness=ClothDocument.Value(op,"adaptConstraintStiffness")=="true",
                 ExecutionOrder=ClothDocument.Numbers(ClothDocument.Value(op,"constraintExecution")).Where(v=>v>=0).Select(v=>(int)v).ToArray(),
                 AllowEmptyExecution=!ClothDocument.Numbers(ClothDocument.Value(op,"constraintExecution")).Any(v=>v>=0),
-                CollisionTolerance=Number(simulation,"collisionTolerance")};
-            // This first backend exposes static rest-reference constraints and basic capsule projection.
-            // No guessed normals, animated buffers, particle collision masks or friction response.
+                CollisionTolerance=0};
+            // Core's offset tolerance is a world-distance radius reduction, not an
+            // established mapping of HKX simulationInfo.collisionTolerance. Passing
+            // the file's common 0.2 value erased small capsules. Project against the
+            // saved shape surface (+ particle radius) until HCT tolerance semantics
+            // are implemented. Do not change the file value or the Core/CLI default.
+            // Particle collision masks and friction response remain unsupported.
             var radii=particles.Where(p=>Number(p,"invMass")>0).Select(p=>Number(p,"radius")).Distinct().ToArray();
             if(d.Colliders.Count>0&&radii.Length>1)throw new NotSupportedException("OpenPhysicsHKX cannot yet map variable dynamic particle radii: "+d.Name+". Use Native HCT; maximum-radius substitution is not supported.");
             def.ParticleRadius=radii.Length==0?0:radii[0];
@@ -130,12 +138,12 @@ namespace MySFformat.Cloth.Preview
                 int referenceBuffer=0;ReferenceBufferData referenceData=null;
                 if(referenceColumn>=0)
                 {
-                    if(Optional(c,"referenceMeshBufferIdx")==null)throw new InvalidDataException("Constraint lacks an authored reference buffer declaration.");
+                    if(Optional(c,"referenceMeshBufferIdx")==null)throw new InvalidDataException("Constraint is missing its reference buffer declaration.");
                     referenceBuffer=(int)Number(c,"referenceMeshBufferIdx");
                     if(!binding.Buffers.TryGetValue(referenceBuffer,out referenceData))throw new InvalidDataException("Constraint reference buffer missing from graph snapshot.");
                     foreach(var record in records)
                         if(record[referenceColumn]<0||record[referenceColumn]>=referenceData.Positions.Length)
-                            throw new NotSupportedException("OpenPhysicsHKX has no evaluated authored reference for "+d.Name+", "+kind+" referenceVertex="+record[referenceColumn].ToString(C)+". Reference indices are not replaced with particle indices.");
+                            throw new NotSupportedException("OpenPhysicsHKX has no evaluated reference for "+d.Name+", "+kind+" referenceVertex="+record[referenceColumn].ToString(C)+". Reference indices are not replaced with particle indices.");
                 }
                 int[] normalMap=null;
                 if(kind=="hclLocalRangeConstraintSet"&&normal!=null&&normal.Value.Trim()=="true")
@@ -198,8 +206,18 @@ namespace MySFformat.Cloth.Preview
         public Task<ClothPreviewFrame> StepAsync(int steps,float[][][] poses=null)
         {
             if(steps<1||steps>4)throw new ArgumentOutOfRangeException("steps");
-            if(poses!=null)throw new NotSupportedException("OpenPhysicsHKX animation binding is not implemented.");
-            if(Interlocked.CompareExchange(ref stepping,1,0)!=0)throw new InvalidOperationException("Only one managed frame request may be in flight.");
+            if(Interlocked.CompareExchange(ref stepping,1,0)!=0)throw new InvalidOperationException("Only one OpenPhysicsHKX frame request may be in flight.");
+            ManagedAnimationBinding.Frame[] inputs;
+            try
+            {
+                lock(gate)
+                {
+                    if(disposed)throw new ObjectDisposedException("OpenPhysicsHKX preview");
+                    if(faulted)throw new InvalidOperationException("Solver graph faulted; Stop/Reset before continuing.");
+                    inputs=animation.Snapshot(poses,steps);
+                }
+            }
+            catch {Interlocked.Exchange(ref stepping,0);throw;}
             return Task.Run(()=>
             {
                 try
@@ -207,23 +225,37 @@ namespace MySFformat.Cloth.Preview
                     lock(gate)
                     {
                         if(disposed)throw new ObjectDisposedException("OpenPhysicsHKX preview");
-                        if(faulted)throw new InvalidOperationException("Managed graph faulted; Stop/Reset before continuing.");
+                        if(faulted)throw new InvalidOperationException("Solver graph faulted; Stop/Reset before continuing.");
                         var clock=Stopwatch.StartNew();var positions=new Dictionary<int,double[][]>();
                         try
                         {
-                            for(int n=0;n<steps;n++)foreach(var graph in graphs)graph.Execute((id,binding)=>
+                            for(int n=0;n<steps;n++)
                             {
-                                solvers[id].SetFrameInputs(new[]{new ClothFrameInput{ClothId=id,ReferenceBuffers=binding.Buffers,FixedTargets=binding.FixedTargets}});
-                                solvers[id].Step();var p=solvers[id].GetPositions()[id];positions[id]=p;return p;
-                            });
+                                var input=inputs==null?lastAnimationFrame:inputs[n];
+                                foreach(var graph in graphs)graph.ExecuteAnimated((id,binding)=>
+                                {
+                                    solvers[id].SetFrameInputs(new[]{new ClothFrameInput{ClothId=id,ReferenceBuffers=binding.Buffers,FixedTargets=binding.FixedTargets,Capsules=input==null?null:input.Capsules[id]}});
+                                    solvers[id].Step();var p=solvers[id].GetPositions()[id];positions[id]=p;return p;
+                                },input==null?null:input.Poses);
+                                lastAnimationFrame=input;
+                            }
+                            if(inputs!=null)Notice=Notice.Replace("rest-pose physics / animation-ready","animation-driven physics (60 Hz pose inputs)");
                             var domains=new Dictionary<string,Vector3[]>();
                             foreach(var pair in positions)
                             {
                                 var vectors=pair.Value.Select(p=>new Vector3((float)p[0],(float)p[1],(float)p[2])).ToArray();
-                                if(vectors.Any(v=>float.IsNaN(v.X)||float.IsNaN(v.Y)||float.IsNaN(v.Z)||float.IsInfinity(v.X)||float.IsInfinity(v.Y)||float.IsInfinity(v.Z)))throw new InvalidDataException("Managed positions exceed display range.");
+                                if(vectors.Any(v=>float.IsNaN(v.X)||float.IsNaN(v.Y)||float.IsNaN(v.Z)||float.IsInfinity(v.X)||float.IsInfinity(v.Y)||float.IsInfinity(v.Z)))throw new InvalidDataException("Solver positions exceed display range.");
                                 domains.Add(names[pair.Key],vectors);
                             }
-                            frame=checked(frame+steps);return new ClothPreviewFrame {Frame=frame,SolveMilliseconds=clock.Elapsed.TotalMilliseconds,Domains=domains};
+                            Dictionary<string,List<ClothCollider>> colliders=null;
+                            if(lastAnimationFrame!=null)
+                            {
+                                colliders=new Dictionary<string,List<ClothCollider>>();
+                                for(int id=0;id<names.Length;id++)colliders.Add(names[id],lastAnimationFrame.Capsules[id].Select((c,i)=>new ClothCollider {
+                                    Bone=colliderMetadata[id][i].Bone,Shape=colliderMetadata[id][i].Shape,
+                                    Start=new Vector3((float)c[0],(float)c[1],(float)c[2]),End=new Vector3((float)c[3],(float)c[4],(float)c[5]),RadiusA=(float)c[6],RadiusB=(float)c[7]}).ToList());
+                            }
+                            frame=checked(frame+steps);return new ClothPreviewFrame {Frame=frame,SolveMilliseconds=clock.Elapsed.TotalMilliseconds,Domains=domains,Colliders=colliders};
                         }
                         catch{faulted=true;throw;}
                     }

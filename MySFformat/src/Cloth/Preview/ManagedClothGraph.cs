@@ -26,6 +26,7 @@ namespace MySFformat.Cloth.Preview
         readonly Buffer[] buffers;
         readonly HashSet<int> needed=new HashSet<int>();
         readonly Dictionary<int,ManagedReferenceBinding> staticSkin=new Dictionary<int,ManagedReferenceBinding>();
+        readonly Dictionary<int,ManagedReferenceBinding.SkinBinding> skinBindings=new Dictionary<int,ManagedReferenceBinding.SkinBinding>();
         readonly Dictionary<int,double[]>[] pins;
         internal readonly Dictionary<int,ManagedReferenceBinding> Initial=new Dictionary<int,ManagedReferenceBinding>();
         internal bool HasDeformation {get;private set;}
@@ -76,7 +77,11 @@ namespace MySFformat.Cloth.Preview
             foreach(int index in needed.OrderBy(i=>i))
             {
                 var op=sequence[index];string cls=Class(op);
-                if(cls.Contains("SpaceSkin"))staticSkin.Add(index,ManagedReferenceBinding.EvaluateSkin(document,owner,op,B(Output(op)).Positions.Length,sequence.Take(index).ToArray()));
+                if(cls.Contains("SpaceSkin"))
+                {
+                    var skin=ManagedReferenceBinding.PrepareSkin(document,owner,op,B(Output(op)).Positions.Length,sequence.Take(index).ToArray());
+                    skinBindings.Add(index,skin);staticSkin.Add(index,skin.Evaluate(null));
+                }
                 else if(IsMesh(cls))HasDeformation=true;
                 else if(cls!="hclMoveParticlesOperator"&&cls!="hclCopyVerticesOperator"&&cls!="hclGatherAllVerticesOperator"&&cls!="hclGatherSomeVerticesOperator")throw new NotSupportedException("Unsupported required managed graph operator: "+cls);
             }
@@ -123,6 +128,8 @@ namespace MySFformat.Cloth.Preview
             return result;
         }
         internal void Execute(Func<int,ManagedReferenceBinding,double[][]> step)
+        {ExecuteAnimated(step,null);}
+        internal void ExecuteAnimated(Func<int,ManagedReferenceBinding,double[][]> step,Dictionary<XElement,Matrix4x4[]> poses)
         {
             foreach(var p in pins)p.Clear();
             for(int index=0;index<sequence.Length;index++)
@@ -140,7 +147,7 @@ namespace MySFformat.Cloth.Preview
                     continue;
                 }
                 if(!needed.Contains(index))continue;
-                ManagedReferenceBinding skin;if(staticSkin.TryGetValue(index,out skin)){Merge(B(Output(op)),skin);continue;}
+                ManagedReferenceBinding skin;if(staticSkin.TryGetValue(index,out skin)){Merge(B(Output(op)),poses==null?skin:skinBindings[index].Evaluate(poses));continue;}
                 if(cls=="hclMoveParticlesOperator")
                 {
                     int sim=S(op);var source=B(I(op,"refBufferIdx"));

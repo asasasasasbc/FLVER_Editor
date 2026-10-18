@@ -46,13 +46,13 @@ namespace MySFformat
         void OnSaveRangeClick(object sender, EventArgs args)
         {
             if (Document == null) return;
-            using (var dialog = new SaveFileDialog { Filter = "Author XML|*.xml", FileName = "cloth-range-copy.xml" })
+            using (var dialog = new SaveFileDialog { Filter = "Cloth XML|*.xml", FileName = "cloth-range-copy.xml" })
             {
                 if (dialog.ShowDialog(this) != DialogResult.OK) return;
                 try
                 {
                     ExportRangeCopy(dialog.FileName);
-                    status.Text = "Author XML copy saved: " + dialog.FileName +
+                    status.Text = "Cloth XML copy saved: " + dialog.FileName +
                         "\r\nSource unchanged. This is not a playable HKX/Binder; pack and validate before game use.";
                 }
                 catch (Exception ex) { MessageBox.Show(this, ex.Message, "Export Failed"); }

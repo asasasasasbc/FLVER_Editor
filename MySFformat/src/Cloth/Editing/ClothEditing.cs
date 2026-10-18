@@ -73,10 +73,10 @@ namespace MySFformat
             undoAuthor.Click+=async(s,e)=>await RestoreHistoryAsync(false);
             redoAuthor.Click+=async(s,e)=>await RestoreHistoryAsync(true);
             tips.SetToolTip(applyAuthor,"Validate pending edits with full native pack/readback, then commit to memory. Running preview restarts; paused remains paused. Source files are never written.\n完整打包/读回验证后应用到内存；播放自动重启、暂停保持暂停，不写源文件。");
-            tips.SetToolTip(authorParameters,"Edit author parameters, not preview overrides. Index arrays, bindings and unknown fields stay read-only in this first version.\n修改作者参数，不是预览覆盖；索引数组、绑定和未知字段本版仍只读。");
+            tips.SetToolTip(authorParameters,"Edit File Settings, not Preview Overrides. Index arrays, bindings and unknown fields remain read-only.\n编辑文件设置，而非临时预览覆盖；索引数组、绑定和未知字段保持只读。");
             tips.SetToolTip(discard,"Discard only pending table edits, not applied edits.\n仅丢弃尚未Apply的表格修改。");
-            tips.SetToolTip(undoAuthor,"Undo one applied author edit; pending changes must be applied or discarded first.\n撤销一次已应用作者修改；先应用或丢弃待提交修改。");
-            tips.SetToolTip(redoAuthor,"Redo one undone author edit.\n重做一次已撤销作者修改。");
+            tips.SetToolTip(undoAuthor,"Undo one applied File Settings edit; apply or discard pending changes first.\n撤销一次已应用的文件设置修改；先应用或丢弃待提交修改。");
+            tips.SetToolTip(redoAuthor,"Redo one File Settings edit.\n重做一次文件设置修改。");
             var selectionTools=new FlowLayoutPanel {Dock=DockStyle.Top,AutoSize=true,WrapContents=true};
             var mode=new ComboBox {Name="clothSelectMode",DropDownStyle=ComboBoxStyle.DropDownList,Width=100};mode.Items.AddRange(new object[]{"Click","Box","Circle Brush"});mode.SelectedIndex=0;
             var brush=new NumericUpDown {Name="clothBrushRadius",Minimum=4,Maximum=200,Value=35,Width=55};
@@ -310,7 +310,7 @@ namespace MySFformat
             nativeLayout.Enabled=!readOnly&&!pending&&!applyingAuthor;authorParameters.Enabled=particles.Enabled=constraintParameters.Enabled=!applyingAuthor;
             particles.ReadOnly=authorParameters.ReadOnly=constraintParameters.ReadOnly=readOnly;
             foreach(string name in new[]{"editHkx","saveHkx","saveRangeCopy","modifyClothSelection","discardClothChanges"})foreach(var control in Controls.Find(name,true))control.Enabled=!readOnly&&!applyingAuthor&&(!editingDirty||name=="modifyClothSelection"||name=="discardClothChanges");
-            editState.Text=canvas.SelectedParticles.Count+" selected · "+(pending?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"No author changes")+(previewEnvironmentDirty?" · Environment pending — Apply Environment":"");
+            editState.Text=canvas.SelectedParticles.Count+" selected · "+(pending?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"File Settings unchanged")+(previewEnvironmentDirty?" · Preview Overrides pending — Apply Environment":"");
             if(readOnly)editState.Text=Document.NativeLayout+" · read-only inspection / preview · no game HKX export";
             if(readOnly)applyAuthor.Enabled=undoAuthor.Enabled=redoAuthor.Enabled=false;
             selectedParticleEditor.Enabled=!readOnly&&!applyingAuthor;
@@ -319,7 +319,7 @@ namespace MySFformat
         public async Task ApplyAuthorChangesAsync()
         {
             if(applyingAuthor||Document==null)return;
-            if(Document.IsTagfile)throw new NotSupportedException("Sekiro/ER TAG0 author editing/export is not implemented.");
+            if(Document.IsTagfile)throw new NotSupportedException("Editing/exporting Sekiro/ER TAG0 files is not implemented.");
             if(!ValidateChildren()||!particles.EndEdit()||!authorParameters.EndEdit()||!constraintParameters.EndEdit())return;
             if(!editingDirty)return;
             applyingAuthor=true;UpdateEditState();
@@ -344,7 +344,7 @@ namespace MySFformat
             // Keep the camera and selection across author edits; only the physics history resets.
             var view=canvas.SaveCamera();changingDomain=true;for(int i=0;i<document.Domains.Count;i++)domains.Items[i]=document.Domains[i];domains.SelectedIndex=domain;changingDomain=false;ShowDomain();canvas.RestoreCamera(view);canvas.SetSelection(selected);
             Text="Cloth Inspector — "+System.IO.Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"");
-            status.Text="Author changes validated and applied in memory. Save HKX Copy to export; source files unchanged.";
+            status.Text="File Settings validated and applied. Use Save HKX Copy to export.";
             if(restart){if(resumeAnimation)ClothAnimationPlayback.Play();await StartClothPreviewAsync(restartEnvironment);if(paused&&previewSession!=null)PauseClothPreview();}
             if(!IsDisposed)UpdateEditState();
         }

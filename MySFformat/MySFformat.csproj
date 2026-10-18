@@ -127,6 +127,7 @@
     <Compile Include="src\Cloth\Preview\IClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\ManagedClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\ManagedReferenceBinding.cs" />
+    <Compile Include="src\Cloth\Preview\ManagedAnimationBinding.cs" />
     <Compile Include="src\Cloth\Preview\ManagedClothGraph.cs" />
     <Compile Include="src\Cloth\Preview\ClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />

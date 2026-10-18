@@ -94,7 +94,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.9 beta";
+        public static string version = "X2.91 beta";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.

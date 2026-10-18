@@ -199,32 +199,63 @@ See `tools/Cloth/sekiro-support-research.md` for evidence and limitations.
 
 #### Bloodborne / Dark Souls III and shared controls
 
-**Preview Environment → Physics backend** offers **Native HCT** and the bundled
+**Preview Environment → Solver** offers **Native HCT** and the bundled
 **OpenPhysicsHKX** CPU solver. OpenPhysicsHKX needs no runtime folder or vendor DLL.
 The Editor references the prebuilt `MySFformat/OpenPhysicsHKX.Core.dll`, not a
 vendored source project. To update Core, build its independent source repository,
 replace that DLL, then rebuild the Editor. See `MySFformat/lib/OpenPhysicsHKX/SOURCE.md`.
 Select it and **Apply Environment**, then **Play Cloth**. Native HCT remains the
-default. OpenPhysicsHKX is static rest-pose preview with basic capsule collisions,
-not native wind, friction, collision-mask filtering or animated/display-mesh output.
+default. OpenPhysicsHKX supports rest-pose and **HKX animation-driven physics**
+with basic capsule collisions. In **HKX Animation**, load a skeleton and clip,
+enable **Drive Cloth Physics**, and use Play / Pause / Stop.
+Wind, friction, collision-mask filtering, and the native Cloth display-mesh
+deformation pipeline remain unsupported.
 
-The managed adapter now normalizes supported Sekiro/ER TAG0 inputs using the
-reviewed compatibility view, without modifying the author document or loading
+The OpenPhysicsHKX adapter normalizes supported Sekiro/ER TAG0 inputs using the
+reviewed compatibility view, without modifying File Settings or loading
 HCT. Its status identifies the TAG0 input approximation. Core **0.3** includes
 the explicitly approximate VolumeMx weighted rigid shape-matching solve.
-The Editor evaluates authored ObjectSpace/BoneSpace Skin PN/PNT buffers against
-the rest skeleton, including packed vectors, blend weights and fixed-particle
+The Editor evaluates file-defined ObjectSpace/BoneSpace Skin PN/PNT buffers against
+the current skeleton pose, including packed vectors, blend weights and fixed-particle
 mapping. Compact reference indices keep their original meanings; they index the
 evaluated buffer, not the simulation-particle array. Position and normal targets
 are not replaced with independent particle-rest targets.
 
 Each constraint now retains its independent reference buffer ID and normal
 mapping. The Editor executes required MeshMeshDeform/copy/gather operations in
-authored serial order, using upstream simulation output to update downstream
+the order saved in the file, using upstream simulation output to update downstream
 constraints and fixed targets every frame. MeshMeshDeform is labeled as a
 triangle-frame approximation in status; it is not a baked rest-reference workaround.
 
-Strict 120-frame tests (no omission opt-in, no HCT process) now pass **DS3 4/4**,
+Animation uses owned world-space bone matrices sampled at 60 Hz. The reference
+positions/normals, fixed targets, and collider transforms update before each
+physics frame. Packed Skin inputs are decoded once; rest outputs are not reused
+for animated frames. Pose inputs are held constant within each frame's internal
+solver substeps. Missing pose updates hold the last pose. Pause/resume retain
+history; seek, loop and Rest Pose recreate the session. Seeking starts fresh at
+that pose rather than simulating all preceding frames.
+
+Collider bindings use each domain's saved transform-set, bone index and offset,
+not a guessed bone-name match. Unbound colliders stay fixed. Animated collider
+scale/shear/reflection and unsupported transform-producing operators are refused.
+Basic collision projects dynamic particles to the capsule surface plus particle
+radius. The HKX `simulationInfo.collisionTolerance` is retained in File Settings
+but is **not** interpreted as a world-space radius reduction: its common `0.2`
+value previously erased small colliders. Native HCT's tolerance behavior is not
+reproduced. This is discrete particle collision, not swept/triangle collision;
+fixed particles and the FLVER bone-weight overlay are not collision-deformed.
+The canvas receives the solver's actual collider snapshot. Existing animation
+decoding still uses the bundled HavokToolset, as it does for the main Viewer;
+the OpenPhysicsHKX solver itself does not require HCT.
+
+Focused animation checks: Maria and Hunter each completed 600 synthetic moving-pose
+frames; DS3 5650 and ER 2320 each completed 120. Fixed targets tracked exactly,
+batch/single stepping matched, invalid batches did not advance state, and source
+files stayed unchanged. A real Bloodborne idle clip also passed Inspector
+play/pause/resume/seek/loop checks. These are targeted tests, not a claim of
+animation compatibility for the entire equipment library.
+
+Earlier rest-pose 120-frame tests (no omission opt-in, no HCT process) pass **DS3 4/4**,
 **ER 7/7**, **Sekiro 12/14**, and **BB 4/4** in the tested sets. These replace the
 older 1/4 DS3 and 0/7 ER results, but are not a claim that every asset, animation
 binding or game-equivalent physical response works. See
@@ -239,7 +270,7 @@ constraints to be omitted** is explicitly enabled; omitted classes remain listed
 Rest-binding fallback has been removed. Unsupported reference/input producers,
 dynamic bone-transform dependencies, and variable
 dynamic radii are refused rather than replaced with independent particle-rest
-targets or maximum radii. Use Native HCT for these bindings and animation.
+targets or maximum radii. Use Native HCT for unsupported bindings.
 The common BB/DS3 reader now includes equipment Gather, Volume/VolumeMx,
 BoneSpace P/PN/PNT and ObjectSpace PN deformers, legacy BendLink/MeshMeshDeform,
 and the DS3 sphere layout. Missing or mismatched schemas still fail closed;
@@ -278,7 +309,7 @@ Choose `hctPreviewPlugin.dll` with the standard file picker; the runtime root is
 detected automatically. The selected local path is remembered for this user.
 
 The Cloth canvas shows real simulated particles and wireframes. In its **HKX Animation**
-tab, select the character `skeleton.hkx`, load an animation HKX, enable **Drive Native Cloth**
+tab, select the character `skeleton.hkx`, load an animation HKX, enable **Drive Cloth Physics**
 and use **Play HKX**, **Pause HKX** or **Stop HKX**. Pause keeps the current frame and
 physics history; Play resumes; Stop returns to frame 0. Seeking and looping reset
 physics rather than replaying previous frames. Collider overlays follow animation;

@@ -18,6 +18,9 @@ namespace MySFformat.Cloth.Preview
         public int Frame;
         public double SolveMilliseconds;
         public Dictionary<string,Vector3[]> Domains;
+        // Optional exact collider snapshot from a backend; native sessions keep
+        // using the existing animation overlay path.
+        public Dictionary<string,List<ClothCollider>> Colliders;
     }
     // Editor-side client only. HCT/native code is never loaded into the editor.
     public sealed class ClothPreviewSession : IClothPreviewSession

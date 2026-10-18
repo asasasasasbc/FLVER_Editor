@@ -9,8 +9,8 @@ using OpenPhysicsHKX;
 
 namespace MySFformat.Cloth.Preview
 {
-    // Evaluates authored rest-skeleton Skin buffers. Never substitutes sim rest
-    // positions for missing reference vertices. Animated/dependent deformers remain refused.
+    // Evaluates authored Skin buffers from explicit skeleton poses. Never
+    // substitutes sim rest positions for missing reference vertices.
     internal sealed class ManagedReferenceBinding
     {
         internal double[][] Positions,Normals;
@@ -39,14 +39,18 @@ namespace MySFformat.Cloth.Preview
             if(direct!=null&&direct.HasElements){var nested=direct.Elements().Single();return DecodePacked(Enumerable.Range(1,4).Select(i=>double.Parse(V(nested,"values"+i),C)).ToArray());}
             return DecodePacked(Enumerable.Range(1,4).Select(i=>double.Parse(V(row,prefix+(lane*4+i)),C)).ToArray());
         }
-        static Matrix4x4[] Skeleton(ClothDocument document,XElement owner,int set)
+        internal static XElement FindSkeleton(ClothDocument document,XElement owner,int set)
         {
             var sets=Refs(owner,"transformSetDefinitions");if(set<0||set>=sets.Length)throw new InvalidDataException("Skin transform set outside definitions.");
             var def=document.Objects[sets[set]];int count=I(def,"numTransforms");
             var candidates=document.Objects.Values.Where(o=>(string)o.Attribute("class")=="hkaSkeleton"&&ClothDocument.Field(o,"bones").Elements().Count()==count).ToArray();
             if(candidates.Length>1)candidates=candidates.Where(o=>V(o,"name")==V(def,"name")).ToArray();
-            if(candidates.Length!=1)throw new NotSupportedException("No unique rest skeleton for managed Skin transform set.");
-            var skel=candidates[0];var pose=N(skel,"referencePose");var parents=N(skel,"parentIndices");if(pose.Length!=count*12||parents.Length!=count)throw new InvalidDataException("Invalid Skin skeleton dimensions.");
+            if(candidates.Length!=1)throw new NotSupportedException("No unique skeleton for managed transform set.");
+            return candidates[0];
+        }
+        internal static Matrix4x4[] ReferenceWorld(XElement skel)
+        {
+            var pose=N(skel,"referencePose");var parents=N(skel,"parentIndices");int count=parents.Length;if(pose.Length!=count*12)throw new InvalidDataException("Invalid Skin skeleton dimensions.");
             var world=new Matrix4x4[count];var marks=new byte[count];Func<int,Matrix4x4> resolve=null;
             resolve=i=>{if(i<0||i>=count||marks[i]==1)throw new InvalidDataException("Invalid/cyclic Skin skeleton.");if(marks[i]==2)return world[i];marks[i]=1;int p=i*12;var q=new Quaternion((float)pose[p+4],(float)pose[p+5],(float)pose[p+6],(float)pose[p+7]);var local=Matrix4x4.CreateScale(Vector(pose,p+8))*Matrix4x4.CreateFromQuaternion(q)*Matrix4x4.CreateTranslation(Vector(pose,p));int parent=(int)parents[i];if(parent>=32768)parent-=65536;world[i]=parent<0?local:local*resolve(parent);marks[i]=2;return world[i];};
             for(int i=0;i<count;i++)resolve(i);return world;
@@ -66,23 +70,49 @@ namespace MySFformat.Cloth.Preview
             return ValidateSingle(EvaluateSkin(document,domain.Owner,writer,count,before),domain,constraints,moves,count);
         }
         internal static ManagedReferenceBinding EvaluateSkin(ClothDocument document,XElement owner,XElement writer,int count,XElement[] before)
+        {return PrepareSkin(document,owner,writer,count,before).Evaluate(null);}
+
+        internal sealed class SkinBinding
+        {
+            internal XElement Skeleton;
+            internal Matrix4x4[] Rest,Bind;
+            internal int[] Subset;
+            internal bool BoneSpace;
+            internal Func<Matrix4x4[],Matrix4x4[],ManagedReferenceBinding> Deformer;
+            internal ManagedReferenceBinding Evaluate(Dictionary<XElement,Matrix4x4[]> poses)
+            {
+                var world=poses==null?Rest:poses[Skeleton];
+                var transforms=new Matrix4x4[Subset.Length];var normals=new Matrix4x4[Subset.Length];
+                for(int i=0;i<Subset.Length;i++)
+                {
+                    transforms[i]=BoneSpace?world[Subset[i]]:Bind[i]*world[Subset[i]];
+                    Matrix4x4 inverse;if(!Matrix4x4.Invert(transforms[i],out inverse))throw new InvalidDataException("Singular Skin normal transform.");normals[i]=Matrix4x4.Transpose(inverse);
+                }
+                return Deformer(transforms,normals);
+            }
+        }
+        internal static SkinBinding PrepareSkin(ClothDocument document,XElement owner,XElement writer,int count,XElement[] before)
         {
             string cls=(string)writer.Attribute("class");bool boneSpace=cls=="hclBoneSpaceSkinPNOperator"||cls=="hclBoneSpaceSkinPNTOperator";
             if(cls!="hclObjectSpaceSkinPNOperator"&&cls!="hclObjectSpaceSkinPNTOperator"&&!boneSpace)throw new NotSupportedException("OpenPhysicsHKX reference dependency is not implemented: "+cls+". No rest-binding substitution.");
             int transformSet=I(writer,"transformSetIndex");
             if(before.TakeWhile(o=>!ReferenceEquals(o,writer)).Any(o=>{var p=F(o,"outputTransformSetIdx")??F(o,"outputTransformSetIndex");return p!=null&&int.Parse(p.Value,C)==transformSet;}))throw new NotSupportedException("Skin depends on a dynamically produced transform set; rest-skeleton substitution is not supported.");
-            var subset=N(writer,"transformSubset");var world=Skeleton(document,owner,transformSet);
-            var transforms=new Matrix4x4[subset.Length];var normalTransforms=new Matrix4x4[subset.Length];
+            var subset=N(writer,"transformSubset");var skeleton=FindSkeleton(document,owner,transformSet);var world=ReferenceWorld(skeleton);
             var bind=boneSpace?new double[0]:N(writer,"boneFromSkinMeshTransforms");if(!boneSpace&&bind.Length!=subset.Length*16)throw new InvalidDataException("Skin bind-transform count mismatch.");
             for(int i=0;i<subset.Length;i++)
             {
                 if(subset[i]!=Math.Truncate(subset[i])||subset[i]<0||subset[i]>=world.Length)throw new InvalidDataException("Skin bone subset index invalid.");
-                transforms[i]=boneSpace?world[(int)subset[i]]:Matrix(bind,i*16)*world[(int)subset[i]];
-                Matrix4x4 inverse;if(!Matrix4x4.Invert(transforms[i],out inverse))throw new InvalidDataException("Singular Skin normal transform.");normalTransforms[i]=Matrix4x4.Transpose(inverse);
             }
-            return EvaluateDeformer(writer,count,transforms,normalTransforms);
+            return new SkinBinding {Skeleton=skeleton,Rest=world,Subset=subset.Select(v=>(int)v).ToArray(),BoneSpace=boneSpace,
+                Bind=boneSpace?null:Enumerable.Range(0,subset.Length).Select(i=>Matrix(bind,i*16)).ToArray(),
+                Deformer=PrepareDeformer(writer,count,subset.Length)};
         }
         internal static ManagedReferenceBinding EvaluateDeformer(XElement writer,int count,Matrix4x4[] transforms,Matrix4x4[] normalTransforms=null)
+        {return PrepareDeformer(writer,count,transforms.Length)(transforms,normalTransforms);}
+
+        sealed class Influence {internal int Bone;internal Vector4 Position;internal Vector3 Normal;internal double Weight;}
+        sealed class Vertex {internal int Index;internal Influence[] Influences;}
+        static Func<Matrix4x4[],Matrix4x4[],ManagedReferenceBinding> PrepareDeformer(XElement writer,int count,int transformCount)
         {
             string cls=(string)writer.Attribute("class");bool boneSpace=cls.Contains("BoneSpace"),hasNormals=!cls.EndsWith("POperator",StringComparison.Ordinal);
             var deformer=ClothDocument.Field(writer,boneSpace?"boneSpaceDeformer":"objectSpaceDeformer").Elements().Single();
@@ -91,10 +121,9 @@ namespace MySFformat.Cloth.Preview
             if(unpacked.Length!=0&&packed.Length!=0)throw new NotSupportedException("Mixed packed/unpacked managed Skin blocks are not yet reviewed.");
             bool uncompressed=unpacked.Length!=0;var localRows=uncompressed?unpacked:packed;
             var controls=N(deformer,"controlBytes");if(controls.Length!=localRows.Length)throw new InvalidDataException("Skin control/local-block count mismatch.");
-            if(normalTransforms==null)normalTransforms=new Matrix4x4[transforms.Length];
             string[] blendNames={"fourBlendEntries","threeBlendEntries","twoBlendEntries","oneBlendEntries"};
             var blocks=blendNames.Select(k=>ClothDocument.Field(deformer,k).Elements().ToArray()).ToArray();var cursor=new int[4];
-            var result=new ManagedReferenceBinding{Positions=new double[count][],Normals=new double[count][]};
+            var vertices=new List<Vertex>();
             for(int block=0;block<controls.Length;block++)
             {
                 int code=(int)controls[block];if(code!=controls[block]||code<0||code>3)throw new NotSupportedException("Unsupported managed Skin control byte.");
@@ -103,32 +132,48 @@ namespace MySFformat.Cloth.Preview
                 for(int lane=0;lane<(boneSpace?16/influences:16);lane++)
                 {
                     int index=I(entries,"vertexIndices"+(lane+1));if(index<0||index>=count)throw new InvalidDataException("Skin vertex index outside reference buffer.");
-                    var local=boneSpace?Vector3.Zero:Local(localRows[block],"localPosition",lane,uncompressed);var normal=boneSpace||!hasNormals?Vector3.Zero:Local(localRows[block],"localNormal",lane,uncompressed);var p=Vector3.Zero;var n=Vector3.Zero;double weightSum=0;
+                    var local=boneSpace?Vector3.Zero:Local(localRows[block],"localPosition",lane,uncompressed);var normal=boneSpace||!hasNormals?Vector3.Zero:Local(localRows[block],"localNormal",lane,uncompressed);double weightSum=0;var items=new List<Influence>();
                     for(int j=0;j<influences;j++)
                     {
-                        int column=lane*influences+j+1,bone=I(entries,"boneIndices"+column);if(bone<0||bone>=transforms.Length)throw new InvalidDataException("Skin blend bone outside subset.");
-                        if(hasNormals&&normalTransforms[bone].M44==0){Matrix4x4 inverse;if(!Matrix4x4.Invert(transforms[bone],out inverse))throw new NotSupportedException("Degenerate deformer frame cannot transform required normals.");normalTransforms[bone]=Matrix4x4.Transpose(inverse);}
+                        int column=lane*influences+j+1,bone=I(entries,"boneIndices"+column);if(bone<0||bone>=transformCount)throw new InvalidDataException("Skin blend bone outside subset.");
                         if(boneSpace)
                         {
                             // Bone-space vectors are already weight-scaled and carry
                             // their translation weight in W (including zero-weight lanes).
                             var values=N(localRows[block],"localPosition"+column);if(values.Length!=4||values[3]<0||values[3]>1)throw new InvalidDataException("Invalid weighted bone-space position.");
-                            var transformed=Vector4.Transform(new Vector4((float)values[0],(float)values[1],(float)values[2],(float)values[3]),transforms[bone]);
-                            p+=new Vector3(transformed.X,transformed.Y,transformed.Z);if(hasNormals)n+=Vector3.TransformNormal(Local(localRows[block],"localNormal",column-1,uncompressed),normalTransforms[bone]);weightSum+=values[3];
+                            items.Add(new Influence {Bone=bone,Position=new Vector4((float)values[0],(float)values[1],(float)values[2],(float)values[3]),Normal=hasNormals?Local(localRows[block],"localNormal",column-1,uncompressed):Vector3.Zero});weightSum+=values[3];
                         }
                         else
                         {
                             double weight=influences==1?1:I(entries,"boneWeights"+column)/255.0;if(weight<0||weight>1)throw new InvalidDataException("Invalid Skin weight.");weightSum+=weight;
-                            p+=Vector3.Transform(local,transforms[bone])*(float)weight;if(hasNormals)n+=Vector3.TransformNormal(normal,normalTransforms[bone])*(float)weight;
+                            items.Add(new Influence {Bone=bone,Position=new Vector4(local,1),Normal=normal,Weight=weight});
                         }
                     }
                     if(Math.Abs(weightSum-1)>1e-5)throw new InvalidDataException("Skin weights do not sum to one; not renormalized.");
-                    if(n.LengthSquared()>1e-20f)n=Vector3.Normalize(n);
-                    result.Positions[index]=Array(p);if(hasNormals)result.Normals[index]=Array(n);
+                    vertices.Add(new Vertex {Index=index,Influences=items.ToArray()});
                 }
             }
             for(int i=0;i<4;i++)if(cursor[i]!=blocks[i].Length)throw new InvalidDataException("Unused Skin blend blocks.");
-            return result;
+            // Immutable decoded channels/weights are cached, not the rest output.
+            return (transforms,normalTransforms)=>
+            {
+                if(normalTransforms==null)normalTransforms=new Matrix4x4[transforms.Length];
+                var result=new ManagedReferenceBinding {Positions=new double[count][],Normals=new double[count][]};
+                foreach(var vertex in vertices)
+                {
+                    var p=Vector3.Zero;var n=Vector3.Zero;
+                    foreach(var item in vertex.Influences)
+                    {
+                        int bone=item.Bone;
+                        if(hasNormals&&normalTransforms[bone].M44==0){Matrix4x4 inverse;if(!Matrix4x4.Invert(transforms[bone],out inverse))throw new NotSupportedException("Degenerate deformer frame cannot transform required normals.");normalTransforms[bone]=Matrix4x4.Transpose(inverse);}
+                        if(boneSpace){var v=Vector4.Transform(item.Position,transforms[bone]);p+=new Vector3(v.X,v.Y,v.Z);if(hasNormals)n+=Vector3.TransformNormal(item.Normal,normalTransforms[bone]);}
+                        else {p+=Vector3.Transform(new Vector3(item.Position.X,item.Position.Y,item.Position.Z),transforms[bone])*(float)item.Weight;if(hasNormals)n+=Vector3.TransformNormal(item.Normal,normalTransforms[bone])*(float)item.Weight;}
+                    }
+                    if(n.LengthSquared()>1e-20f)n=Vector3.Normalize(n);
+                    result.Positions[vertex.Index]=Array(p);if(hasNormals)result.Normals[vertex.Index]=Array(n);
+                }
+                return result;
+            };
         }
         static ManagedReferenceBinding ValidateSingle(ManagedReferenceBinding result,ClothDomain domain,XElement[] constraints,XElement[] moves,int count)
         {

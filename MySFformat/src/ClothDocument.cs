@@ -135,7 +135,7 @@ namespace MySFformat
             foreach (var simRef in Refs(owner,"simClothDatas"))
             {
                 var sim=Objects[simRef]; var poses=Refs(sim,"simClothPoses");
-                if (poses.Length==0) throw new InvalidDataException("Simulation domain has no authored rest pose.");
+                if (poses.Length==0) throw new InvalidDataException("Simulation domain has no saved rest pose.");
                 var coordinates=Numbers(Value(Objects[poses[0]],"positions"));
                 var particles=Field(sim,"particleDatas").Elements().ToArray();
                 if (coordinates.Length!=particles.Length*4) throw new InvalidDataException("Particle/rest pose dimensions do not match.");
@@ -178,7 +178,7 @@ namespace MySFformat
                     Matrix4x4 transform;string boneName;
                     if(unbound)
                     {
-                        var authored=Numbers(Value(collider,"transform"));if(authored.Length!=16)throw new InvalidDataException("Authored collider transform dimensions do not match.");
+                        var authored=Numbers(Value(collider,"transform"));if(authored.Length!=16)throw new InvalidDataException("Saved collider transform dimensions do not match.");
                         transform=Matrix(authored,0);boneName="(unbound)";
                     }
                     else
@@ -211,7 +211,7 @@ namespace MySFformat
             if (factor < 0.1 || factor > 4 || double.IsNaN(factor)) throw new ArgumentOutOfRangeException("factor");
             if (String.Equals(Path.GetFullPath(path),Source,StringComparison.OrdinalIgnoreCase)) throw new IOException("Cannot overwrite the loaded source. Save to a new XML path.");
             if (File.Exists(path)) throw new IOException("Output already exists. Choose a new filename.");
-            if (!Path.GetExtension(path).Equals(".xml",StringComparison.OrdinalIgnoreCase)) throw new IOException("Only author XML export is supported. No direct game HKX/Binder writes.");
+            if (!Path.GetExtension(path).Equals(".xml",StringComparison.OrdinalIgnoreCase)) throw new IOException("Range-copy export requires an XML file path.");
             var clone=RangeClone(domain,factor);
             using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write))clone.Save(stream);
         }

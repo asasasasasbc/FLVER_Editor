@@ -40,7 +40,7 @@ namespace MySFformat
         readonly TextBox animationFilePath=new TextBox {Name="clothAnimationFile",ReadOnly=true,Width=300};
         readonly Button animationPlay=new Button {Name="playClothAnimation",Text="Play HKX",AutoSize=true};
         readonly Button animationPause=new Button {Name="pauseClothAnimation",Text="Pause HKX",AutoSize=true,Enabled=false};
-        readonly CheckBox animationLink=new CheckBox {Name="linkClothAnimation",Text="Drive Native Cloth",Checked=true,AutoSize=true};
+        readonly CheckBox animationLink=new CheckBox {Name="linkClothAnimation",Text="Drive Cloth Physics",Checked=true,AutoSize=true};
         readonly CheckBox animationLoop=new CheckBox {Name="loopClothAnimation",Text="Loop",Checked=true,AutoSize=true};
         readonly NumericUpDown animationSpeed=new NumericUpDown {Name="clothAnimationSpeed",Minimum=.05m,Maximum=4,DecimalPlaces=2,Value=1,Increment=.25m,Width=60};
         readonly NumericUpDown animationFrame=new NumericUpDown {Name="clothAnimationFrame",Minimum=0,Width=85};
@@ -74,10 +74,10 @@ namespace MySFformat
             var rest=new Button {Name="clothAnimationRest",Text="Rest Pose",AutoSize=true};
             playback.Controls.AddRange(new Control[]{animationPlay,animationPause,stop,previous,next,animationFrame,new Label {Text="Speed",AutoSize=true,Padding=new Padding(0,6,0,0)},animationSpeed,animationLoop,animationLink,rest});
             page.Controls.Add(animationStatus);page.Controls.Add(animationTimeline);page.Controls.Add(playback);page.Controls.Add(files);
-            animationStatus.Text="Load Cloth, then select the character skeleton.hkx and an animation HKX.\r\nDrive Native Cloth streams mapped bone matrices at each 1/60 physics substep. Seeking/looping resets native history; it does not replay from frame 0 to the selected frame.\r\nPreview only: no main Viewer animation, model edits, source writes or game launch.";
+            animationStatus.Text="Load Cloth, then select the character skeleton.hkx and an animation HKX.\r\nDrive Cloth Physics sends bone poses to the selected solver at 60 Hz. Seeking or looping starts a fresh simulation at that pose.";
             tips.SetToolTip(skeleton,"Choose the character skeleton for animation decoding, not the equipment _c.hkx.\n选择解码动画用的角色骨架，不是装备_c.hkx。");
             tips.SetToolTip(loadAnimation,"Decode using the existing HavokToolset adapter, then map bones by exact name to the Cloth skeletons. Failed loads preserve the previous clip.\n复用现有HavokToolset解码，按精确骨名映射到布料骨架；失败保留旧动画。");
-            tips.SetToolTip(animationLink,"Drive Cloth with animation. Unmatched bones keep their local offsets. Uncheck to preview animation only.\n用动画驱动布料；未匹配骨骼保留局部偏移；取消则仅预览动画。");
+            tips.SetToolTip(animationLink,"Drive the selected solver with HKX animation. Unmatched bones keep their local offsets. Uncheck for animation only.\n用HKX动画驱动当前解算器；未匹配骨骼保留局部偏移，取消则仅预览动画。");
             tips.SetToolTip(animationTimeline,"Seek pauses playback and resets linked physics; previous frames are not replayed.\n跳帧会暂停播放并重置联动物理，不回放此前全部动画帧。");
             tips.SetToolTip(animationPlay,"Play or resume HKX. Linked Cloth also starts.\n播放或继续HKX；联动Cloth也会启动。");
             tips.SetToolTip(animationPause,"Pause at the current frame without resetting physics history. Linked Cloth pauses too.\n停在当前帧，不重置物理历史；联动Cloth也会暂停。");
@@ -85,7 +85,7 @@ namespace MySFformat
             tips.SetToolTip(animationSpeed,"Animation time multiplier. Physics always uses fixed 1/60 steps; speed changes sampled poses, not solver dt.\n动画时间倍率；物理步长始终1/60，仅改变采样姿态。");
             tips.SetToolTip(stop,"Pause and seek frame 0. Rest Pose is a separate operation.\n暂停并回到第0帧；恢复作者姿态请用Rest Pose。");
             tips.SetToolTip(previous,tips.GetToolTip(animationTimeline));tips.SetToolTip(next,tips.GetToolTip(animationTimeline));tips.SetToolTip(animationFrame,tips.GetToolTip(animationTimeline));
-            tips.SetToolTip(animationLoop,"Looping recreates native history to avoid carrying velocity across the end-to-start discontinuity.\n循环时重建历史，避免末帧到首帧跳变携带旧速度。");
+            tips.SetToolTip(animationLoop,"Looping starts a fresh simulation to avoid carrying velocity across the end-to-start jump.\n循环时重新初始化模拟，避免末帧到首帧跳变携带旧速度。");
             string defaultSkeleton=Path.Combine(HkxPlaybackForm.BloodborneRoot,@"c0000-anibnd-dcx\chr\c0000\hkx\skeleton.hkx");
             if(!string.IsNullOrWhiteSpace(animationPathSettings.SkeletonPath))animationSkeletonPath.Text=animationPathSettings.SkeletonPath;
             else if(File.Exists(defaultSkeleton))animationSkeletonPath.Text=defaultSkeleton;
@@ -179,7 +179,7 @@ namespace MySFformat
         }
         void ValidateAnimationSession(IClothPreviewSession session)
         {
-            if(HasLinkedAnimation&&!session.SupportsAnimation)throw new NotSupportedException("OpenPhysicsHKX currently supports rest-pose physics only. Uncheck Drive Native Cloth or use Native HCT for animation.");
+            if(HasLinkedAnimation&&!session.SupportsAnimation)throw new NotSupportedException("This Cloth session has no supported animation skeleton binding.");
             if(!HasLinkedAnimation)return;EnsureAnimationBindings();var names=session.SkeletonNames;var bones=session.SkeletonBones;
             if(names.Length!=animationSkeletons.Length)throw new InvalidDataException("Animated skeleton count mismatch");
             for(int s=0;s<names.Length;s++)if(names[s]!=ClothDocument.Value(animationSkeletons[s],"name")||!bones[s].SequenceEqual(ClothDocument.Field(animationSkeletons[s],"bones").Elements().Select(b=>ClothDocument.Value(b,"name"))))throw new InvalidDataException("Animated skeleton order/name mismatch");
@@ -286,13 +286,14 @@ namespace MySFformat
                 }).ToList();
             }
             UpdateMeshPreview();
+            if(previewSession is ManagedClothPreviewSession&&lastPreview!=null)ApplyPreviewPositions();
             canvas.Invalidate();
         }
         void RefreshAnimationLabels()
         {
             if(ClothAnimationPlayback==null||IsDisposed)return;animationUpdating=true;animationTimeline.Value=ClothAnimationPlayback.Frame;animationFrame.Value=ClothAnimationPlayback.Frame;animationUpdating=false;
             animationPause.Enabled=ClothAnimationPlayback.Playing&&!animationRestarting&&!animationLoading;
-            animationStatus.Text=string.Format("Frame {0}/{1} · {2:F3}/{3:F3} s · {4}\r\nMapped bones: {5}. Unmatched bones keep their local offsets.\r\n{6}\r\nSeek/loop resets physics rather than replaying previous frames. Range circles show saved limits; colliders follow animation. No main Viewer/game changes.",ClothAnimationPlayback.Frame,ClothAnimationPlayback.LastFrame,ClothAnimationPlayback.Time,ClothAnimationPlayback.Duration,animationRest?"Rest Pose":HasLinkedAnimation?"Cloth linked":"Animation only",string.Join(", ",animationBindings.Select(b=>b.MatchedCount+" matched / "+b.UnmatchedNames.Length+" unmatched")),string.Join(", ",animationBindings.SelectMany(b=>b.UnmatchedNames).Distinct().Take(12)));
+            animationStatus.Text=string.Format("Frame {0}/{1} · {2:F3}/{3:F3} s · {4}\r\nMapped bones: {5}. Unmatched bones keep their local offsets.\r\n{6}\r\nSeek/loop starts fresh physics at that pose. Range circles show saved limits; colliders follow animation.",ClothAnimationPlayback.Frame,ClothAnimationPlayback.LastFrame,ClothAnimationPlayback.Time,ClothAnimationPlayback.Duration,animationRest?"Rest Pose":HasLinkedAnimation?"Cloth linked":"Animation only",string.Join(", ",animationBindings.Select(b=>b.MatchedCount+" matched / "+b.UnmatchedNames.Length+" unmatched")),string.Join(", ",animationBindings.SelectMany(b=>b.UnmatchedNames).Distinct().Take(12)));
         }
         void DisposeClothAnimation(){animationLoadGeneration++;animationTimer.Stop();animationTimer.Dispose();}
     }

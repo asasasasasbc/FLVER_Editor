@@ -11,6 +11,10 @@ Stretch correction in
 
 The Editor references this DLL directly and copies it to its output directory.
 Building the Editor does not compile Core or require an external source checkout.
+The 2026-10-18 animation integration uses Core 0.3.1's existing `SetFrameInputs`
+API for reference buffers/normals, fixed targets and capsules. HKX decoding,
+skeleton mapping and per-frame Skin evaluation stay in the Editor adapter;
+no Core binary/API change is needed for this integration.
 No Core source, project, CLI, or research fixtures are included in this folder.
 
 ## Updating the DLL
