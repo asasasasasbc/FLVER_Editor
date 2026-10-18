@@ -34,7 +34,7 @@ namespace MySFformat
                 if(!Capture){if(SelectionMode==2)Invalidate();return;}
                 int dx=e.X-last.X,dy=e.Y-last.Y;if(Math.Abs(e.X-down.X)+Math.Abs(e.Y-down.Y)>4)drag=true;
                 if(gesture==MouseButtons.Middle||(gesture==MouseButtons.Left&&(ModifierKeys&Keys.Shift)!=0)){pan.X+=dx;pan.Y+=dy;}
-                else if(gesture==MouseButtons.Left){yaw+=dx*.01f;pitch+=dy*.01f;}
+                else if(gesture==MouseButtons.Left){yaw-=dx*.01f;pitch+=dy*.01f;}
                 else if(gesture==MouseButtons.Right&&SelectionMode==2&&Domain!=null&&PickValueRequested==null)
                 {
                     int steps=Math.Max(1,(int)(Math.Sqrt(dx*dx+dy*dy)/Math.Max(2,BrushRadius/2)));
@@ -77,7 +77,9 @@ namespace MySFformat
         }
         void NotifySelection(){Selected=SelectedParticles.Count==0?-1:SelectedParticles.Min();Invalidate();if(SelectionChanged!=null)SelectionChanged();}
         RectangleF SelectionRectangle(Point point){return RectangleF.FromLTRB(Math.Min(down.X,point.X),Math.Min(down.Y,point.Y),Math.Max(down.X,point.X),Math.Max(down.Y,point.Y));}
-        float Depth(Vector3 point){return Vector3.Transform(point-center,Matrix4x4.CreateRotationY(yaw)*Matrix4x4.CreateRotationX(pitch)).Z;}
+        // MonoGame view-space Z is negative in front of the camera. Use positive
+        // camera distance consistently for both painter sorting and visible picks.
+        float Depth(Vector3 point){return -Vector3.Transform(point-center,ViewTransform).Z;}
         bool IsParticleVisible(int id)
         {
             if(!VisibleOnly)return true;

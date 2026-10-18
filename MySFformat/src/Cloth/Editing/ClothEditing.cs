@@ -84,6 +84,13 @@ namespace MySFformat
             var similar=new Button {Name="clothSelectSimilar",Text="Select Similar…",AutoSize=true};
             var all=new Button {Text="All",AutoSize=true};var invert=new Button {Text="Invert",AutoSize=true};var clear=new Button {Text="Clear",AutoSize=true};var focus=new Button {Text="Focus (F)",AutoSize=true};
             selectionTools.Controls.AddRange(new Control[]{mode,new Label {Text="Radius",AutoSize=true,Padding=new Padding(0,6,0,0)},brush,visible,similar,all,invert,clear,focus});
+            selectionTools.SetFlowBreak(all,true);
+            var renderMode=new ComboBox {Name="clothRenderMode",DropDownStyle=ComboBoxStyle.DropDownList,Width=190};
+            renderMode.Items.AddRange(new object[]{"Points / Lines","Solid","Points / Lines + Solid"});renderMode.SelectedIndex=0;
+            selectionTools.Controls.Add(new Label {Text="Render Mode",AutoSize=true,Padding=new Padding(0,6,0,0)});
+            selectionTools.Controls.Add(renderMode);
+            renderMode.SelectedIndexChanged+=(s,e)=>{canvas.ClothRenderMode=renderMode.SelectedIndex;canvas.Invalidate();};
+            tips.SetToolTip(renderMode,"Cloth display only: points/lines, shaded solid, or both. Uses current simulated positions; no changes to physics or FLVER overlays. Selected particles remain marked.\n仅切换布料显示：点线、白模、点线+白模；使用当前模拟位置，不改物理或FLVER叠加层，保留选中节点标记。");
             split.Panel1.Controls.Add(selectionTools);
             mode.SelectedIndexChanged+=(s,e)=>canvas.SelectionMode=mode.SelectedIndex;
             brush.ValueChanged+=(s,e)=>canvas.BrushRadius=(int)brush.Value;

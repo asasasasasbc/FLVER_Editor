@@ -28,8 +28,10 @@ namespace MySFformat
             var row = new FlowLayoutPanel { AutoSize = true, WrapContents = true, MaximumSize = new Size(430, 0) };
             var loadExtra = new Button { Name = "loadClothExtraFlver", Text = "Add FLVER…", AutoSize = true };
             var remove = new Button { Name = "removeClothExtraFlver", Text = "Remove Selected", AutoSize = true };
-            row.Controls.AddRange(new Control[] { showFlverMeshes, loadExtra, remove, extraFlverList, meshPreviewStatus });
+            var submeshes = new Button { Name = "clothSubmeshVisibility", Text = "Toggle Submesh Visibility…", AutoSize = true };
+            row.Controls.AddRange(new Control[] { showFlverMeshes, submeshes, loadExtra, remove, extraFlverList, meshPreviewStatus });
             row.SetFlowBreak(showFlverMeshes, true);
+            row.SetFlowBreak(submeshes, true);
             row.SetFlowBreak(remove, true);
             environment.SetFlowBreak(environment.Controls[environment.Controls.Count - 1], true);
             environment.Controls.Add(row);
@@ -43,6 +45,8 @@ namespace MySFformat
                 "额外加载仅显示的FLVER模型，不替换编辑器模型、不新增物理碰撞体；加载不会自动开启显示。");
             tips.SetToolTip(remove, "Remove the selected overlay from memory only.\n仅移除选中的内存预览模型，不删除文件。");
             showFlverMeshes.CheckedChanged += (s, e) => UpdateMeshPreview();
+            submeshes.Click += (s, e) => ShowSubmeshVisibility();
+            tips.SetToolTip(submeshes,"Show/hide individual submeshes of the current and extra FLVER overlays. Preview-only; does not edit models or Cloth physics.\n逐个切换当前及额外FLVER的子网格显示；仅影响预览，不修改模型或布料物理。");
             remove.Click += (s, e) =>
             {
                 int index = extraFlverList.SelectedIndex;
@@ -62,6 +66,33 @@ namespace MySFformat
                     finally { if (!IsDisposed) loadExtra.Enabled = true; }
                 }
             };
+        }
+
+        void ShowSubmeshVisibility()
+        {
+            try { EnsureCurrentFlverPreview(); }
+            catch(Exception ex){meshPreviewStatus.Text="Mesh preview unavailable: "+ex.GetBaseException().Message;return;}
+            UpdateMeshPreview();
+            var models = new List<ClothSkinnedModel>();
+            if(currentFlverPreview!=null)models.Add(currentFlverPreview);
+            models.AddRange(extraFlvers);
+            using(var dialog=new Form {Name="clothSubmeshDialog",Text="FLVER Submesh Visibility — Preview Only",Size=new Size(650,480),MinimumSize=new Size(420,300),StartPosition=FormStartPosition.CenterParent})
+            using(var list=new CheckedListBox {Name="clothSubmeshList",Dock=DockStyle.Fill,CheckOnClick=true,HorizontalScrollbar=true,IntegralHeight=false})
+            {
+                var entries=new List<Tuple<ClothSkinnedModel,int>>();
+                foreach(var model in models)for(int i=0;i<model.Meshes.Length;i++)
+                {entries.Add(Tuple.Create(model,i));list.Items.Add(Path.GetFileName(model.Name)+" · "+model.MeshNames[i],model.VisibleMeshes[i]);}
+                list.ItemCheck+=(s,e)=>{var item=entries[e.Index];item.Item1.VisibleMeshes[item.Item2]=e.NewValue==CheckState.Checked;canvas.Invalidate();};
+                var buttons=new FlowLayoutPanel {Dock=DockStyle.Bottom,AutoSize=true};
+                var all=new Button {Text="Show All",AutoSize=true};var none=new Button {Text="Hide All",AutoSize=true};var invert=new Button {Text="Invert",AutoSize=true};var close=new Button {Text="Close",AutoSize=true,DialogResult=DialogResult.OK};
+                all.Click+=(s,e)=>{for(int i=0;i<list.Items.Count;i++)list.SetItemChecked(i,true);};
+                none.Click+=(s,e)=>{for(int i=0;i<list.Items.Count;i++)list.SetItemChecked(i,false);};
+                invert.Click+=(s,e)=>{for(int i=0;i<list.Items.Count;i++)list.SetItemChecked(i,!list.GetItemChecked(i));};
+                buttons.Controls.AddRange(new Control[]{all,none,invert,close});
+                dialog.Controls.Add(list);dialog.Controls.Add(buttons);
+                dialog.Controls.Add(new Label {Dock=DockStyle.Top,AutoSize=true,Text=entries.Count==0?"Enable Render FLVER Meshes and load a FLVER first.":"Checked = visible. Changes apply immediately to overlays only."});
+                dialog.AcceptButton=close;dialog.CancelButton=close;dialog.ShowDialog(this);
+            }
         }
 
         public async Task LoadExtraPreviewFlverAsync(string path)
@@ -97,15 +128,7 @@ namespace MySFformat
             }
             try
             {
-                if (!ReferenceEquals(currentFlverSource, Program.targetFlver))
-                {
-                    // 当前编辑器模型也快照成独立内存副本，缓存不与编辑操作共享可变顶点。
-                    var source = Program.targetFlver;
-                    var snapshot = source == null ? null :
-                        new ClothSkinnedModel(FLVER2.Read(source.Write()), "Current FLVER");
-                    currentFlverPreview = snapshot;
-                    currentFlverSource = source;
-                }
+                EnsureCurrentFlverPreview();
                 var models = new List<ClothSkinnedModel>();
                 if (currentFlverPreview != null) models.Add(currentFlverPreview);
                 models.AddRange(extraFlvers);
@@ -123,6 +146,15 @@ namespace MySFformat
             }
             canvas.Invalidate();
         }
+
+        void EnsureCurrentFlverPreview()
+        {
+            if(ReferenceEquals(currentFlverSource,Program.targetFlver))return;
+            // 独立快照，仅保存预览显隐；不与主窗口的隐藏网格或作者顶点共享状态。
+            var source=Program.targetFlver;
+            var snapshot=source==null?null:new ClothSkinnedModel(FLVER2.Read(source.Write()),"Current FLVER");
+            currentFlverPreview=snapshot;currentFlverSource=source;
+        }
     }
 
     // 复用主 Viewer 的蒙皮缓存。只缓存拓扑、inverse bind 和权重，不逐帧重新 GetFaces。
@@ -130,6 +162,8 @@ namespace MySFformat
     {
         public readonly string Name;
         public readonly HkxGeometryCache.MeshData[] Meshes;
+        public readonly bool[] VisibleMeshes;
+        public readonly string[] MeshNames;
         public string BindingWarning;
         readonly Matrix4x4[] local, rest;
         readonly string[] names;
@@ -165,6 +199,9 @@ namespace MySFformat
                 inverse.Add(HkxPoseBinding.ToEditorMatrix(value));
             }
             Meshes = model.Meshes.Select(m => new HkxGeometryCache.MeshData(m, inverse)).ToArray();
+            VisibleMeshes = Enumerable.Repeat(true,Meshes.Length).ToArray();
+            MeshNames = model.Meshes.Select((m,i)=>"Mesh "+i+" · "+
+                (m.MaterialIndex>=0&&m.MaterialIndex<model.Materials.Count?model.Materials[m.MaterialIndex].Name:"No material")).ToArray();
             Update(null, 0);
         }
         public void Update(HkxAnimationClip clip, float time)
@@ -188,24 +225,27 @@ namespace MySFformat
     public sealed partial class ClothCanvas
     {
         internal List<ClothSkinnedModel> MeshModels;
-        struct MeshTriangle { public PointF A, B, C; public float Depth; public int Shade; }
+        struct MeshTriangle { public PointF A, B, C; public float Depth; public int Shade; public bool Cloth; }
         static readonly SolidBrush[] meshBrushes = Enumerable.Range(0, 64)
             .Select(i => new SolidBrush(Color.FromArgb(42 + i * 2, 56 + i * 2, 67 + i * 2))).ToArray();
+        static readonly SolidBrush[] clothBrushes = Enumerable.Range(0,64)
+            .Select(i=>new SolidBrush(Color.FromArgb(155+i,159+i,164+i))).ToArray();
         void DrawFlverMeshes(Graphics graphics)
         {
-            if (MeshModels == null) return;
-            var view = Matrix4x4.CreateRotationY(yaw) * Matrix4x4.CreateRotationX(pitch);
+            if (MeshModels == null && ClothRenderMode == 0) return;
+            var view = ViewTransform;
             var triangles = new List<MeshTriangle>();
-            foreach (var model in MeshModels)
-            foreach (var mesh in model.Meshes)
+            foreach (var model in MeshModels ?? new List<ClothSkinnedModel>())
+            for(int meshIndex=0;meshIndex<model.Meshes.Length;meshIndex++)
             {
+                if(!model.VisibleMeshes[meshIndex])continue;
+                var mesh=model.Meshes[meshIndex];
                 var projected = new PointF[mesh.Positions.Length];
                 var transformed = new Vector3[mesh.Positions.Length];
                 for (int i = 0; i < projected.Length; i++)
                 {
                     transformed[i] = Vector3.Transform(mesh.Positions[i] - center, view);
-                    projected[i] = new PointF(Width * .5f + pan.X + transformed[i].X * PixelScale,
-                        Height * .5f + pan.Y - transformed[i].Y * PixelScale);
+                    projected[i] = ProjectViewPoint(transformed[i]);
                 }
                 foreach (var face in mesh.Indices)
                 {
@@ -217,7 +257,18 @@ namespace MySFformat
                     normal = Vector3.Normalize(normal);
                     int shade = Math.Min(63, (int)(63 * Math.Abs(Vector3.Dot(normal, Vector3.Normalize(new Vector3(-.3f, .6f, -1))))));
                     triangles.Add(new MeshTriangle { A = a, B = b, C = c, Shade = shade,
-                        Depth = (transformed[face[0]].Z + transformed[face[1]].Z + transformed[face[2]].Z) / 3 });
+                         Depth = -(transformed[face[0]].Z + transformed[face[1]].Z + transformed[face[2]].Z) / 3 });
+                }
+            }
+            if(ClothRenderMode!=0)
+            {
+                var transformed=DisplayPositions.Select(p=>Vector3.Transform(p-center,view)).ToArray();
+                for(int i=0;i<Domain.Triangles.Length;i+=3)
+                {
+                    var a=transformed[Domain.Triangles[i]];var b=transformed[Domain.Triangles[i+1]];var c=transformed[Domain.Triangles[i+2]];
+                    var normal=Vector3.Cross(b-a,c-a);if(normal.LengthSquared()<1e-16f)continue;
+                    int shade=Math.Min(63,(int)(63*Math.Abs(Vector3.Dot(Vector3.Normalize(normal),Vector3.Normalize(new Vector3(-.3f,.6f,-1))))));
+                    triangles.Add(new MeshTriangle {A=ProjectViewPoint(a),B=ProjectViewPoint(b),C=ProjectViewPoint(c),Depth=-(a.Z+b.Z+c.Z)/3,Shade=shade,Cloth=true});
                 }
             }
             // 几何层按深度排序；粒子和碰撞体仍是可读的叠加层，不影响选择遮挡规则。
@@ -228,7 +279,7 @@ namespace MySFformat
             foreach (var triangle in triangles)
             {
                 polygon[0] = triangle.A;polygon[1] = triangle.B;polygon[2] = triangle.C;
-                graphics.FillPolygon(meshBrushes[triangle.Shade], polygon);
+                graphics.FillPolygon(triangle.Cloth?clothBrushes[triangle.Shade]:meshBrushes[triangle.Shade], polygon);
             }
             graphics.SmoothingMode = smoothing;
         }

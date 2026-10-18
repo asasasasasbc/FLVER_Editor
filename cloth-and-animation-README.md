@@ -52,6 +52,34 @@ CLM2 records cover the complete mesh list; readback is not game certification.
 The **Cloth** button sits alongside Material, Mesh and Dummy. It opens an
 independent window. UI labels are English; tooltips are English/Chinese.
 
+**Render Mode**, beside Invert / Clear / Focus, switches the current Cloth domain
+between **Points / Lines** (default), **Solid**, and **Points / Lines + Solid**.
+Solid uses the current simulated particle triangles with light shaded faces;
+selected particles remain marked. It does not enable FLVER overlays or change
+physics. Colliders, skeleton and range overlays keep their own controls.
+
+Under **Preview Environment**, **Toggle Submesh Visibility…** lists each submesh
+of the current and extra FLVER overlays by model, mesh index and material name.
+Checkboxes apply immediately; Show All / Hide All / Invert are available.
+Visibility survives animation updates and overlay off/on within the current
+preview, but is reset when a model snapshot is replaced. These controls do not
+change the main Viewer's visibility, source models, or Cloth physics.
+
+For orientation comparisons, use the same viewing direction in both windows:
+the Inspector uses orthographic projection while the main Viewer is perspective.
+Both now use the main Viewer's explicit display-coordinate convention:
+FLVER `(X,Y,Z)` → Viewer `(X,Z,Y)`, followed by the same MonoGame `LookAt`.
+Inspector pitch is camera elevation, not a right-handed model rotation; mesh
+depth ordering and visible-particle picking use the same camera-space distance.
+These display transforms never change saved positions or physics inputs.
+World axes match the main Viewer: **red +X, yellow +Y, blue +Z**, drawn from
+the world origin. A small labeled indicator in the lower-left follows camera
+rotation and remains visible when the origin is outside the viewport.
+The initial camera and **Reset View** look from **−Z** toward the model, without
+an initial yaw/pitch offset, matching the main Viewer's front-facing side.
+Points/lines and diagnostic colliders are overlays and can be seen through the
+model; use Solid to inspect the Cloth surface without ordinary particle dots.
+
 - Load a cloth `_c.hkx`, parts Binder (`.dcx`) or author XML.
 - An empty window automatically looks for `<FLVER name>_c.hkx` beside the
   loaded FLVER and loads its matching CLM2 companion at the same time. Direct
@@ -83,8 +111,8 @@ runtime-only ignored fields and padding. Credits and licenses are in the
 
 ### CLM2 editing and companion verification
 
-The second toolbar row contains **Load CLM2 / Edit CLM2 / Save CLM2 /
-Verify Clothes**. The modal editor exposes the known mesh-record layout and
+The CLM2 toolbar row contains **Load CLM2 / Edit CLM2 / Save CLM2**.
+Use **Verify** in the first row for companion checks. The modal editor exposes the known mesh-record layout and
 two unknown signed Int16 entry fields (`Unk00`, `Unk02`). Apply updates a clone
 in memory; Cancel discards it; saves use SoulsFormats and require a new path.
 
@@ -254,8 +282,8 @@ tab, select the character `skeleton.hkx`, load an animation HKX, enable **Drive 
 and use **Play HKX**, **Pause HKX** or **Stop HKX**. Pause keeps the current frame and
 physics history; Play resumes; Stop returns to frame 0. Seeking and looping reset
 physics rather than replaying previous frames. Collider overlays follow animation;
-range circles and parameter tables still show saved data. This does not deform the
-main Viewer model or read live-game forces. Closing the window stops its owned host.
+range circles and parameter tables still show saved data. The main Viewer model
+is unaffected. Closing the window stops its owned host.
 
 Animation IPC uses buffered, batched pipe transfers instead of one system call per
 float; native physics and wind stepping are unchanged. A focused local BB test advanced
@@ -368,8 +396,8 @@ checks. Unpack accepts a supported cloth HKX or parts Binder.
 
 ### Limits and validation
 
-Rest inspection is **not Havok simulation or live-game monitoring**. Optional
-native playback runs a local HCT solver, not the game's runtime. Range
+Rest inspection shows saved particle and collider geometry. Native playback
+runs a local HCT solver. Range
 spheres do not model normal limits or combined constraints. Rest collider
 wireframes are not proof of runtime collision response; serialized inspection
 cannot confirm or exclude world-space wind. Gameplay remains a separate test.

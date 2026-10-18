@@ -148,8 +148,7 @@ namespace MySFformat
                 try
                 {
                     SaveClm2Copy(dialog.FileName);
-                    status.Text = "Saved CLM2 copy: " + dialog.FileName +
-                        "\r\nSource unchanged. Verify against the intended FLVER/HKX before game testing.";
+                    status.Text = "Saved CLM2 copy: " + dialog.FileName;
                 }
                 catch (Exception ex) { MessageBox.Show(this, ex.Message, "CLM2 Save Failed"); }
             }
@@ -175,8 +174,7 @@ namespace MySFformat
                 };
                 window.Controls.Add(output);
                 reportTips.SetToolTip(output,
-                    "Static checks only, not gameplay certification. Current FLVER may contain unsaved edits.\n" +
-                    "仅静态检查，不代表游戏验证；当前FLVER可能有未保存修改。");
+                    "Layout and binding checks using the current in-memory FLVER.\n基于当前内存FLVER检查布局与绑定。");
                 window.ShowDialog(this);
             }
         }

@@ -75,7 +75,7 @@ namespace MySFformat
         public ClothInspectorForm()
         {
             // 固定分行：文件/显示、HKX版本、CLM2、物理。不能依赖 FlowLayout 自动换行。
-            Text="Cloth Inspector — Rest / Native Preview, Not Live Game";Width=1200;Height=850;MinimumSize=new Size(900,650);
+            Text="Cloth Inspector";Width=1200;Height=850;MinimumSize=new Size(900,650);
             var top=new FlowLayoutPanel { Dock=DockStyle.Top, AutoSize=true, AutoSizeMode=AutoSizeMode.GrowAndShrink, WrapContents=true, Padding=new Padding(5) };
             var setup=new Button{Name="clothSetupWizard",Text="Cloth Setup Wizard",AutoSize=true};
             top.Controls.Add(setup);top.Controls.Add(load);top.Controls.Add(verificationIndicator);top.Controls.Add(domains);
@@ -86,7 +86,7 @@ namespace MySFformat
             foreach(var spec in new[]{"Particles","Colliders","Range Sphere"})
             {
                 var c=new CheckBox { Text=spec,AutoSize=true,Checked=true };top.Controls.Add(c);
-                tips.SetToolTip(c,spec=="Particles"?"Show fixed (yellow) and dynamic (cyan) particles.\n显示固定（黄色）和动态（青色）粒子。":spec=="Colliders"?"Show supported collider shapes at skeleton rest pose, not the live game pose.\n显示支持的碰撞形状在骨架rest姿态的位置，不是游戏实时姿态。":"Show the selected particle's maximumDistance sphere. Normal limits and other constraints are not represented.\n显示选中粒子的maximumDistance范围球；不代表法线限位和其他约束的合成可达范围。");
+                tips.SetToolTip(c,spec=="Particles"?"Show fixed (yellow) and dynamic (cyan) particles.\n显示固定（黄色）和动态（青色）粒子。":spec=="Colliders"?"Show supported collider shapes at the current preview pose.\n显示当前预览姿态的碰撞形状。":"Show the selected particle's maximumDistance sphere. Normal limits and other constraints are not represented.\n显示选中粒子的maximumDistance范围球；不代表法线限位和其他约束的合成可达范围。");
                 c.CheckedChanged+=(s,e)=> { if(spec=="Particles")canvas.ShowParticles=c.Checked;if(spec=="Colliders")canvas.ShowColliders=c.Checked;if(spec=="Range Sphere")canvas.ShowRange=c.Checked;canvas.Invalidate(); };
             }
             viewReset.Click+=(s,e)=>canvas.ResetView();
@@ -94,9 +94,8 @@ namespace MySFformat
             var loadClm=new Button {Name="loadClm2",Text="Load CLM2…",AutoSize=true};
             var editClm=new Button {Name="editClm2",Text="Edit CLM2…",AutoSize=true};
             var saveClm=new Button {Name="saveClm2",Text="Save CLM2…",AutoSize=true};
-            var verify=new Button {Name="verifyClothes",Text="Verify Clothes",AutoSize=true};
-            verificationIndicator.LinkClicked+=(s,e)=>verify.PerformClick();
-            second.Controls.AddRange(new Control[]{loadClm,editClm,saveClm,verify,clmSource});
+            verificationIndicator.LinkClicked+=(s,e)=>OnVerifyClothesClick(s,e);
+            second.Controls.AddRange(new Control[]{loadClm,editClm,saveClm,clmSource});
             var third=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             var editHkx=new Button {Name="editHkx",Text="Edit HKX XML…",AutoSize=true};
             var saveHkx=new Button {Name="saveHkx",Text="Save HKX Copy…",AutoSize=true};
@@ -118,17 +117,17 @@ namespace MySFformat
             tips.SetToolTip(loadClm,"Load a CLM2 as an independent companion document; existing data is kept if parsing fails.\n独立载入CLM2配套文档；解析失败时保留之前的数据。");
             tips.SetToolTip(editClm,"Open a separate editor for known mesh records and Unk00/Unk02 signed Int16 fields. Entry semantics remain unknown.\n弹窗编辑已知mesh记录和Unk00/Unk02有符号16位字段；条目含义仍未确认。");
             tips.SetToolTip(saveClm,"Save edited CLM2 to a new file. Sources and existing files are never overwritten.\n将修改后的CLM2另存到新文件，不覆盖源文件或已有文件。");
-            tips.SetToolTip(verify,"Compare CLM2 mesh count with the current in-memory FLVER; inspect HKX display bindings and dimensions separately. Cloth domain count is not a CLM2 mesh count.\n对照CLM2与当前内存FLVER的mesh数量，另检HKX显示绑定和维数；布料域数不等于CLM2 mesh数。");
+            tips.SetToolTip(verificationIndicator,"Check CLM2 mesh counts, HKX display bindings and dimensions against the current FLVER.\n对照当前FLVER检查CLM2网格数量、HKX显示绑定和维数。");
             tips.SetToolTip(clmSource,"Loaded CLM2 source and unsaved-edit state. This is independent of the selected HKX/XML source.\n显示CLM2来源和未保存修改状态，与HKX/XML来源独立。");
             var fourth=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             fourth.Controls.AddRange(new Control[]{previewPlay,previewStop,previewReset,viewReset,previewRuntime,previewRuntimePath,previewState});
-            previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Native preview off · source data unchanged";
+            previewRuntimePath.Text=ClothPreviewSession.DefaultRuntime;previewState.Text="Cloth preview off";
             tips.SetToolTip(previewPlay,"Play or pause the selected physics backend. HKX animation driving currently requires Native HCT.\n播放或暂停所选物理后端；HKX动画驱动当前需要Native HCT。");
             tips.SetToolTip(previewReset,"Stop the owned host, restore the rest view and start a fresh simulation from current in-memory data.\n停止本窗口宿主、恢复rest视图，再从当前内存数据重新初始化解算。");
             tips.SetToolTip(previewStop,"End this window's owned host and restore rest data without restarting; environment controls are retained.\n结束本窗口宿主、恢复rest数据，不重新启动；保留预览环境控件值。");
             tips.SetToolTip(previewRuntime,"Select hctPreviewPlugin.dll with the standard file picker; its parent runtime root is detected automatically. Six local HCT DLLs are required for native preview only.\n用标准文件选择窗口选择hctPreviewPlugin.dll，自动识别运行时根目录；仅原生解算预览需要6个本机HCT DLL。");
             tips.SetToolTip(previewRuntimePath,"Local optional proprietary runtime. Editor read/write works without it. FLVER_CLOTH_RUNTIME overrides the saved setting at startup.\n可选本机专有运行时；普通读写不依赖它。启动时FLVER_CLOTH_RUNTIME优先于保存设置。");
-            tips.SetToolTip(previewState,"Simulation time/frame and native step cost, not Viewer FPS or game certification. Current HKX, FLVER and CLM2 are snapshotted without modifying originals.\n解算时间/帧及耗时，不是Viewer帧率或游戏验证；HKX、FLVER、CLM2以内存副本送入宿主，不改原文件。");
+            tips.SetToolTip(previewState,"Simulation time, frame count and step cost.\n模拟时间、帧数和单步耗时。");
             previewPlay.Click+=async (s,e)=>{if(previewPlaying)PauseClothPreview();else await StartClothPreviewAsync();};
             previewReset.Click+=async (s,e)=>{StopClothPreview();await StartClothPreviewAsync();};
             previewStop.Click+=(s,e)=>StopClothPreview();
@@ -177,7 +176,7 @@ namespace MySFformat
             allowUnmodeledConstraints.CheckedChanged+=(s,e)=>{if(!populatingEditing){previewEnvironmentDirty=true;UpdateEditState();}};
             RefreshBackendControls();
             // 底部状态文本只占两行左右，长消息可滚动，不挤占布料视图。
-            status.Text="Load BB / DS3 / Sekiro / ER _c.hkx, parts Binder, or XML. Yellow: fixed (invMass=0); cyan: dynamic; orange: colliders.\nDrag to rotate, wheel to zoom, click a particle for its range sphere. Serialized rest data cannot confirm or rule out game-world wind.";
+            status.Text="Load a Cloth HKX, parts Binder, or XML.";
             tips.SetToolTip(load,"Load BB / DS3 / Sekiro / ER cloth HKX, parts Binder, or XML using the native C# codec. TAG0 author data is read-only.\n使用纯C#载入布料HKX、装备Binder或XML；只狼/法环TAG0作者数据只读。");
             tips.SetToolTip(domains,"Choose one simulation domain; only this domain is affected by range export.\n选择模拟域；范围导出只修改当前选择的域。");
             tips.SetToolTip(factor,"Scale LocalRange distances on export only (0.10–4.00). Original data and current view do not change.\n只在导出时缩放LocalRange距离（0.10–4.00）；不修改源数据或当前视图。");
@@ -192,15 +191,13 @@ namespace MySFformat
             tips.SetToolTip(objects,"Select a referenced simulation, constraint, operator, collider, or shape object.\n选择引用的模拟、约束、算子、碰撞体或形状对象。");
             tips.SetToolTip(xml,"Read-only source fields of the selected object; no edits are silently saved.\n只读查看选中对象的原始字段，不会静默保存修改。");
             tips.SetToolTip(status,
-                "Author edit/export messages. Native preview is a separate offline solver, not live-game verification.\n" +
-                "作者编辑/导出消息；原生预览是独立离线求解器，不代表游戏验证。");
+                "Load, edit and export messages.\n载入、编辑和导出消息。");
             // 文件弹窗单独放到 ClothInspectorActions，避免构造函数挤满长 lambda。
             load.Click += OnLoadClothClick;
             save.Click += OnSaveRangeClick;
             loadClm.Click += OnLoadClm2Click;
             editClm.Click += OnEditClm2Click;
             saveClm.Click += OnSaveClm2Click;
-            verify.Click += OnVerifyClothesClick;
             editHkx.Click += OnEditHkxClick;
             saveHkx.Click += OnSaveHkxClick;
             domains.SelectedIndexChanged += (s, e) =>
@@ -477,7 +474,7 @@ namespace MySFformat
             canvas.Invalidate();
             previewPlay.Enabled = true;
             previewPlay.Text = "Play Cloth";
-            previewState.Text = "Cloth preview off · rest data restored · sources unchanged";
+            previewState.Text = "Cloth preview off · rest pose";
         }
         void RefreshPreviewState()
         {
@@ -588,7 +585,7 @@ namespace MySFformat
             {
                 var document=await Task.Run(()=>ClothDocument.Load(source));
                 if(IsDisposed)return false;SetDocument(document);
-                status.Text="Auto-loaded: "+source+"\nSources unchanged. Edit author tables or Play Cloth for offline native preview; no live-game input.";
+                status.Text="Auto-loaded: "+source;
                 return true;
             }
             catch (ClothBinderSelectionException ex)
@@ -634,7 +631,7 @@ namespace MySFformat
             }
             if(!document.IsTagfile&&previewBackend.Items.Count>2){if(previewBackend.SelectedIndex==2)previewBackend.SelectedIndex=0;previewBackend.Items.RemoveAt(2);}
             RefreshBackendControls();
-            Text="Cloth Inspector — "+Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"")+" (Rest / Native Preview, Not Live Game)";
+            Text="Cloth Inspector — "+Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"");
         }
         void ShowDomain()
         {
@@ -717,7 +714,6 @@ namespace MySFformat
                 var rows=ClothDocument.Field(d.Sim,"particleDatas").Elements().ToArray();text.AppendLine(rows[i].ToString());
                 var masks=ClothDocument.Numbers(ClothDocument.Value(d.Sim,"staticCollisionMasks"));if(i<masks.Length)text.AppendLine("collisionMask: "+masks[i]);
             }
-            text.AppendLine("\r\nNative C# BB / DS3 read/write; Sekiro / ER TAG0 read-only. HKX Animation can drive the isolated native solver, not OpenPhysicsHKX; no live-game input.");
             text.AppendLine("Range circles show saved maximumDistance limits, not combined constraints.");
             text.AppendLine("Orange colliders follow the displayed skeleton pose when animation is linked; their table remains author data.");
             text.AppendLine("Source files/current FLVER remain unchanged. Save HKX Copy writes a validated new file.");
@@ -747,12 +743,14 @@ namespace MySFformat
         public int Selected=-1;
         public Action<int> PickValueRequested;
         public bool ShowParticles=true,ShowColliders=true,ShowRange=true;
+        public int ClothRenderMode; // 0: points/lines (default), 1: solid, 2: both
         public event Action SelectionChanged;
-        float yaw=.35f,pitch=.1f,zoom=1,span=1;Vector3 center;Point down,last;bool drag;
+        // Front view from -Z, matching the main Viewer's initial side.
+        float yaw=0,pitch=0,zoom=1,span=1;Vector3 center;Point down,last;bool drag;
         public ClothCanvas()
         {
             DoubleBuffered = true;
-            BackColor = Color.FromArgb(24,27,34);
+            BackColor = Color.FromArgb(34,38,46);
             InitializeSelectionInput();
             MouseWheel += (s, e) =>
             {
@@ -763,8 +761,8 @@ namespace MySFformat
         }
         public void ResetView()
         {
-            yaw = .35f;
-            pitch = .1f;
+            yaw = 0;
+            pitch = 0;
             zoom = 1;
             pan = PointF.Empty;
             if (Domain != null)
@@ -778,12 +776,38 @@ namespace MySFformat
             Invalidate();
         }
         float PixelScale {get{return Math.Min(Width,Height)*.8f*zoom/span;}}
+        float cachedViewYaw=float.NaN,cachedViewPitch=float.NaN;
+        Matrix4x4 cachedViewTransform;
+        Matrix4x4 ViewTransform
+        {
+            get
+            {
+                if(cachedViewYaw==yaw&&cachedViewPitch==pitch)return cachedViewTransform;
+                float sy=(float)Math.Sin(yaw),cy=(float)Math.Cos(yaw);
+                float sp=(float)Math.Sin(pitch),cp=(float)Math.Cos(pitch);
+                // Match Mono3D.DrawGround, including its handedness conversion:
+                // FLVER (X,Y,Z) -> Viewer (X,Z,Y), then MonoGame Z-up LookAt.
+                // pitch is camera elevation, NOT a right-handed model rotation.
+                var eye=new Microsoft.Xna.Framework.Vector3(sy*cp,-cy*cp,sp);
+                // Same as world Z-up for elevations within +/-90 degrees;
+                // the explicit camera-up remains defined at the poles as well.
+                var up=new Microsoft.Xna.Framework.Vector3(-sy*sp,cy*sp,cp);
+                var v=Microsoft.Xna.Framework.Matrix.CreateLookAt(eye,Microsoft.Xna.Framework.Vector3.Zero,up);
+                var view=new Matrix4x4(v.M11,v.M12,v.M13,v.M14,v.M21,v.M22,v.M23,v.M24,
+                    v.M31,v.M32,v.M33,v.M34,v.M41,v.M42,v.M43,v.M44);
+                var xzy=new Matrix4x4(1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1);
+                cachedViewTransform=xzy*view;
+                cachedViewYaw=yaw;cachedViewPitch=pitch;
+                return cachedViewTransform;
+            }
+        }
+        PointF ProjectViewPoint(Vector3 point)
+        {
+            return new PointF(Width*.5f+pan.X+point.X*PixelScale,Height*.5f+pan.Y-point.Y*PixelScale);
+        }
         PointF Project(Vector3 p)
         {
-            var point = Vector3.Transform(p - center,
-                Matrix4x4.CreateRotationY(yaw) * Matrix4x4.CreateRotationX(pitch));
-            return new PointF(Width * .5f + pan.X + point.X * PixelScale,
-                Height * .5f + pan.Y - point.Y * PixelScale);
+            return ProjectViewPoint(Vector3.Transform(p-center,ViewTransform));
         }
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -798,12 +822,14 @@ namespace MySFformat
             // 各绘制层的具体实现位于 ClothCanvasRendering，便于独立调整透明度与样式。
             var positions = DisplayPositions;
             DrawFlverMeshes(graphics);
+            DrawWorldAxes(graphics);
             DrawClothTriangles(graphics, positions);
             DrawClothColliders(graphics);
             DrawAnimationSkeleton(graphics);
             DrawClothParticles(graphics, positions);
             DrawSelectedRanges(graphics);
             DrawSelectionOverlay(graphics);
+            DrawAxisIndicator(graphics);
             graphics.DrawString(PreviewLabel ??
                 "REST VIEW · Left rotate · Middle / Shift+Left pan · Right select · Wheel zoom\n" +
                 "Yellow: fixed; cyan: dynamic; magenta: selected; orange: colliders",

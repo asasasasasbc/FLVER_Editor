@@ -8,8 +8,41 @@ namespace MySFformat
     {
         // 绘制分层：三角网格、参考/动画碰撞体、粒子、选区范围、骨架叠加。
         // 此处只读数据，不能把显示用的变换回写到作者文档。
+        void DrawWorldAxes(Graphics graphics)
+        {
+            // Same positive FLVER-space axes as Mono3D.DrawGround (its XZY
+            // display conversion must not be applied to these Y-up positions).
+            var origin = Project(Vector3.Zero);
+            graphics.DrawLine(Pens.Red, origin, Project(Vector3.UnitX * 10));
+            graphics.DrawLine(Pens.Yellow, origin, Project(Vector3.UnitY * 10));
+            graphics.DrawLine(Pens.Blue, origin, Project(Vector3.UnitZ * 10));
+        }
+
+        void DrawAxisIndicator(Graphics graphics)
+        {
+            // Keep orientation readable even when the world origin is off-screen.
+            // Rotation is shared with all geometry; pan and zoom do not affect it.
+            var origin = new PointF(60, Height - 60);
+            var axes = new[] { Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ };
+            var colors = new[] { Color.Red, Color.Yellow, Color.Blue };
+            var labels = new[] { "+X", "+Y", "+Z" };
+            for (int i = 0; i < axes.Length; i++)
+            {
+                var direction = Vector3.TransformNormal(axes[i], ViewTransform);
+                var end = new PointF(origin.X + direction.X * 38, origin.Y - direction.Y * 38);
+                using (var pen = new Pen(colors[i], 2))
+                using (var brush = new SolidBrush(colors[i]))
+                {
+                    graphics.DrawLine(pen, origin, end);
+                    graphics.FillEllipse(brush, end.X - 2, end.Y - 2, 4, 4);
+                    graphics.DrawString(labels[i], Font, brush, end.X + 3, end.Y - 8);
+                }
+            }
+        }
+
         void DrawClothTriangles(Graphics graphics, Vector3[] positions)
         {
+            if (ClothRenderMode == 1) return;
             using (var pen = new Pen(Color.FromArgb(100, 150, 175)))
             {
                 for (int i = 0; i < Domain.Triangles.Length; i += 3)
@@ -68,7 +101,7 @@ namespace MySFformat
 
         void DrawClothParticles(Graphics graphics, Vector3[] positions)
         {
-            if (ShowParticles)
+            if (ShowParticles && ClothRenderMode != 1)
                 for (int i = 0; i < positions.Length; i++)
                 {
                     var point = Project(positions[i]);
