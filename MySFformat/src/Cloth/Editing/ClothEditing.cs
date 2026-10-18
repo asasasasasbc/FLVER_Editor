@@ -92,7 +92,7 @@ namespace MySFformat
             all.Click+=(s,e)=>{if(canvas.Domain!=null)canvas.SetSelection(Enumerable.Range(0,canvas.Domain.Positions.Length));};
             invert.Click+=(s,e)=>{if(canvas.Domain!=null)canvas.SetSelection(Enumerable.Range(0,canvas.Domain.Positions.Length).Except(canvas.SelectedParticles).ToArray());};
             clear.Click+=(s,e)=>canvas.SetSelection(new int[0]);focus.Click+=(s,e)=>canvas.FocusSelection();
-            tips.SetToolTip(mode,"Left: select/box/brush. Ctrl or Shift: add; Alt: remove. Right drag: rotate; middle drag: pan; wheel: zoom.\n左键选择/框选/刷选，Ctrl或Shift添加、Alt移除；右键旋转，中键平移，滚轮缩放。");
+            tips.SetToolTip(mode,"Right: select/box/brush. Ctrl or Shift+right: add; Alt+right: remove. Left drag: rotate; middle or Shift+left drag: pan; wheel: zoom.\n右键选择/框选/刷选，Ctrl或Shift+右键添加、Alt+右键移除；左键旋转，中键或Shift+左键平移，滚轮缩放。");
             tips.SetToolTip(visible,"Test front-most cloth triangles for selection. Uncheck for through-selection, including rear particles. Reference colliders do not occlude picks.\n按布料三角面判断前后遮挡；取消则穿透选背面节点，参考碰撞体不遮挡选择。");
             tips.SetToolTip(similar,"Select by explicit properties in this simulation domain; no guessed skin weights.\n按明确属性选择当前模拟域节点，不猜测蒙皮权重。");
             KeyPreview=true;KeyDown+=(s,e)=>{if(e.KeyCode==Keys.F&&!IsTextEditing()){canvas.FocusSelection();e.Handled=true;}};
@@ -304,7 +304,7 @@ namespace MySFformat
             particles.ReadOnly=authorParameters.ReadOnly=constraintParameters.ReadOnly=readOnly;
             foreach(string name in new[]{"editHkx","saveHkx","saveRangeCopy","modifyClothSelection","discardClothChanges"})foreach(var control in Controls.Find(name,true))control.Enabled=!readOnly&&!applyingAuthor&&(!editingDirty||name=="modifyClothSelection"||name=="discardClothChanges");
             editState.Text=canvas.SelectedParticles.Count+" selected · "+(pending?"Pending edits — Apply Changes":Document!=null&&Document.Edited?"Applied in memory — save a copy":"No author changes")+(previewEnvironmentDirty?" · Environment pending — Apply Environment":"");
-            if(readOnly)editState.Text="ER TAG0 20180100 · read-only inspection / preview · no ER HKX export";
+            if(readOnly)editState.Text=Document.NativeLayout+" · read-only inspection / preview · no game HKX export";
             if(readOnly)applyAuthor.Enabled=undoAuthor.Enabled=redoAuthor.Enabled=false;
             selectedParticleEditor.Enabled=!readOnly&&!applyingAuthor;
             RefreshSelectionEditor();
@@ -312,7 +312,7 @@ namespace MySFformat
         public async Task ApplyAuthorChangesAsync()
         {
             if(applyingAuthor||Document==null)return;
-            if(Document.IsTagfile)throw new NotSupportedException("ER TAG0 author editing/export is not implemented.");
+            if(Document.IsTagfile)throw new NotSupportedException("Sekiro/ER TAG0 author editing/export is not implemented.");
             if(!ValidateChildren()||!particles.EndEdit()||!authorParameters.EndEdit()||!constraintParameters.EndEdit())return;
             if(!editingDirty)return;
             applyingAuthor=true;UpdateEditState();
@@ -350,7 +350,7 @@ namespace MySFformat
         }
         public void StageSelectedParticleValues(string field,double value,bool multiply=false)
         {
-            if(Document!=null&&Document.IsTagfile)throw new NotSupportedException("ER TAG0 author data is read-only.");
+            if(Document!=null&&Document.IsTagfile)throw new NotSupportedException("Sekiro/ER TAG0 author data is read-only.");
             PositiveNumber(value,field!="mass");if(canvas.SelectedParticles.Count==0)throw new InvalidOperationException("Select particles first.");
             var backup=new XDocument(stagedXml);bool wasDirty=editingDirty;
             try

@@ -9,6 +9,7 @@ MySFformat/.vs/MySFformat.csproj.dtbcache.json
 /MySFformat/tests/native-hkx-work
 
 # Local migration archives, game fixtures and development evidence.
+**/flver_editor_settings.json
 /helper-ext/
 **/__pycache__/
 MySFformat/.vs/MySFformat.csproj.dtbcache.json

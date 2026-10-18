@@ -583,7 +583,7 @@ namespace MySFformat
                 {
 
                     var sw = new StreamWriter(openFileDialog2.FileName);
-                    sw.Write(content);
+                    sw.Write(FormatOutput(content));
                     sw.Close();
                     MessageBox.Show(endMessage, "Info");
                 }
@@ -596,8 +596,55 @@ namespace MySFformat
 
         }
 
+        static void LoadEditorSettings()
+        {
+            var settings = AppSettings.Load<EditorPreferences>("Editor");
+            prettyFormatJson = settings.PrettyFormatJson;
+            loadTexture = settings.LoadTexture;
+            show3D = settings.Show3D;
+            legacyDisplay = settings.LegacyDisplay;
+        }
+
+        static void SaveEditorSettings()
+        {
+            try
+            {
+                AppSettings.Save("Editor", new { PrettyFormatJson = prettyFormatJson });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("The setting applies to this session, but could not be saved.\n" + ex.Message,
+                    "Settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        // Only whitespace outside strings changes; numeric tokens and escaped strings stay intact.
+        static string CompactJsonWhitespace(string json)
+        {
+            var result = new StringBuilder(json.Length);
+            bool quoted = false, escaped = false;
+            foreach (char c in json)
+            {
+                if (quoted)
+                {
+                    result.Append(c);
+                    if (escaped) escaped = false;
+                    else if (c == '\\') escaped = true;
+                    else if (c == '"') quoted = false;
+                }
+                else
+                {
+                    if (c == '"') quoted = true;
+                    if (!char.IsWhiteSpace(c)) result.Append(c);
+                }
+            }
+            return result.ToString();
+        }
+
         public static string FormatOutput(string jsonString)
         {
+            jsonString = CompactJsonWhitespace(jsonString);
+            if (!prettyFormatJson) return jsonString;
             var stringBuilder = new StringBuilder();
 
             bool escaping = false;

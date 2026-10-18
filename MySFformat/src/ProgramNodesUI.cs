@@ -30,7 +30,7 @@ namespace MySFformat
 
         // Initial positioning
         static int WINDOW_WIDTH = 550;
-        static int WINDOW_HEIGHT = 750;
+        static int WINDOW_HEIGHT = 850;
         static int SIDE_PANEL_W = 150;
         // This is the main method that handles file loading and launches the editor form.
         static void ModelAdjModule()
@@ -175,7 +175,7 @@ namespace MySFformat
             {
                 Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath),
                 Text = "FLVER Editor - " + Path.GetFileName(orgFileName),
-                Size = new Size(800, 750),
+                Size = new Size(WINDOW_WIDTH, WINDOW_HEIGHT),
                 MinimumSize = new Size(640, 480),
                 // Separate Popuped window
                 StartPosition = FormStartPosition.Manual
@@ -184,6 +184,7 @@ namespace MySFformat
 
             // --- Separate Popuped window ---
             var screen = Screen.PrimaryScreen.WorkingArea;
+            f.Height = Math.Min(WINDOW_HEIGHT, screen.Height);
             // 将窗口定位在屏幕的右侧。 (屏幕中心点 + 5像素间隙)
             int editorX = screen.Left + (screen.Width / 2) + 5;
             int editorY = screen.Top + (screen.Height - f.Height) / 2;
@@ -206,6 +207,7 @@ namespace MySFformat
             // Create and add controls
             var menuStrip = CreateMenuStrip(serializer);
             var mainPanel = CreateMainPanel(serializer);
+            mainPanel.Dock = DockStyle.Fill;
             var sidePanel = CreateSideButtonPanel(serializer);
             var thanksLabel = CreateThanksLabel();
 
@@ -215,19 +217,10 @@ namespace MySFformat
             f.Controls.Add(menuStrip);
             f.MainMenuStrip = menuStrip;
 
-            // Handle resizing
-            f.Resize += (s, e) =>
-            {
-                mainPanel.Size = new Size(f.ClientSize.Width - sidePanel.Width - 15, f.ClientSize.Height - thanksLabel.Height - menuStrip.Height - 10);
-                sidePanel.Location = new Point(f.ClientSize.Width - sidePanel.Width - 5, menuStrip.Height + 5);
-                sidePanel.Height = f.ClientSize.Height - thanksLabel.Height - menuStrip.Height - 15;
-                thanksLabel.Location = new Point(10, f.ClientSize.Height - thanksLabel.Height);
-            };
-
-            
-            f.PerformLayout(); // Ensure controls are created
-            f.Size = new Size(WINDOW_WIDTH+1, WINDOW_HEIGHT); // Trigger resize event once to position controls correctly
-            f.Size = new Size(WINDOW_WIDTH, WINDOW_HEIGHT);
+            // Dock in reverse control order: menu, footer, side buttons, then the
+            // remaining editor area. Do not rely on a synthetic Resize event:
+            // MinimumSize can clamp both requested widths to the same value.
+            f.PerformLayout();
 
             // Bring to front and run
             f.Load += (s, e) => { f.Activate(); };
@@ -312,7 +305,24 @@ namespace MySFformat
             supportMenu.DropDownItems.Add(supportItem);
             
 
+            var settingsMenu = new ToolStripMenuItem("【Settings】");
+            var disablePrettyJsonItem = new ToolStripMenuItem("Disable JSON Pretty Format")
+            {
+                CheckOnClick = true,
+                Checked = !prettyFormatJson,
+                ToolTipText = "Default: indented editor JSON and JSON exports. Check to disable pretty formatting and use compact JSON. Nodes/Header text is reformatted without applying edits; other open editors update when reopened/refreshed. Saved for the next launch.\n默认缩进显示和导出JSON；勾选后禁用格式化，使用原来的紧凑JSON。节点/头部文本仅调整排版，不应用修改；其他已打开编辑器在重开/刷新时生效。自动记住设置。"
+            };
+            disablePrettyJsonItem.CheckedChanged += (s, e) =>
+            {
+                prettyFormatJson = !disablePrettyJsonItem.Checked;
+                if (tbones != null && !tbones.IsDisposed) tbones.Text = FormatOutput(tbones.Text);
+                if (tbones2 != null && !tbones2.IsDisposed) tbones2.Text = FormatOutput(tbones2.Text);
+                SaveEditorSettings();
+            };
+            settingsMenu.DropDownItems.Add(disablePrettyJsonItem);
+
             menuStrip.Items.Add(legacyMenu);
+            menuStrip.Items.Add(settingsMenu);
             menuStrip.Items.Add(aboutMenu);
             menuStrip.Items.Add(supportMenu);
             return menuStrip;
@@ -337,7 +347,7 @@ namespace MySFformat
                 ScrollBars = ScrollBars.Vertical,
                 Size = new Size(WINDOW_WIDTH - SIDE_PANEL_W + 30, 300),
                 Location = new Point(10, currentY),
-                Text = serializer.Serialize(targetFlver.Nodes)
+                Text = FormatOutput(serializer.Serialize(targetFlver.Nodes))
             };
             p.Controls.Add(tbones);
             currentY += tbones.Height + 10;
@@ -350,7 +360,7 @@ namespace MySFformat
                 ScrollBars = ScrollBars.Vertical,
                 Size = new Size(WINDOW_WIDTH - SIDE_PANEL_W + 30, 150),
                 Location = new Point(10, currentY),
-                Text = serializer.Serialize(targetFlver.Header)
+                Text = FormatOutput(serializer.Serialize(targetFlver.Header))
             };
             p.Controls.Add(tbones2);
 
@@ -358,11 +368,13 @@ namespace MySFformat
             // We find the button later, so we have to do it this way.
             tbones.Tag = tbones2; // Store reference to the second textbox
 
-            // Resize handling for main panel content
-            p.Resize += (s, e) => {
-                dg.Width = p.ClientSize.Width - 20;
-                //tbones.Width = p.ClientSize.Width - 20;
-                //tbones2.Width = p.ClientSize.Width - 20;
+            // Keep every editor inside the scrollable viewport, including when
+            // scrollbars or DPI scaling change its client dimensions.
+            p.ClientSizeChanged += (s, e) => {
+                int width = Math.Max(1, p.ClientSize.Width - 20);
+                dg.Width = width;
+                tbones.Width = width;
+                tbones2.Width = width;
             };
 
             return p;
@@ -470,7 +482,7 @@ namespace MySFformat
                 }
             }
             var serializer = new JavaScriptSerializer { MaxJsonLength = Int32.MaxValue };
-            tbones.Text = serializer.Serialize(targetFlver.Nodes);
+            tbones.Text = FormatOutput(serializer.Serialize(targetFlver.Nodes));
         }
 
         private static Panel CreateSideButtonPanel(JavaScriptSerializer serializer)

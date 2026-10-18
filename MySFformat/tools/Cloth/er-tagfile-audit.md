@@ -1,5 +1,14 @@
 # ER TAG0 inspection and compatibility preview — 2026-10-15
 
+Follow-up (2026-10-16): the shared reader additionally supports Sekiro SDK
+20160200 with a distinct source marker/backend. The later OpenPhysicsHKX Core 0.2
+extension adds an approximate VolumeMx kernel, and the Editor evaluates authored
+Skin references. The original ER sample now passes 7/7 managed 120-frame sessions.
+See `managed-playback-audit.md`; this is not native/game physics equivalence.
+Core 0.3 subsequently adds independent reference IDs and the Editor's serial
+MeshMeshDeform graph; the ER corpus now passes 357/395 at 12 managed frames,
+without treating the remaining unsupported features as missing format schemas.
+
 ## Reader
 
 `HkxTagfileReader.cs` interprets bounded in-file TYPE metadata for SDK 20180100:

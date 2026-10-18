@@ -2,7 +2,7 @@ import subprocess, pathlib, hashlib, json
 from PIL import Image, ImageDraw
 root=pathlib.Path(__file__).resolve().parents[1]
 exe=root/'bin/Debug/MySFformat.exe'
-work=root/'tests/hkx-work';work.mkdir(exist_ok=True)
+work=root.parent/'helper-ext/animation/hkx-work';work.mkdir(parents=True,exist_ok=True)
 chrroot=pathlib.Path('G:/bloodborne_pc-win/Games/dvdroot_ps4/chr')
 skeleton=chrroot/'c0000-anibnd-dcx/chr/c0000/hkx/skeleton.hkx'
 animation=chrroot/'c0000_a00_hi-anibnd-dcx/chr/c0000/hkx/a000/a000_104252.hkx'

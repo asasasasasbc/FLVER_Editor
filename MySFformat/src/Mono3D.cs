@@ -1439,7 +1439,9 @@ namespace MySFformat
 
            
 
-            if (rotateDragging && mouseInViewport && mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            bool shiftPan = rotateDragging && mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed &&
+                (state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftShift) || state.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightShift));
+            if (rotateDragging && !shiftPan && mouseInViewport && mState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
             {
                 float mdx = mState.X - prevMState.X;
                 float mdy = mState.Y - prevMState.Y;
@@ -1471,7 +1473,7 @@ namespace MySFformat
 
             }
 
-            if (panDragging && mouseInViewport && mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
+            if (mouseInViewport && (shiftPan || (panDragging && mState.MiddleButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed)))
             {
                 float mdx = mState.X - prevMState.X;
                 float mdy = mState.Y - prevMState.Y;

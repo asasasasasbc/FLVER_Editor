@@ -129,7 +129,9 @@ backend → Native HCT (ER compatibility)**, choose the existing local HCT runti
 **Apply Environment**, and **Play Cloth**. This is an explicitly selected **2018
 → 2014 CPU physics approximation**, not the ER solver. The warning remains in
 preview status. The ordinary Native HCT option does not silently convert ER data;
-OpenPhysicsHKX does not yet implement ER operator bindings.
+OpenPhysicsHKX also accepts reviewed TAG0 input conversion, but retains strict
+constraint/reference-binding checks; accepting the format does not mean it can
+simulate all ER equipment (see managed coverage below).
 
 The compatibility path retains physical operators, constraint sets, reference
 indices, skin weights and authored solver configuration. It uses 2014 bending
@@ -145,6 +147,28 @@ deformers use more than four skin influences. Ten representative assets passed
 120 HCT compatibility frames; this is not 395-asset native simulation or gameplay
 validation. See `tools/Cloth/er-tagfile-audit.md` for format and validation scope.
 
+#### Sekiro equipment (Havok 2016 TAG0)
+
+Load the matching FLVER and `_c.hkx` (or primary equipment binder), then select
+**Preview Environment → Physics backend → Native HCT (Sekiro compatibility)**,
+choose the local HCT runtime, **Apply Environment**, and **Play Cloth**. This
+option is shown for SDK 20160200 documents, independently of the ER choice.
+Switching between ER and Sekiro clears an incompatible backend selection.
+
+This is **2016 → 2014 compatibility physics**, not the Sekiro runtime. The warning
+remains visible during playback. Sekiro TAG0 data is read-only; changing layout,
+author parameter editing and game HKX export are disabled. The ordinary Native
+HCT option refuses silent conversion. No skin-weight truncation or rest-binding
+fallback is used.
+
+All 14 Cloth files / 66 domains in the tested 32 primary armor binders load in
+Inspector. Twelve assets / 51 domains passed 120 native compatibility frames;
+`bd_m_9130` and `bd_m_9530` still refuse physics because of five-influence skinning.
+Finite frames are not gameplay/visual equivalence; the 9510/9520 head assets have
+large dynamic movement and need further visual verification. Mesh overlays retain
+the existing bone-weight visualization, not native Sekiro cloth-render output.
+See `tools/Cloth/sekiro-support-research.md` for evidence and limitations.
+
 #### Bloodborne / Dark Souls III and shared controls
 
 **Preview Environment → Physics backend** offers **Native HCT** and the bundled
@@ -156,11 +180,36 @@ Select it and **Apply Environment**, then **Play Cloth**. Native HCT remains the
 default. OpenPhysicsHKX is static rest-pose preview with basic capsule collisions,
 not native wind, friction, collision-mask filtering or animated/display-mesh output.
 
-BendLink and Transition have experimental approximate implementations, identified
+The managed adapter now normalizes supported Sekiro/ER TAG0 inputs using the
+reviewed compatibility view, without modifying the author document or loading
+HCT. Its status identifies the TAG0 input approximation. Core **0.3** includes
+the explicitly approximate VolumeMx weighted rigid shape-matching solve.
+The Editor evaluates authored ObjectSpace/BoneSpace Skin PN/PNT buffers against
+the rest skeleton, including packed vectors, blend weights and fixed-particle
+mapping. Compact reference indices keep their original meanings; they index the
+evaluated buffer, not the simulation-particle array. Position and normal targets
+are not replaced with independent particle-rest targets.
+
+Each constraint now retains its independent reference buffer ID and normal
+mapping. The Editor executes required MeshMeshDeform/copy/gather operations in
+authored serial order, using upstream simulation output to update downstream
+constraints and fixed targets every frame. MeshMeshDeform is labeled as a
+triangle-frame approximation in status; it is not a baked rest-reference workaround.
+
+Strict 120-frame tests (no omission opt-in, no HCT process) now pass **DS3 4/4**,
+**ER 7/7**, **Sekiro 12/14**, and **BB 4/4** in the tested sets. These replace the
+older 1/4 DS3 and 0/7 ER results, but are not a claim that every asset, animation
+binding or game-equivalent physical response works. See
+`tools/Cloth/managed-playback-audit.md` for implementation and validation scope.
+Across the existing primary-Cloth corpus, 12-frame managed screening passes
+**DS3 213/213** and **ER 357/395**. This is short playback coverage, not all-asset
+120-frame or game validation. The remaining assets are explicitly unsupported.
+
+BendLink, Transition and VolumeMx have experimental approximate implementations, identified
 in preview status. Other unknown constraints are refused unless **Allow unmodeled
 constraints to be omitted** is explicitly enabled; omitted classes remain listed.
-Rest-binding fallback has been removed. Unsupported compact/remapped references,
-dependent buffers (including parts of the original Hunter set), and variable
+Rest-binding fallback has been removed. Unsupported reference/input producers,
+dynamic bone-transform dependencies, and variable
 dynamic radii are refused rather than replaced with independent particle-rest
 targets or maximum radii. Use Native HCT for these bindings and animation.
 The common BB/DS3 reader now includes equipment Gather, Volume/VolumeMx,
@@ -255,7 +304,7 @@ tab and remains an export-only operation.
   while paused recreates it and stays paused; applying while stopped does not start
   physics. The camera and particle selection are retained.
 
-Left mouse selects, box-selects or paints a **Circle Brush** with adjustable screen
+Right mouse selects, box-selects or paints a **Circle Brush** with adjustable screen
 radius. Ctrl/Shift adds selection, Alt removes. **Visible only** checks occlusion
 against the cloth's triangles; disable it for rear/through selection. Reference
 colliders do not occlude selections. View and table selection are synchronized.
@@ -264,7 +313,7 @@ or inverse-mass tolerance, authored Y height, or shared constraint-set membershi
 Constraint-set selection can select most of a cloth; it is not an edge-loop tool.
 Selection is confined to the current simulation domain; no skin weights are guessed.
 
-**Middle drag pans**, right drag rotates, wheel zooms and **F / Focus** centers the
+**Left drag rotates**, **middle drag or Shift + left drag pans**, wheel zooms and **F / Focus** centers the
 selection. This version does not edit topology, fixed-particle membership, skin
 bindings or collider-derived geometry; those still require advanced author work.
 

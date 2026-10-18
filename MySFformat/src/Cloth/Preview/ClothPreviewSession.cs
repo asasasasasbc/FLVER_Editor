@@ -37,7 +37,7 @@ namespace MySFformat.Cloth.Preview
         readonly PreviewEnvironment environment;
         readonly string notice;
         public string WorkDirectory {get;private set;}
-        public string DisplayName {get{return string.IsNullOrEmpty(notice)?"Native HCT":"Native HCT (ER compatibility)";}}
+        public string DisplayName {get{return string.IsNullOrEmpty(notice)?"Native HCT":environment.Backend;}}
         public bool SupportsAnimation {get{return true;}}
         public string Notice {get{return notice;}}
         public int ProcessId {get{return process.Id;}}
@@ -45,18 +45,18 @@ namespace MySFformat.Cloth.Preview
         public string[] SkeletonNames {get{return (string[])skeletonNames.Clone();}}
         public string[][] SkeletonBones {get{return skeletonBones.Select(b=>(string[])b.Clone()).ToArray();}}
         public static string HelpersDirectory {get{return Path.Combine(Path.GetDirectoryName(typeof(ClothPreviewSession).Assembly.Location),"tools","ClothPreview");}}
-        public static string RuntimeSettingFile {get{return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"FLVER_Editor","ClothPreview","runtime-path.txt");}}
+        public static string RuntimeSettingFile {get{return AppSettings.FilePath;}}
         public static string DefaultRuntime
         {
             get
             {
                 string env=Environment.GetEnvironmentVariable("FLVER_CLOTH_RUNTIME");if(!string.IsNullOrWhiteSpace(env))return env;
-                return File.Exists(RuntimeSettingFile)?File.ReadAllText(RuntimeSettingFile).Trim():"";
+                return AppSettings.Load<ClothPreviewPreferences>("ClothPreview").RuntimePath??"";
             }
         }
         public static void SaveRuntimeSetting(string folder)
         {
-            ValidateRuntime(folder);Directory.CreateDirectory(Path.GetDirectoryName(RuntimeSettingFile));File.WriteAllText(RuntimeSettingFile,Path.GetFullPath(folder));
+            ValidateRuntime(folder);AppSettings.Save("ClothPreview",new ClothPreviewPreferences {RuntimePath=Path.GetFullPath(folder)});
         }
         public static void ValidateRuntime(string folder)
         {
@@ -78,12 +78,15 @@ namespace MySFformat.Cloth.Preview
         {
             string notice="";
             var source=System.Xml.Linq.XDocument.Parse(xml);
-            if((string)source.Root.Attribute("sourceFormat")=="TAG0-20180100")
+            if(HkxTagfileReader.IsTagfileDocument(source))
             {
-                if(environment.Backend!="Native HCT (ER compatibility)")throw new NotSupportedException("ER Cloth is Havok 2018. Select Native HCT (ER compatibility) to explicitly opt into a 2014 CPU physics approximation; this is not the ER runtime.");
+                bool sekiro=(string)source.Root.Attribute("sourceFormat")=="TAG0-20160200";
+                string backend=HkxTagfileReader.CompatibilityBackend(source),game=sekiro?"Sekiro":"ER";
+                if(environment.Backend!=backend)throw new NotSupportedException(game+" Cloth is TAG0. Select "+backend+" to explicitly opt into a 2014 CPU physics approximation; this is not the "+game+" runtime.");
                 xml=HkxTagfilePreviewAdapter.Create(source).ToString();
-                notice="ER 2018 → HCT 2014 approximation · 2014 bending · NOT ER runtime";
+                notice=game+(sekiro?" 2016":" 2018")+" → HCT 2014 approximation · 2014 bending · NOT "+game+" runtime";
             }
+            else if(environment.Backend!="Native HCT")throw new NotSupportedException("TAG0 compatibility backends require a matching Sekiro/ER TAG0 document.");
             ValidateRuntime(runtime);cancel.ThrowIfCancellationRequested();
             string helper=Path.Combine(HelpersDirectory,"HctPreviewProbe.exe"),builder=Path.Combine(HelpersDirectory,"PreviewAssetBuilder.exe"),schema=Path.Combine(HelpersDirectory,"schema-bb.xml");
             foreach(string path in new[]{helper,builder,schema})if(!File.Exists(path))throw new FileNotFoundException("Preview helper is missing; rebuild/deploy the editor: "+path);

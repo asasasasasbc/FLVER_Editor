@@ -28,7 +28,7 @@ namespace MySFformat
                 updateVertices();
                 ForceRefreshNodes();
                 if (tbones != null && !tbones.IsDisposed)
-                    tbones.Text = new System.Web.Script.Serialization.JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(targetFlver.Nodes);
+                    tbones.Text = FormatOutput(new System.Web.Script.Serialization.JavaScriptSerializer { MaxJsonLength = int.MaxValue }.Serialize(targetFlver.Nodes));
                 var save = MessageBox.Show(nodeUIForm,
                     "Calculated node-local bounds.\r\nChanged nodes: " + result.ChangedNodes +
                     "\r\nGeometry/ancestor/owner nodes: " + result.GeometryNodes +

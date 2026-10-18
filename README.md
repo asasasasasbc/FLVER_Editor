@@ -9,7 +9,7 @@ Users can view and edit models, materials, dummy points inside the FLVER file an
 
 Special thanks to TKGP's souls format library and Zulie the witch, Katalash.
 
-For HKX animation playback, Bloodborne / Dark Souls III Cloth editing, and Elden Ring TAG0 inspection / compatibility physics preview, see [Cloth and Animation](cloth-and-animation-README.md).
+For HKX animation playback, Bloodborne / Dark Souls III Cloth editing, and Sekiro / Elden Ring TAG0 inspection / compatibility physics preview, see [Cloth and Animation](cloth-and-animation-README.md).
 
 If you just want the .exe executable program, please download the release version at here: https://github.com/asasasasasbc/FLVER_Editor/releases
 
@@ -32,6 +32,14 @@ Unfortunately, xentax is down, please use aquatools or fbx exporting function th
 EldenRing Era:
 
 ## Update log
+
+### X2.9 update
+
+- Increased the main editor's initial height from 750 to 850 pixels (limited to the screen working area).
+- Editor JSON and JSON exports use pretty formatting by default. Check **Settings → Disable JSON Pretty Format** to restore compact JSON; the preference is remembered. Nodes/Header text updates immediately without applying edits; reopen/refresh other JSON editors to update their presentation.
+- Global preferences share **`flver_editor_settings.json`** beside the executable, with Editor, FbxImport, ClothPreview, ClothAnimation and HkxAnimation sections. Existing INI/FBX/Cloth animation/runtime-path settings migrate on first use; legacy files are retained unchanged. After migration, edit the unified JSON rather than the old files. Animation paths, speed and Loop are remembered without auto-loading or playing clips. Per-model camera `.view.json` files remain separate.
+- The 3D Viewer supports **Shift + left drag** to pan, alongside middle drag.
+- Cloth Inspector uses **left drag to rotate**, **middle / Shift + left drag to pan**, and **right mouse to select, box-select or brush particles**. Wheel zoom and selection modifiers are unchanged.
 
 ### Viewer UI fixes
 

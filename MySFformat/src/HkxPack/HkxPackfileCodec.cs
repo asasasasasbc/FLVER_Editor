@@ -27,7 +27,7 @@ namespace MySFformat
         public static XDocument Read(byte[] bytes) { if(HkxTagfileReader.IsTagfile(bytes))return new HkxTagfileReader(bytes).Read();return new Reader(bytes, bytes.Length>18&&bytes[18]==0?Ds3Metadata.Value:Metadata.Value).Read(); }
         public static byte[] Pack(XDocument xml)
         {
-            if((string)xml.Root.Attribute("sourceFormat")=="TAG0-20180100")throw new NotSupportedException("ER TAG0 author export is not implemented. A 2014 preview conversion is not a game-compatible ER HKX.");
+            if(HkxTagfileReader.IsTagfileDocument(xml))throw new NotSupportedException("TAG0 author export is not implemented. A 2014 preview conversion is not a game-compatible Sekiro/ER HKX.");
             byte[] bytes = new Writer(ForLayout((string)xml.Root.Attribute("nativeLayout")??"8,1,1,1")).Pack(xml);
             AssertEquivalent(xml, Read(bytes)); // fail before any output file is created
             return bytes;

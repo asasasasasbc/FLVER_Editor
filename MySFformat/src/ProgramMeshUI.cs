@@ -260,7 +260,7 @@ namespace MySFformat
                 };
                 try
                 {
-                    jsonTextBox.Text = jse.Serialize(EditedVertexBuffers);
+                    jsonTextBox.Text = FormatOutput(jse.Serialize(EditedVertexBuffers));
                 }
                 catch (Exception ex)
                 {
@@ -845,7 +845,7 @@ namespace MySFformat
 
                     //mes = jse.Deserialize<FLVER2.Mesh>(jse.Serialize(mes));
                     // mes.Vertices = null;
-                    meshInfo.Text = jse.Serialize(m2);
+                    meshInfo.Text = FormatOutput(jse.Serialize(m2));
                     updateVertices();
                 };
 

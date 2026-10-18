@@ -53,11 +53,13 @@ namespace MySFformat
         static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
         public XDocument Xml { get; private set; }
         public bool Edited { get; private set; }
-        public bool IsTagfile {get{return (string)Xml.Root.Attribute("sourceFormat")=="TAG0-20180100";}}
-        public string NativeLayout {get{return IsTagfile?"TAG0-20180100":(string)Xml.Root.Attribute("nativeLayout")??"8,1,1,1";}}
+        public bool IsTagfile {get{return HkxTagfileReader.IsTagfileDocument(Xml);}}
+        public bool IsSekiroTagfile {get{return (string)Xml.Root.Attribute("sourceFormat")=="TAG0-20160200";}}
+        public string TagfileBackend {get{return HkxTagfileReader.CompatibilityBackend(Xml);}}
+        public string NativeLayout {get{return IsTagfile?(string)Xml.Root.Attribute("sourceFormat"):(string)Xml.Root.Attribute("nativeLayout")??"8,1,1,1";}}
         public void SetNativeLayout(string layout)
         {
-            if(IsTagfile)throw new NotSupportedException("ER TAG0 is read-only; changing a packfile header does not convert it.");
+            if(IsTagfile)throw new NotSupportedException("Sekiro/ER TAG0 is read-only; changing a packfile header does not convert it.");
             if(layout!="8,1,1,1"&&layout!="8,1,0,1")throw new ArgumentException("Unsupported native header layout.");
             Xml.Root.SetAttributeValue("nativeLayout",layout);Edited=true;
         }

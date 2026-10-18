@@ -11,10 +11,6 @@ namespace MySFformat
     /// </summary>
     public class FbxImportSettings
     {
-        private static string SettingsFilePath => Path.Combine(
-            Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
-            "fbx_import_settings.json");
-
         public enum Axis { X, Y, Z, NegX, NegY, NegZ }
 
         // File Paths
@@ -54,9 +50,7 @@ namespace MySFformat
         {
             try
             {
-                var serializer = new JavaScriptSerializer();
-                string json = serializer.Serialize(this);
-                File.WriteAllText(SettingsFilePath, json);
+                AppSettings.Save("FbxImport", this);
             }
             catch (Exception ex)
             {
@@ -72,12 +66,7 @@ namespace MySFformat
         {
             try
             {
-                if (File.Exists(SettingsFilePath))
-                {
-                    string json = File.ReadAllText(SettingsFilePath);
-                    var serializer = new JavaScriptSerializer();
-                    return serializer.Deserialize<FbxImportSettings>(json);
-                }
+                return AppSettings.Load<FbxImportSettings>("FbxImport");
             }
             catch (Exception ex)
             {

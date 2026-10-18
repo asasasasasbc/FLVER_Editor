@@ -126,6 +126,8 @@
     <Compile Include="src\ClothDocument.cs" />
     <Compile Include="src\Cloth\Preview\IClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\ManagedClothPreviewSession.cs" />
+    <Compile Include="src\Cloth\Preview\ManagedReferenceBinding.cs" />
+    <Compile Include="src\Cloth\Preview\ManagedClothGraph.cs" />
     <Compile Include="src\Cloth\Preview\ClothPreviewSession.cs" />
     <Compile Include="src\Cloth\Preview\PreviewEnvironment.cs" />
     <Compile Include="src\Cloth\Editing\ClothEditing.cs">
@@ -162,7 +164,9 @@
     </Compile>
     <Compile Include="src\Cloth\Setup\ClothSetupXml.cs" />
     <Compile Include="src\Cloth\Setup\ClothSetupBuilder.cs" />
-    <Compile Include="src\Cloth\Setup\ClothSetupWizardForm.cs" />
+    <Compile Include="src\Cloth\Setup\ClothSetupWizardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="src\Cloth\Setup\ClothSetupFolderPicker.cs" />
     <Compile Include="src\ClothInspectorForm.cs">
       <SubType>Form</SubType>
@@ -181,6 +185,7 @@
     </Compile>
     <Compile Include="src\FbxBoneImporter.cs" />
     <Compile Include="src\FbxImportSettings.cs" />
+    <Compile Include="src\AppSettings.cs" />
     <Compile Include="src\IniParser.cs" />
     <Compile Include="src\Matrix3D.cs" />
     <Compile Include="src\Mono3D.cs" />
@@ -337,6 +342,12 @@
     <Content Include="tools\Cloth\er-tagfile-audit.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="tools\Cloth\sekiro-support-research.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tools\Cloth\managed-playback-audit.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="tools\Cloth\native-schema.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -351,6 +362,9 @@
       <Link>licenses\OpenPhysicsHKX-LICENSE.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="licenses\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="src\Cloth\Preview\PreviewBuild.targets" />

@@ -73,6 +73,7 @@ namespace MySFformat
         public static Boolean show3D = false;
         public static Boolean legacyDisplay = false;
         public static Boolean smooth = false;
+        public static bool prettyFormatJson = true;
         public static int boneFindParentTimes = 15;//if cannot find bone, find if its parent bone matches flver bone name
 
 
@@ -93,7 +94,7 @@ namespace MySFformat
 
         public static RotationOrder rotOrder = RotationOrder.YZX;
 
-        public static string version = "X2.8beta";
+        public static string version = "X2.9 beta";
 
         //v1.68 Update: fix switch YZ axis's UV coordinate problems when importing models
         //v1.71:Added xml edit & auto set texture path method.
@@ -195,12 +196,7 @@ namespace MySFformat
             }
             argments = args;
             Console.WriteLine("Hello!");
-            string assemblyPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            IniParser settingFile = new IniParser(assemblyPath + "\\MySFformat.ini");
-            loadTexture = (settingFile.GetSetting("FLVER", "loadTexture").Trim() != "0") ? true : false;
-          //  MessageBox.Show(settingFile.GetSetting("FLVER", "loadTexture"));
-            show3D = (settingFile.GetSetting("FLVER", "show3D").Trim() != "0") ? true : false;
-            legacyDisplay = (settingFile.GetSetting("FLVER", "legacyDisplay").Trim() != "0") ? true : false;
+            LoadEditorSettings();
             ModelAdjModule();
         }
 
@@ -908,7 +904,7 @@ namespace MySFformat
 
             currentY += l2.Height + 5;
 
-            string serializedResult = serializer.Serialize(targetFlver.BufferLayouts);
+            string serializedResult = FormatOutput(serializer.Serialize(targetFlver.BufferLayouts));
             TextBox tbones = new TextBox();
             tbones.Multiline = true;
             tbones.Size = new System.Drawing.Size(670, 600);
@@ -1094,7 +1090,7 @@ namespace MySFformat
 
 
             var serializer = new JavaScriptSerializer();
-            string serializedResult = serializer.Serialize(targetFlver.Materials);
+            string serializedResult = FormatOutput(serializer.Serialize(targetFlver.Materials));
 
 
             TextBox tbones = new TextBox();
@@ -1575,7 +1571,7 @@ namespace MySFformat
             tJs.Size = new System.Drawing.Size(400, 300);
             tJs.Multiline = true;
             tJs.Location = new System.Drawing.Point(10, currentY);
-            tJs.Text = new JavaScriptSerializer().Serialize(m);
+            tJs.Text = FormatOutput(new JavaScriptSerializer().Serialize(m));
             p.Controls.Add(tJs);
 
             currentY += 20;

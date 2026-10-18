@@ -100,7 +100,7 @@ namespace MySFformat
             var third=new FlowLayoutPanel {Dock=DockStyle.Fill,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,WrapContents=true,Padding=new Padding(5,0,5,5)};
             var editHkx=new Button {Name="editHkx",Text="Edit HKX XML…",AutoSize=true};
             var saveHkx=new Button {Name="saveHkx",Text="Save HKX Copy…",AutoSize=true};
-            var nativeLabel=new Label {Text="Native C# · BB/DS3 read-write · ER TAG0 read-only",AutoSize=true,Padding=new Padding(4,7,0,0)};
+            var nativeLabel=new Label {Text="Native C# · BB/DS3 read-write · Sekiro/ER TAG0 read-only",AutoSize=true,Padding=new Padding(4,7,0,0)};
             nativeLayout.Items.AddRange(new object[]{"8,1,1,1 (BB sample layout)","8,1,0,1 (DS3 sample layout)"});nativeLayout.SelectedIndex=0;
             third.Controls.AddRange(new Control[]{editHkx,saveHkx,nativeLayoutLabel,nativeLayout,nativeLabel});
             tips.SetToolTip(editHkx,"Open an advanced full-XML editor on a clone, changes memory only, press save HKX Copy to save to the harddrive.\n在克隆上弹窗编辑完整XML；只修改内存，记得点Save存硬盘。");
@@ -177,14 +177,14 @@ namespace MySFformat
             allowUnmodeledConstraints.CheckedChanged+=(s,e)=>{if(!populatingEditing){previewEnvironmentDirty=true;UpdateEditState();}};
             RefreshBackendControls();
             // 底部状态文本只占两行左右，长消息可滚动，不挤占布料视图。
-            status.Text="Load BB / DS3 _c.hkx, parts Binder, or XML. Yellow: fixed (invMass=0); cyan: dynamic; orange: colliders.\nDrag to rotate, wheel to zoom, click a particle for its range sphere. Serialized rest data cannot confirm or rule out game-world wind.";
-            tips.SetToolTip(load,"Load BB / DS3 cloth HKX, parts Binder, or XML using the native C# codec. \n使用纯C#编解码器载入BB/DS3布料HKX、装备Binder或XML。");
+            status.Text="Load BB / DS3 / Sekiro / ER _c.hkx, parts Binder, or XML. Yellow: fixed (invMass=0); cyan: dynamic; orange: colliders.\nDrag to rotate, wheel to zoom, click a particle for its range sphere. Serialized rest data cannot confirm or rule out game-world wind.";
+            tips.SetToolTip(load,"Load BB / DS3 / Sekiro / ER cloth HKX, parts Binder, or XML using the native C# codec. TAG0 author data is read-only.\n使用纯C#载入布料HKX、装备Binder或XML；只狼/法环TAG0作者数据只读。");
             tips.SetToolTip(domains,"Choose one simulation domain; only this domain is affected by range export.\n选择模拟域；范围导出只修改当前选择的域。");
             tips.SetToolTip(factor,"Scale LocalRange distances on export only (0.10–4.00). Original data and current view do not change.\n只在导出时缩放LocalRange距离（0.10–4.00）；不修改源数据或当前视图。");
             tips.SetToolTip(factorLabel,tips.GetToolTip(factor));
             tips.SetToolTip(save,"Save a new author XML with scaled LocalRange in the selected domain. Never overwrites a source; not a playable HKX/Binder. Reload the copy to inspect it.\n另存所选域LocalRange缩放后的作者XML，不覆盖源文件；不能直接作为游戏HKX/Binder。重新载入副本即可查看修改。");
             tips.SetToolTip(viewReset,"Reset the viewport camera.\n重置视角。");
-            tips.SetToolTip(canvas,"Left select/brush, right rotate, middle pan, wheel zoom, F focus. Ctrl/Shift add, Alt remove.\n左键选择/刷选，右键旋转，中键平移，滚轮缩放，F聚焦；Ctrl/Shift添加、Alt移除。");
+            tips.SetToolTip(canvas,"Left drag rotates; middle or Shift+left drag pans; right selects/brushes; wheel zooms; F focuses. Ctrl/Shift+right adds, Alt+right removes.\n左键拖动旋转，中键或Shift+左键拖动平移，右键选择/刷选，滚轮缩放，F聚焦；Ctrl/Shift+右键添加、Alt+右键移除。");
             tips.SetToolTip(summary,"Serialized parameters, solver schedule, bone subsets, and selected particle details. A bone subset is not per-particle skin weighting.\n查看文件参数、解算调度、骨集合和选中粒子详情；骨subset不是每个粒子的蒙皮权重。");
             tips.SetToolTip(particles,"Select a row to highlight its particle. Fixed state comes from invMass=0, not the fixedParticles array length.\n选择行高亮对应粒子；按invMass=0判定固定状态，而非fixedParticles数组长度。");
             tips.SetToolTip(collisions,"Supported collider endpoints/radii in skeleton rest space. Unsupported shapes remain available in Raw XML.\n查看支持的碰撞体rest端点/半径；未支持形状仍可在原始XML中检查。");
@@ -223,13 +223,13 @@ namespace MySFformat
         static NumericUpDown EnvironmentNumber(string name,decimal minimum,decimal maximum,decimal value){return new NumericUpDown{Name=name,Minimum=minimum,Maximum=maximum,Value=value,DecimalPlaces=2,Increment=.1m,Width=62};}
         public PreviewEnvironment ReadPreviewEnvironment()
         {
-            var settings=new PreviewEnvironment{Backend=previewBackend.SelectedIndex==2?"Native HCT (ER compatibility)":previewBackend.SelectedIndex==1?"OpenPhysicsHKX":"Native HCT",AllowUnmodeledConstraints=allowUnmodeledConstraints.Checked,OverrideGravity=gravityOverride.Checked,GravityX=(float)gravityX.Value,GravityY=(float)gravityY.Value,GravityZ=(float)gravityZ.Value,WindEnabled=previewBackend.SelectedIndex!=1&&windEnabled.Checked,WindX=(float)windX.Value,WindY=(float)windY.Value,WindZ=(float)windZ.Value,WindSpeed=(float)windSpeed.Value,WindMaxDrag=(float)windDrag.Value};settings.Validate();return settings;
+            var settings=new PreviewEnvironment{Backend=previewBackend.SelectedIndex==1?"OpenPhysicsHKX":Convert.ToString(previewBackend.SelectedItem),AllowUnmodeledConstraints=allowUnmodeledConstraints.Checked,OverrideGravity=gravityOverride.Checked,GravityX=(float)gravityX.Value,GravityY=(float)gravityY.Value,GravityZ=(float)gravityZ.Value,WindEnabled=previewBackend.SelectedIndex!=1&&windEnabled.Checked,WindX=(float)windX.Value,WindY=(float)windY.Value,WindZ=(float)windZ.Value,WindSpeed=(float)windSpeed.Value,WindMaxDrag=(float)windDrag.Value};settings.Validate();return settings;
         }
         public void ConfigurePreviewBackend(string backend)
         {
-            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&backend!="Native HCT (ER compatibility)")throw new ArgumentException("Unknown physics backend.");
-            if(backend=="Native HCT (ER compatibility)"&&(Document==null||!Document.IsTagfile))throw new InvalidOperationException("Load an ER TAG0 Cloth document first.");
-            previewBackend.SelectedIndex=backend=="Native HCT (ER compatibility)"?2:backend=="OpenPhysicsHKX"?1:0;
+            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&backend!="Native HCT (ER compatibility)"&&backend!="Native HCT (Sekiro compatibility)")throw new ArgumentException("Unknown physics backend.");
+            if(backend!="Native HCT"&&backend!="OpenPhysicsHKX"&&(Document==null||!Document.IsTagfile||Document.TagfileBackend!=backend))throw new InvalidOperationException("Load the matching Sekiro/ER TAG0 Cloth document first.");
+            previewBackend.SelectedIndex=backend=="OpenPhysicsHKX"?1:previewBackend.Items.IndexOf(backend);
         }
         void RefreshBackendControls()
         {
@@ -239,15 +239,16 @@ namespace MySFformat
             foreach(var control in new Control[]{windEnabled,windX,windY,windZ,windSpeed,windDrag})control.Enabled=!managed;
             foreach(var control in Controls.Find("testClothWind",true))control.Enabled=!managed;
             previewBackendNote.Text=managed?
-                "Bundled CPU solver; no runtime folder. BendLink/Transition are approximate. Static rest pose and basic capsules only; no animation, wind, friction or collision-mask filtering. Unsupported bindings are refused.":
+                "Bundled CPU solver; no runtime folder. Authored multi-buffer/serial cloth graph with dynamic MeshMeshDeform approximation. BendLink/Transition/VolumeMx are approximate. Rest skeleton and basic capsules; no character animation, wind, friction or collision-mask filtering. Unsupported producers are refused.":
                 "Native HCT uses the optional local runtime. Wind is enabled by default. Apply Environment restarts the active backend; Stop retains settings.";
             tips.SetToolTip(previewBackendNote,managed?
                 "No vendor DLL is loaded. Particle previews only; no native display-mesh output.\n无需厂商DLL；仅粒子预览，无原生变形显示网格。当前是rest近似，无动画/风/摩擦和碰撞掩码筛选；未支持约束明确拒绝。":
                  "Native HCT physics runs in an isolated helper process.\nHCT原生物理在独立宿主进程运行。");
             if(previewBackend.SelectedIndex==2)
             {
-                previewBackendNote.Text="ER 2018 → HCT 2014 CPU compatibility approximation, NOT the ER runtime. Preserves mapped operators and constraints; uses 2014 bending. Active unsupported features are refused. No game-compatible ER HKX export.";
-                tips.SetToolTip(previewBackendNote,"Explicit cross-version physics preview; not ER runtime equivalence. No rest-binding substitution.\n显式跨版本物理近似预览，不是法环原版解算器；不使用rest绑定替代，不支持的活动特性会拒绝。");
+                bool sekiro=Document!=null&&Document.IsSekiroTagfile;string game=sekiro?"Sekiro":"ER";
+                previewBackendNote.Text=game+(sekiro?" 2016":" 2018")+" → HCT 2014 CPU compatibility approximation, NOT the "+game+" runtime. Preserves mapped operators and constraints; uses 2014 bending. Active unsupported features are refused. No game-compatible TAG0 HKX export.";
+                tips.SetToolTip(previewBackendNote,"Explicit cross-version physics preview; not game-runtime equivalence. No rest-binding substitution.\n显式跨版本物理近似预览，不是游戏原版解算器；不使用rest绑定替代，不支持的活动特性会拒绝。");
             }
         }
         public async Task ApplyPreviewEnvironmentAsync()
@@ -324,7 +325,7 @@ namespace MySFformat
                 if (Document == null) throw new InvalidOperationException("Load Cloth first.");
                 var environment = forcedEnvironment == null ? ReadPreviewEnvironment() : forcedEnvironment.Clone();
                 bool managed=environment.Backend=="OpenPhysicsHKX";
-                if(environment.Backend!="Native HCT"&&environment.Backend!="Native HCT (ER compatibility)"&&!managed)throw new InvalidOperationException("Unknown preview backend.");
+                if(environment.Backend!="Native HCT"&&environment.Backend!="Native HCT (ER compatibility)"&&environment.Backend!="Native HCT (Sekiro compatibility)"&&!managed)throw new InvalidOperationException("Unknown preview backend.");
                 if(managed&&HasLinkedAnimation)throw new NotSupportedException("OpenPhysicsHKX currently supports rest-pose physics only. Uncheck Drive Native Cloth or select Native HCT.");
                 if (!managed&&Program.targetFlver == null) throw new InvalidOperationException("Load the matching FLVER first.");
                 if (Clm2 == null) AutoLoadClm2Companion();
@@ -618,10 +619,19 @@ namespace MySFformat
             ResetClothAnimationForDocument();
             Document=document;AutoLoadClm2Companion();domains.Items.Clear();domains.Items.AddRange(document.Domains.Cast<object>().ToArray());domains.SelectedIndex=0;
             updatingLayout=true;
-            if(document.IsTagfile&&nativeLayout.Items.Count==2)nativeLayout.Items.Add("TAG0 20180100 (ER, read-only)");
+            if(document.IsTagfile)
+            {
+                string label=document.NativeLayout+" ("+(document.IsSekiroTagfile?"Sekiro":"ER")+", read-only)";
+                if(nativeLayout.Items.Count==2)nativeLayout.Items.Add(label);else nativeLayout.Items[2]=label;
+            }
             if(!document.IsTagfile&&nativeLayout.Items.Count>2)nativeLayout.Items.RemoveAt(2);
             nativeLayout.SelectedIndex=document.IsTagfile?2:document.NativeLayout=="8,1,0,1"?1:0;updatingLayout=false;
-            if(document.IsTagfile&&previewBackend.Items.Count==2)previewBackend.Items.Add("Native HCT (ER compatibility)");
+            if(document.IsTagfile)
+            {
+                if(previewBackend.Items.Count==2)previewBackend.Items.Add(document.TagfileBackend);
+                else if(Convert.ToString(previewBackend.Items[2])!=document.TagfileBackend)
+                {if(previewBackend.SelectedIndex==2)previewBackend.SelectedIndex=0;previewBackend.Items[2]=document.TagfileBackend;}
+            }
             if(!document.IsTagfile&&previewBackend.Items.Count>2){if(previewBackend.SelectedIndex==2)previewBackend.SelectedIndex=0;previewBackend.Items.RemoveAt(2);}
             RefreshBackendControls();
             Text="Cloth Inspector — "+Path.GetFileName(document.Source)+(document.Edited?" [in-memory edits]":"")+" (Rest / Native Preview, Not Live Game)";
@@ -676,7 +686,7 @@ namespace MySFformat
             if(Document==null||domains.SelectedIndex<0)return;
             var d=Document.Domains[domains.SelectedIndex];var text=new StringBuilder();
             text.AppendLine("Source: "+Document.Source).AppendLine(d.Name);
-            text.AppendLine(Document.IsTagfile?"Havok 2018 TAG0 / SDK 20180100 — read-only author data":"Havok64 2014.1 native header layout: "+Document.NativeLayout+" (not a game-ID guarantee)");
+            text.AppendLine(Document.IsTagfile?Document.NativeLayout+" ("+(Document.IsSekiroTagfile?"Sekiro":"ER")+") — read-only author data":"Havok64 2014.1 native header layout: "+Document.NativeLayout+" (not a game-ID guarantee)");
             text.AppendLine("Particles: "+d.Positions.Length+"; fixed (invMass=0): "+d.Fixed.Count(x=>x)+"; triangles: "+d.Triangles.Length/3);
             text.AppendLine("fixedParticles array count: "+ClothDocument.Field(d.Sim,"fixedParticles").Attribute("numelements").Value);
             text.AppendLine("Visualized collider shapes: "+d.Colliders.Count+" / "+ClothDocument.Field(d.Sim,"perInstanceCollidables").Attribute("numelements").Value+"; unsupported shapes: see Raw XML.");
@@ -707,7 +717,7 @@ namespace MySFformat
                 var rows=ClothDocument.Field(d.Sim,"particleDatas").Elements().ToArray();text.AppendLine(rows[i].ToString());
                 var masks=ClothDocument.Numbers(ClothDocument.Value(d.Sim,"staticCollisionMasks"));if(i<masks.Length)text.AppendLine("collisionMask: "+masks[i]);
             }
-            text.AppendLine("\r\nNative C# BB / DS3 read/write. HKX Animation can drive the isolated Cloth solver; no live-game input.");
+            text.AppendLine("\r\nNative C# BB / DS3 read/write; Sekiro / ER TAG0 read-only. HKX Animation can drive the isolated native solver, not OpenPhysicsHKX; no live-game input.");
             text.AppendLine("Range circles show saved maximumDistance limits, not combined constraints.");
             text.AppendLine("Orange colliders follow the displayed skeleton pose when animation is linked; their table remains author data.");
             text.AppendLine("Source files/current FLVER remain unchanged. Save HKX Copy writes a validated new file.");
@@ -795,7 +805,7 @@ namespace MySFformat
             DrawSelectedRanges(graphics);
             DrawSelectionOverlay(graphics);
             graphics.DrawString(PreviewLabel ??
-                "REST VIEW · Left select · Right rotate · Middle pan · Wheel zoom\n" +
+                "REST VIEW · Left rotate · Middle / Shift+Left pan · Right select · Wheel zoom\n" +
                 "Yellow: fixed; cyan: dynamic; magenta: selected; orange: colliders",
                 Font, Brushes.White, 8, 8);
         }

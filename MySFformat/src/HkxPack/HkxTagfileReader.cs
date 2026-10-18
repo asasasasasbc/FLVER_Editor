@@ -1,4 +1,4 @@
-// TAG0 20180100 reader. Format informed by The12thAvenger/HKLib (MIT;
+// TAG0 20160200 / 20180100 reader. Format informed by The12thAvenger/HKLib (MIT;
 // see tools/Cloth/LICENSE-HKLib.txt). No generated SDK classes or runtime DLL.
 // The file's own TYPE metadata is bounded and interpreted, never executed.
 using System;
@@ -28,6 +28,16 @@ namespace MySFformat
         readonly HashSet<int> patches=new HashSet<int>();
         static readonly CultureInfo C=CultureInfo.InvariantCulture;
         public static bool IsTagfile(byte[] data){return data!=null&&data.Length>=8&&Encoding.ASCII.GetString(data,4,4)=="TAG0";}
+        public static bool IsTagfileDocument(XDocument xml){return ((string)xml.Root.Attribute("sourceFormat")??"").StartsWith("TAG0-",StringComparison.Ordinal);}
+        public static string CompatibilityBackend(XDocument xml)
+        {
+            switch((string)xml.Root.Attribute("sourceFormat"))
+            {
+                case "TAG0-20160200":return "Native HCT (Sekiro compatibility)";
+                case "TAG0-20180100":return "Native HCT (ER compatibility)";
+                default:throw new NotSupportedException("Unsupported TAG0 source profile.");
+            }
+        }
         public HkxTagfileReader(byte[] data){bytes=data??throw new ArgumentNullException("data");}
         void Bounds(int p,long n){if(p<0||n<0||p+(long)n>bytes.Length)throw new InvalidDataException("TAG0 access outside file.");}
         uint U32(int p){Bounds(p,4);return BitConverter.ToUInt32(bytes,p);}
@@ -197,7 +207,9 @@ namespace MySFformat
         {
             if(bytes.Length>128*1024*1024||!IsTagfile(bytes))throw new InvalidDataException("Invalid or oversized TAG0 file.");
             var top=Sections(0,bytes.Length);var root=Required(top,"TAG0");var chunks=Sections(root.Start,root.End);var sdk=Required(chunks,"SDKV");
-            if(sdk.End-sdk.Start!=8||Encoding.ASCII.GetString(bytes,sdk.Start,8)!="20180100")throw new NotSupportedException("Only TAG0 SDK 20180100 Cloth is supported.");
+            if(sdk.End-sdk.Start!=8)throw new NotSupportedException("Invalid TAG0 SDK version length.");
+            string version=Encoding.ASCII.GetString(bytes,sdk.Start,8);
+            if(version!="20180100"&&version!="20160200")throw new NotSupportedException("Only TAG0 SDK 20160200 (Sekiro) and 20180100 (ER) Cloth are supported.");
             var data=Required(chunks,"DATA");dataStart=data.Start;dataEnd=data.End;
             var meta=Required(chunks,"TYPE");var typeSections=Sections(meta.Start,meta.End);var names=Strings(Required(typeSections,"TSTR"));var fields=Strings(Required(typeSections,"FSTR"));
             Seek(Required(typeSections,"TNA1"));int count=Var();if(count<2||count>8192)throw new InvalidDataException("Unsafe TAG0 type count.");types=new TypeInfo[count];types[0]=new TypeInfo{Name="NULL"};
@@ -236,7 +248,7 @@ namespace MySFformat
                 for(int j=0;j<n;j++){int address=checked(dataStart+(int)U32(patch));patch+=4;DataBounds(address,4);if(!patches.Add(address)||!pointers.Contains(address))throw new InvalidDataException("Unvisited or duplicate TAG0 pointer patch at DATA+"+(address-dataStart).ToString(C)+".");}
             }
             foreach(int p in pointers)if(U64(p)!=0&&!patches.Contains(p))throw new InvalidDataException("TAG0 pointer is missing its patch entry.");
-            return new XDocument(new XElement("hkpackfile",new XAttribute("classversion",11),new XAttribute("contentsversion","hk_2018.1.0"),new XAttribute("sourceFormat","TAG0-20180100"),section));
+            return new XDocument(new XElement("hkpackfile",new XAttribute("classversion",11),new XAttribute("contentsversion",version=="20160200"?"hk_2016.2.0":"hk_2018.1.0"),new XAttribute("sourceFormat","TAG0-"+version),section));
         }
     }
 }

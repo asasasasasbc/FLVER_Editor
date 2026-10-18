@@ -439,7 +439,7 @@ namespace MySFformat
                     serializer.MaxJsonLength = int.MaxValue;
                     // Consider Newtonsoft.Json for pretty printing if desired:
                     // txtDummyJson.Text = Newtonsoft.Json.JsonConvert.SerializeObject(dummy, Newtonsoft.Json.Formatting.Indented);
-                    txtDummyJson.Text = serializer.Serialize(dummy);
+                    txtDummyJson.Text = FormatOutput(serializer.Serialize(dummy));
                 }
                 catch (Exception ex)
                 {
@@ -552,7 +552,7 @@ namespace MySFformat
                     {
                         var serializer = new JavaScriptSerializer();
                         serializer.MaxJsonLength = int.MaxValue;
-                        txtDummyJson.Text = serializer.Serialize(_selectedDummy);
+                        txtDummyJson.Text = FormatOutput(serializer.Serialize(_selectedDummy));
                     }
                     catch (Exception ex)
                     {
@@ -667,7 +667,7 @@ namespace MySFformat
             if (targetFlver == null) return;
             var serializer = new JavaScriptSerializer();
             serializer.MaxJsonLength = int.MaxValue;
-            string serializedResult = serializer.Serialize(targetFlver.Dummies);
+            string serializedResult = FormatOutput(serializer.Serialize(targetFlver.Dummies));
             exportJson(serializedResult, $"{flverName}_Dummies.json", "Dummies exported to JSON successfully!");
         }
 

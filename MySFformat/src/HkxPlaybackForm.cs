@@ -14,6 +14,7 @@ namespace MySFformat
         public const string BloodborneRoot = @"G:\bloodborne_pc-win\Games\dvdroot_ps4\chr";
         string skeletonPath = Path.Combine(BloodborneRoot, @"c0000-anibnd-dcx\chr\c0000\hkx\skeleton.hkx");
         string animationPath;
+        readonly AnimationPreferences settings = AppSettings.Load<AnimationPreferences>("HkxAnimation");
         readonly Label status = new Label { AutoSize = false, Height = 76, Dock = DockStyle.Top };
         readonly TextBox skeletonText = new TextBox { ReadOnly = true, Dock = DockStyle.Fill };
         readonly TextBox animationText = new TextBox { ReadOnly = true, Dock = DockStyle.Fill };
@@ -62,12 +63,17 @@ namespace MySFformat
             tips.SetToolTip(speed, "Playback speed multiplier; 1.00 is normal speed.\n播放速度倍率；1.00 为正常速度。");
             tips.SetToolTip(skeletonText, "Path to the selected skeleton HKX.\n当前选中的骨架 HKX 文件路径。");
             tips.SetToolTip(animationText, "Path to the selected animation HKX.\n当前选中的动画 HKX 文件路径。");
+            if (!string.IsNullOrWhiteSpace(settings.SkeletonPath)) skeletonPath = settings.SkeletonPath;
+            animationPath = string.IsNullOrWhiteSpace(settings.AnimationPath) ? null : settings.AnimationPath;
+            speed.Value = Math.Max(speed.Minimum, Math.Min(speed.Maximum, settings.Speed));
+            loop.Checked = settings.Loop;
             skeletonText.Text = File.Exists(skeletonPath) ? skeletonPath : "Choose skeleton.hkx first";
+            animationText.Text = animationPath ?? "";
             status.Text = "Load a FLVER, choose its skeleton.hkx, then Load HKX.\nPreview only: no model or game files are modified.\nTimeline uses 60 Hz samples; frame 0 is the first sample.";
             slider.ValueChanged += (s, e) => { if (!updating) SeekFrame(slider.Value); };
             frame.ValueChanged += (s, e) => { if (!updating) SeekFrame((int)frame.Value); };
-            speed.ValueChanged += (s, e) => { if (Playback != null) Playback.Speed = (float)speed.Value; };
-            loop.CheckedChanged += (s, e) => { if (Playback != null) Playback.Loop = loop.Checked; };
+            speed.ValueChanged += (s, e) => { if (Playback != null) Playback.Speed = (float)speed.Value; SavePreferences(); };
+            loop.CheckedChanged += (s, e) => { if (Playback != null) Playback.Loop = loop.Checked; SavePreferences(); };
             timer.Tick += (s, e) => {
                 if (Playback == null || !Object.ReferenceEquals(model, Program.targetFlver)) { Pause(); Program.ClearHkxPreview(); return; }
                 float elapsed = (float)clock.Elapsed.TotalSeconds; clock.Restart();
@@ -88,7 +94,7 @@ namespace MySFformat
             using (var dlg = new OpenFileDialog { Title = "Select skeleton.hkx", Filter = "Havok skeleton (*.hkx)|*.hkx", FileName = "skeleton.hkx", InitialDirectory = ExistingDirectory(skeletonPath) })
             {
                 if (dlg.ShowDialog(this) != DialogResult.OK) return;
-                if (animationPath == null) { skeletonPath = dlg.FileName; skeletonText.Text = skeletonPath; }
+                if (clip == null) { skeletonPath = dlg.FileName; skeletonText.Text = skeletonPath; SavePreferences(); }
                 else TryLoad(dlg.FileName, animationPath);
             }
         }
@@ -116,6 +122,14 @@ namespace MySFformat
             Playback = new HkxPlaybackState(clip.Duration, HkxAnimationClip.SampleRate) { Speed = (float)speed.Value, Loop = loop.Checked };
             skeletonText.Text = skeleton; animationText.Text = animation; slider.Maximum = Playback.LastFrame; frame.Maximum = Playback.LastFrame;
             ApplyFrame();
+            SavePreferences();
+        }
+        void SavePreferences()
+        {
+            settings.SkeletonPath = skeletonPath; settings.AnimationPath = animationPath ?? "";
+            settings.Speed = speed.Value; settings.Loop = loop.Checked;
+            try { AppSettings.Save("HkxAnimation", settings); }
+            catch (Exception ex) { Trace.WriteLine("HKX animation settings: " + ex.Message); }
         }
         public void SeekFrame(int value) { if (Playback == null) return; Pause(); Playback.SeekFrame(value); ApplyFrame(); }
         public void Pause() { timer.Stop(); clock.Stop(); if (Playback != null) Playback.Pause(); RefreshLabels(); }

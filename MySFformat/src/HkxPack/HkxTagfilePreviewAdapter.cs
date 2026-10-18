@@ -1,4 +1,4 @@
-// Preview-only 2018 -> 2014 CPU compatibility view. Not an ER asset exporter.
+// Preview-only 2016/2018 -> 2014 CPU compatibility view. Not a game asset exporter.
 // Keep all physical operators/constraints; reject unsupported active features.
 using System;
 using System.Collections.Generic;
@@ -18,13 +18,13 @@ namespace MySFformat
         static readonly CultureInfo C=CultureInfo.InvariantCulture;
         HkxTagfilePreviewAdapter(XDocument xml)
         {
-            if((string)xml.Root.Attribute("sourceFormat")!="TAG0-20180100")throw new ArgumentException("Expected ER TAG0 view.");
+            HkxTagfileReader.CompatibilityBackend(xml); // require a reviewed source profile
             using(var input=typeof(HkxPackfileCodec).Assembly.GetManifestResourceStream("MySFformat.NativeDs3ClothSchema.xml"))
             {if(input==null)throw new InvalidDataException("Missing compatibility schema.");schema=XDocument.Load(input).Root.Elements("class").ToDictionary(c=>(string)c.Attribute("name"));}
             objects=xml.Root.Element("hksection").Elements("hkobject").ToDictionary(o=>(string)o.Attribute("name"));
         }
         static XElement F(XElement o,string name){return o.Elements("hkparam").SingleOrDefault(p=>(string)p.Attribute("name")==name);}
-        static string V(XElement o,string name){var p=F(o,name);if(p==null)throw new NotSupportedException("Missing ER preview input: "+(string)o.Attribute("class")+"."+name);return p.Value.Trim();}
+        static string V(XElement o,string name){var p=F(o,name);if(p==null)throw new NotSupportedException("Missing TAG0 preview input: "+(string)o.Attribute("class")+"."+name);return p.Value.Trim();}
         static void RequireEmpty(XElement p,string reason){if(p!=null&&((int?)p.Attribute("numelements")!=0||p.HasElements||p.Value.Trim().Length!=0))throw new NotSupportedException(reason);}
         IEnumerable<XElement> Members(string cls)
         {
@@ -35,7 +35,7 @@ namespace MySFformat
         void Reference(string text)
         {
             foreach(string id in text.Split((char[])null,StringSplitOptions.RemoveEmptyEntries))
-            {if(id=="null")continue;if(!objects.ContainsKey(id))throw new InvalidDataException("Unknown ER object reference.");if(enqueued.Add(id))pending.Enqueue(id);}
+            {if(id=="null")continue;if(!objects.ContainsKey(id))throw new InvalidDataException("Unknown TAG0 object reference.");if(enqueued.Add(id))pending.Enqueue(id);}
         }
         XElement Prepared(XElement original)
         {
@@ -51,7 +51,7 @@ namespace MySFformat
                     var words=new List<string>();
                     foreach(var p in packed)
                     {
-                        if(p==null)throw new InvalidDataException("Incomplete ER packed vector block.");var vector=p.Elements("hkobject").Single();
+                        if(p==null)throw new InvalidDataException("Incomplete TAG0 packed vector block.");var vector=p.Elements("hkobject").Single();
                         for(int i=1;i<=4;i++)words.Add(V(vector,"values"+i.ToString(C)));
                     }
                     foreach(var p in packed)p.Remove();for(int i=0;i<words.Count;i++)result.Add(new XElement("hkparam",new XAttribute("name",prefix+(i+1).ToString(C)),words[i]));
@@ -62,28 +62,28 @@ namespace MySFformat
         bool Ignorable(string cls,XElement p)
         {
             string key=(string)p.Attribute("name");
-            if(key=="propertyBag"){if(p.Value.Trim()!="null")throw new NotSupportedException("Nonempty ER property bag.");return true;}
+            if(key=="propertyBag"){if(p.Value.Trim()!="null")throw new NotSupportedException("Nonempty TAG0 property bag.");return true;}
             if(key=="constraintId")return true; // stable author handle, not a solver operation
             if(key=="operatorID"||key=="usedBuffers"||key=="usedTransformSets")return cls.EndsWith("Operator",StringComparison.Ordinal);
             if(cls=="hclClothState"&&key=="dependencyGraph")return true; // preserve serial operators, omit job scheduling only
-            if(cls=="hclClothData"&&key=="stateTransitions"){RequireEmpty(p,"ER state transitions are not supported by 2014 preview.");return true;}
+            if(cls=="hclClothData"&&key=="stateTransitions"){RequireEmpty(p,"TAG0 state transitions are not supported by 2014 preview.");return true;}
             if(cls=="hclSimulateOperator"&&key=="simulateOpConfigs")return true;
             if(cls=="hclSimClothData")
             {
                 if(new[]{"simOpIds","transferMotionEnabled","landscapeCollisionEnabled","pinchDetectionEnabled"}.Contains(key))return true;
                 if(key=="virtualCollisionPointsData")
-                {var data=p.Elements("hkobject").Single();if(V(data,"numVCPoints")!="0"||V(data,"numLandscapeVCPoints")!="0")throw new NotSupportedException("Active ER virtual collision points require a 2018 solver; they are not omitted.");return true;}
+                {var data=p.Elements("hkobject").Single();if(V(data,"numVCPoints")!="0"||V(data,"numLandscapeVCPoints")!="0")throw new NotSupportedException("Active TAG0 virtual collision points are unsupported by the 2014 compatibility path; they are not omitted.");return true;}
             }
             if(cls=="hclSimClothDataLandscapeCollisionData"&&key=="collisionTolerance")return true;
             if((cls=="hclObjectSpaceDeformer"||cls=="hclBoneSpaceDeformer")&&new[]{"fiveBlendEntries","sixBlendEntries","sevenBlendEntries","eightBlendEntries"}.Contains(key))
-            {RequireEmpty(p,"ER 5–8 bone skinning influences require a 2018 deformer; weights are not truncated.");return true;}
-            if(key=="customSkinDeform"){if(p.Value.Trim()!="false")throw new NotSupportedException("ER custom skin deform is not supported by 2014 preview.");return true;}
+            {RequireEmpty(p,"TAG0 5–8 bone skinning influences are unsupported by the 2014 compatibility path; weights are not truncated.");return true;}
+            if(key=="customSkinDeform"){if(p.Value.Trim()!="false")throw new NotSupportedException("TAG0 custom skin deform is not supported by 2014 preview.");return true;}
             if(cls=="hclBendStiffnessConstraintSet"&&(key=="clampBendStiffness"||key=="maxRestPoseHeightSq"))return true; // explicitly labeled 2014 bend approximation
             if(cls=="hclCollidable")
             {
                 if(key=="userData")return true;
-                if(key=="enabled"){if(p.Value.Trim()!="true")throw new NotSupportedException("Disabled ER collidables are not supported by 2014 preview.");return true;}
-                if(key=="virtualCollisionPointCollisionEnabled"){if(p.Value.Trim()!="false")throw new NotSupportedException("ER virtual collision point collider mode is not supported.");return true;}
+                if(key=="enabled"){if(p.Value.Trim()!="true")throw new NotSupportedException("Disabled TAG0 collidables are not supported by 2014 preview.");return true;}
+                if(key=="virtualCollisionPointCollisionEnabled"){if(p.Value.Trim()!="false")throw new NotSupportedException("TAG0 virtual collision point collider mode is not supported.");return true;}
             }
             return false;
         }
@@ -95,9 +95,9 @@ namespace MySFformat
             var used=new HashSet<string>();XElement config=null;
             if(cls=="hclSimulateOperator")
             {
-                var configs=F(source,"simulateOpConfigs");if(configs==null||configs.Elements().Count()!=1)throw new NotSupportedException("2014 compatibility preview requires exactly one ER simulation config.");
-                config=configs.Elements().Single();if(V(config,"useAllInstanceCollidables")!="true")throw new NotSupportedException("ER per-config collider subsets are not supported.");
-                RequireEmpty(F(config,"instanceCollidablesUsed"),"ER per-config collider subsets are not supported.");
+                var configs=F(source,"simulateOpConfigs");if(configs==null||configs.Elements().Count()!=1)throw new NotSupportedException("2014 compatibility preview requires exactly one TAG0 simulation config.");
+                config=configs.Elements().Single();if(V(config,"useAllInstanceCollidables")!="true")throw new NotSupportedException("TAG0 per-config collider subsets are not supported.");
+                RequireEmpty(F(config,"instanceCollidablesUsed"),"TAG0 per-config collider subsets are not supported.");
             }
             foreach(var m in Members(cls))
             {
@@ -118,7 +118,7 @@ namespace MySFformat
                     var output=new XElement("hkparam",new XAttribute("name",key));result.Add(output);string kind=(string)m.Attribute("vtype"),sub=(string)m.Attribute("vsubtype"),target=(string)m.Attribute("ctype");
                     if(kind=="TYPE_ARRAY")
                     {
-                        output.SetAttributeValue("numelements",(int?)input.Attribute("numelements")??throw new InvalidDataException("Missing ER array count."));
+                        output.SetAttributeValue("numelements",(int?)input.Attribute("numelements")??throw new InvalidDataException("Missing TAG0 array count."));
                         if(sub=="TYPE_STRUCT")foreach(var row in input.Elements("hkobject")){var mapped=Record(row,target,sim);mapped.Attributes().Remove();output.Add(mapped);}
                         else if(sub=="TYPE_STRINGPTR")output.Add(input.Elements().Select(e=>new XElement(e)));
                         else{output.Value=input.Value.Trim();if(sub=="TYPE_POINTER")Reference(output.Value);}
@@ -136,7 +136,7 @@ namespace MySFformat
                 }
             }
             foreach(var extra in source.Elements("hkparam").Where(p=>!used.Contains((string)p.Attribute("name"))))
-                if(!Ignorable(cls,extra))throw new NotSupportedException("Unmapped ER compatibility field: "+cls+"."+(string)extra.Attribute("name"));
+                if(!Ignorable(cls,extra))throw new NotSupportedException("Unmapped TAG0 compatibility field: "+cls+"."+(string)extra.Attribute("name"));
             return result;
         }
         public static XDocument Create(XDocument source)

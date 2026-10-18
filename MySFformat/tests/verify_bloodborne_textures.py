@@ -1,6 +1,6 @@
 import pathlib,subprocess,json,hashlib
 from PIL import Image,ImageDraw
-root=pathlib.Path(__file__).resolve().parents[1];work=root/'tests/hkx-work';exe=root/'bin/Debug/MySFformat.exe'
+root=pathlib.Path(__file__).resolve().parents[1];work=root.parent/'helper-ext/animation/hkx-work';work.mkdir(parents=True,exist_ok=True);exe=root/'bin/Debug/MySFformat.exe'
 models={'native':pathlib.Path('G:/bloodborne_pc-win/Games/dvdroot_ps4/parts/bd_f_2200.partsbnd.dcx'),'saber':pathlib.Path('G:/bloodborne_pc-win/MOD/Saber-Hunter-v3/dvdroot_ps4/parts/bd_f_2200.partsbnd.dcx')}
 report=[]
 for name,model in models.items():

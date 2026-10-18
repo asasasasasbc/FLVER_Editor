@@ -15,19 +15,21 @@ namespace MySFformat
     {
         public string SkeletonPath {get;set;} = "";
         public string AnimationPath {get;set;} = "";
-        internal static string SettingsFilePath {get{return Path.Combine(Path.GetDirectoryName(typeof(ClothInspectorForm).Assembly.Location),"cloth_animation_settings.json");}}
+        public decimal Speed {get;set;} = 1;
+        public bool Loop {get;set;} = true;
+        public bool DriveNativeCloth {get;set;} = true;
         internal static ClothAnimationPathSettings Load()
         {
             try
             {
-                if(File.Exists(SettingsFilePath))return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<ClothAnimationPathSettings>(File.ReadAllText(SettingsFilePath))??new ClothAnimationPathSettings();
+                return AppSettings.Load<ClothAnimationPathSettings>("ClothAnimation");
             }
             catch(Exception ex){Console.WriteLine("Failed to load Cloth animation paths: "+ex.Message);}
             return new ClothAnimationPathSettings();
         }
         internal void Save()
         {
-            try{File.WriteAllText(SettingsFilePath,new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(this));}
+            try{AppSettings.Save("ClothAnimation",this);}
             catch(Exception ex){Console.WriteLine("Failed to save Cloth animation paths: "+ex.Message);}
         }
     }
@@ -88,6 +90,8 @@ namespace MySFformat
             if(!string.IsNullOrWhiteSpace(animationPathSettings.SkeletonPath))animationSkeletonPath.Text=animationPathSettings.SkeletonPath;
             else if(File.Exists(defaultSkeleton))animationSkeletonPath.Text=defaultSkeleton;
             animationFilePath.Text=animationPathSettings.AnimationPath??"";
+            animationSpeed.Value=Math.Max(animationSpeed.Minimum,Math.Min(animationSpeed.Maximum,animationPathSettings.Speed));
+            animationLoop.Checked=animationPathSettings.Loop;animationLink.Checked=animationPathSettings.DriveNativeCloth;
             skeleton.Click+=async(s,e)=>{
                 using(var dialog=new OpenFileDialog {Title="Select character skeleton.hkx",Filter="HKX skeleton|*.hkx",AutoUpgradeEnabled=true})
                 {
@@ -109,9 +113,9 @@ namespace MySFformat
             rest.Click+=async(s,e)=>{PauseClothAnimation();animationRest=true;canvas.AnimationBones=null;canvas.AnimationColliders=null;await RestartForAnimationDiscontinuityAsync(false);RefreshAnimationLabels();UpdateMeshPreview();canvas.Invalidate();};
             animationTimeline.ValueChanged+=async(s,e)=>{if(!animationUpdating)await SeekClothAnimationAsync(animationTimeline.Value);};
             animationFrame.ValueChanged+=async(s,e)=>{if(!animationUpdating)await SeekClothAnimationAsync((int)animationFrame.Value);};
-            animationSpeed.ValueChanged+=(s,e)=>{if(ClothAnimationPlayback!=null)ClothAnimationPlayback.Speed=(float)animationSpeed.Value;};
-            animationLoop.CheckedChanged+=(s,e)=>{if(ClothAnimationPlayback!=null)ClothAnimationPlayback.Loop=animationLoop.Checked;};
-            animationLink.CheckedChanged+=async(s,e)=>{PauseClothAnimation();await RestartForAnimationDiscontinuityAsync(false);RefreshAnimationLabels();};
+            animationSpeed.ValueChanged+=(s,e)=>{if(ClothAnimationPlayback!=null)ClothAnimationPlayback.Speed=(float)animationSpeed.Value;animationPathSettings.Speed=animationSpeed.Value;animationPathSettings.Save();};
+            animationLoop.CheckedChanged+=(s,e)=>{if(ClothAnimationPlayback!=null)ClothAnimationPlayback.Loop=animationLoop.Checked;animationPathSettings.Loop=animationLoop.Checked;animationPathSettings.Save();};
+            animationLink.CheckedChanged+=async(s,e)=>{animationPathSettings.DriveNativeCloth=animationLink.Checked;animationPathSettings.Save();PauseClothAnimation();await RestartForAnimationDiscontinuityAsync(false);RefreshAnimationLabels();};
             animationTimer.Tick+=(s,e)=>{
                 if(ClothAnimationPlayback==null||!ClothAnimationPlayback.Playing||HasLinkedAnimation)return;
                 try{float elapsed=(float)animationClock.Elapsed.TotalSeconds;animationClock.Restart();ClothAnimationPlayback.Advance(Math.Min(.1f,elapsed));UpdateAnimationCanvas();RefreshAnimationLabels();if(!ClothAnimationPlayback.Playing)animationTimer.Stop();}
